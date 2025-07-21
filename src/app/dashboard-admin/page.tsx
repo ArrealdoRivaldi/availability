@@ -306,19 +306,18 @@ const Dashboard = () => {
                     return (
                       <Step key={step.value} completed={false}>
                         <StepLabel
-                          StepIconComponent={() => <CustomStepIcon status={step.status} />}
+                          StepIconComponent={undefined}
                           sx={{
-                            '.MuiStepLabel-label': { fontWeight: 600, color: statusColor[step.status] },
+                            '.MuiStepLabel-label': { fontWeight: 600 },
                             '.MuiStepLabel-iconContainer': { pr: 1 },
                           }}
                         >
                           <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                             <Box>
-                              <Typography fontWeight={600} color={statusColor[step.status]}>{step.label}</Typography>
-                              <Typography variant="caption" color="text.secondary">{step.status}</Typography>
+                              <Typography fontWeight={600}>{step.label}</Typography>
                             </Box>
                             <Box minWidth={60} textAlign="right">
-                              <Typography fontWeight={700} color={statusColor[step.status]}>{count} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>({percent}%)</span></Typography>
+                              <Typography fontWeight={700}>{count} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>({percent}%)</span></Typography>
                             </Box>
                           </Box>
                         </StepLabel>
