@@ -1,0 +1,9 @@
+*{
+     font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif !important;
+}
+@media (max-width: 600px) {
+  .MuiTableCell-root {
+    padding: 4px !important;
+    font-size: 11px !important;
+  }
+}
