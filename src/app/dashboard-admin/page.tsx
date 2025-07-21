@@ -102,6 +102,20 @@ const Dashboard = () => {
     return <span style={{ fontSize: 22, color: statusColor[status] }}>{statusIcon[status]}</span>;
   }
 
+  // Tambahkan mapping icon untuk setiap step
+  const stepIcons: Record<string, string> = {
+    'Identification': '✔️',
+    'Plan Action': '🔄',
+    'Assessment TSel': '⏳',
+    'Justification': '✔️',
+    'Waiting Budget': '⏸️',
+    'Waiting PO': '🔄',
+    'Have Program': '🔄',
+    'Execution': '✔️',
+    'Done - Review by Tsel': '⏳',
+    'Complete': '🏁',
+  };
+
   // Pie chart data (status)
   const statusList = ['Open', 'Close', 'Waiting approval', 'Rejected'];
   const statusCounts: Record<string, number> = statusList.reduce((acc: Record<string, number>, status) => {
@@ -313,7 +327,8 @@ const Dashboard = () => {
                           }}
                         >
                           <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-                            <Box>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <span style={{fontSize:20, color:'#374151'}}>{stepIcons[step.label] || '•'}</span>
                               <Typography fontWeight={600}>{step.label}</Typography>
                             </Box>
                             <Box minWidth={60} textAlign="right">
