@@ -81,25 +81,13 @@ const Dashboard = () => {
     // Step khusus: Complete
     { value: 'Complete', label: 'Complete', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Done' && (row['Status'] || '') === 'Close').length },
   ];
-  const statusColor: Record<string, string> = {
-    'Done': '#42a5f5',
-    'In Progress': '#66bb6a',
-    'Waiting': '#ff9800',
-    'On Hold': '#bdb76b',
-  };
-  const statusIcon: Record<string, string> = {
-    'Done': '✔️',
-    'In Progress': '🔄',
-    'Waiting': '⏳',
-    'On Hold': '⏸️',
-  };
   const stepCounts: Record<string, number> = STEPPER_STEPS.reduce((acc: Record<string, number>, step) => {
     acc[step.value] = step.count(filteredRows);
     return acc;
   }, {});
   const totalStepCount = Object.values(stepCounts).reduce((sum, val) => sum + val, 0);
   function CustomStepIcon({ status }: { status: string }) {
-    return <span style={{ fontSize: 22, color: statusColor[status] }}>{statusIcon[status]}</span>;
+    return <span style={{ fontSize: 22, color: statusColors[status] }}>{statusColors[status]}</span>;
   }
 
   // Tambahkan mapping icon untuk setiap step

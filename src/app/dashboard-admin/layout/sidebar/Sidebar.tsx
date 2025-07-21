@@ -47,11 +47,11 @@ const MSidebar = ({
           open={isSidebarOpen}
           variant="permanent"
           PaperProps={{
-            sx: {
-              boxSizing: "border-box",
-              ...scrollbarStyles,
-              width: sidebarWidth,
-            },
+              sx: {
+                boxSizing: "border-box",
+                ...scrollbarStyles,
+                width: sidebarWidth,
+              },
           }}
         >
           {/* ------------------------------------------- */}
@@ -82,10 +82,10 @@ const MSidebar = ({
       onClose={onSidebarClose}
       variant="temporary"
       PaperProps={{
-        sx: {
-          boxShadow: (theme) => theme.shadows[8],
-          ...scrollbarStyles,
-        },
+          sx: {
+            boxShadow: (theme) => theme.shadows[8],
+            ...scrollbarStyles,
+          },
       }}
     >
       {/* ------------------------------------------- */}
