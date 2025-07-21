@@ -14,7 +14,7 @@ const ROOT_CAUSE_OPTIONS = [
   'Radio',
   'Others',
 ];
-const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM', 'Project'];
+const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM', 'Project', 'Engineering'];
 const PROGRESS_OPTIONS = [
   { value: 'Identification', label: 'Identification (enom)' },
   { value: 'Plan Action', label: 'Plan Action (enom)' },
