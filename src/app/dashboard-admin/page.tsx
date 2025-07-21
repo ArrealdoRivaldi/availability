@@ -195,9 +195,10 @@ const Dashboard = () => {
   };
 
   // 2. Dept PIC table data with new columns
+  // Ganti getDeptPicTableData agar selalu tampilkan semua PIC Dept
+  const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM', 'Project'];
   const getDeptPicTableData = () => {
-    const groups = Array.from(new Set(rows.map(r => r['PIC Dept']).filter(Boolean)));
-    const data = groups.map(g => {
+    return PIC_DEPT_OPTIONS.map(g => {
       const groupRows = rows.filter(r => r['PIC Dept'] === g);
       return {
         label: g,
@@ -206,15 +207,13 @@ const Dashboard = () => {
         rejected: groupRows.filter(r => r['Status'] === 'Rejected').length,
         close: groupRows.filter(r => r['Status'] === 'Close').length,
       };
-    });
-    const total = {
+    }).concat({
       label: 'Grand Total',
-      open: data.reduce((a, b) => a + b.open, 0),
-      waiting: data.reduce((a, b) => a + b.waiting, 0),
-      rejected: data.reduce((a, b) => a + b.rejected, 0),
-      close: data.reduce((a, b) => a + b.close, 0),
-    };
-    return [...data, total];
+      open: rows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+      waiting: rows.filter(r => r['Status'] === 'Waiting approval').length,
+      rejected: rows.filter(r => r['Status'] === 'Rejected').length,
+      close: rows.filter(r => r['Status'] === 'Close').length,
+    });
   };
 
   // Calculate total data and total data with progress
