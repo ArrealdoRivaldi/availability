@@ -64,7 +64,7 @@ const Dashboard = () => {
     (!filter.nop || row['NOP'] === filter.nop) &&
     (!filter.status || row['Status'] === filter.status) &&
     (!filter.pic || row['PIC Dept'] === filter.pic)
-  ); 
+  );
 
   // Stepper config sesuai permintaan
   const STEPPER_STEPS = [

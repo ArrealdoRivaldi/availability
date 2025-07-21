@@ -363,6 +363,25 @@ const DataPage = () => {
     );
   });
 
+  const getDeptPicTableData = () => {
+    return PIC_DEPT_OPTIONS.map(g => {
+      const groupRows = rows.filter(r => r['PIC Dept'] === g);
+      return {
+        label: g,
+        open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+        waiting: groupRows.filter(r => r['Status'] === 'Waiting approval').length,
+        rejected: groupRows.filter(r => r['Status'] === 'Rejected').length,
+        close: groupRows.filter(r => r['Status'] === 'Close').length,
+      };
+    }).concat({
+      label: 'Grand Total',
+      open: rows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+      waiting: rows.filter(r => r['Status'] === 'Waiting approval').length,
+      rejected: rows.filter(r => r['Status'] === 'Rejected').length,
+      close: rows.filter(r => r['Status'] === 'Close').length,
+    });
+  };
+
   return (
     <Box p={3}>
       <Typography variant="h5" fontWeight={700} mb={3}>
