@@ -221,6 +221,20 @@ const Dashboard = () => {
   const totalData = rows.length;
   const totalDataProgress = rows.filter((row: any) => row['Progress'] && row['Progress'].trim() !== '').length;
 
+  // Mapping warna untuk setiap step
+  const stepColors: Record<string, string> = {
+    'Identification': '#1976d2',
+    'Plan Action': '#388e3c',
+    'Assessment TSel': '#fbc02d',
+    'Justification': '#7b1fa2',
+    'Waiting Budget': '#0288d1',
+    'Waiting PO': '#0288d1',
+    'Have Program': '#0097a7',
+    'Execution': '#8e24aa',
+    'Done - Review by Tsel': '#ff9800',
+    'Complete': '#43a047',
+  };
+
   return (
     <Box p={{ xs: 1, md: 3 }} sx={{ background: '#f7f8fa', minHeight: '100vh' }}>
       <Paper sx={{ p: { xs: 1, md: 3 }, mb: 4, borderRadius: 3, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', background: '#fff' }} elevation={2}>
@@ -316,11 +330,11 @@ const Dashboard = () => {
                         >
                           <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                             <Box display="flex" alignItems="center" gap={1}>
-                              <span style={{fontSize:20, color:'#374151'}}>{stepIcons[step.label] || '•'}</span>
-                              <Typography fontWeight={600}>{step.label}</Typography>
+                              <span style={{fontSize:20, color:stepColors[step.label]}}>{stepIcons[step.label] || '•'}</span>
+                              <Typography fontWeight={600} style={{color:stepColors[step.label]}}>{step.label}</Typography>
                             </Box>
                             <Box minWidth={60} textAlign="right">
-                              <Typography fontWeight={700}>{count} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>({percent}%)</span></Typography>
+                              <Typography fontWeight={700} style={{color:stepColors[step.label]}}>{count} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>({percent}%)</span></Typography>
                             </Box>
                           </Box>
                         </StepLabel>
