@@ -93,6 +93,8 @@ const DataPage = () => {
   ];
   // Tambah state untuk popup detail pesan
   const [detailPopup, setDetailPopup] = useState<{title: string, value: string} | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editNoChange, setEditNoChange] = useState<string | null>(null);
 
   // Filter states
   const [filter, setFilter] = useState({
@@ -193,6 +195,28 @@ const DataPage = () => {
 
   const handleEditSave = async () => {
     if (!editRow) return;
+    // Validasi: semua field wajib diisi
+    const requiredFields = ['Root Cause', 'PIC Dept', 'Source Power', 'Progress', 'Detail Problem', 'Plan Action', 'Need Support'];
+    for (const field of requiredFields) {
+      if (!editForm[field] || String(editForm[field]).trim() === '') {
+        setEditError(`Field '${field}' wajib diisi.`);
+        return;
+      }
+    }
+    // Cek perubahan data
+    let isChanged = false;
+    for (const field of requiredFields) {
+      if ((editRow[field] || '') !== (editForm[field] || '')) {
+        isChanged = true;
+        break;
+      }
+    }
+    if (!isChanged) {
+      setEditNoChange('Tidak ada perubahan data.');
+      return;
+    }
+    setEditError(null);
+    setEditNoChange(null);
     const isDone = String(editForm['Progress']).toLowerCase() === 'done';
     const updates: any = {
       'Root Cause': editForm['Root Cause'],
@@ -203,9 +227,8 @@ const DataPage = () => {
       'Plan Action': editForm['Plan Action'],
       'Need Support': editForm['Need Support'],
       'Date Close': Array.isArray(editForm['Date Close']) ? editForm['Date Close'] : [],
-      // Status hanya diisi jika Progress = Done
       'Status': isDone ? 'Waiting approval' : '',
-      'Remark': '', // kosongkan remark setiap edit
+      'Remark': '',
     };
     await update(ref(database, editRow.id), updates);
     setEditOpen(false);
@@ -507,6 +530,12 @@ const DataPage = () => {
           )}
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2}>
+              {editError && (
+                <Typography color="error" fontSize={14}>{editError}</Typography>
+              )}
+              {editNoChange && (
+                <Typography color="warning.main" fontSize={14}>{editNoChange}</Typography>
+              )}
               <label style={{ fontWeight: 500 }}>Root Cause
                 <select
                   value={editForm['Root Cause'] || ''}
