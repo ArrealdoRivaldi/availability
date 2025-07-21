@@ -173,9 +173,17 @@ const Dashboard = () => {
 
   // Table helpers
   const getTableData = (groupKey: string, label: string) => {
-    const groups = Array.from(new Set(rows.map(r => r[groupKey]).filter(Boolean)));
+    let groups = Array.from(new Set(rows.map(r => r[groupKey]).filter(Boolean)));
+    if (label === 'Root Cause') {
+      groups = [...groups, 'Blank'];
+    }
     const data = groups.map(g => {
-      const groupRows = rows.filter(r => r[groupKey] === g);
+      let groupRows;
+      if (label === 'Root Cause' && g === 'Blank') {
+        groupRows = rows.filter(r => !r['Root Cause'] || r['Root Cause'].trim() === '');
+      } else {
+        groupRows = rows.filter(r => r[groupKey] === g);
+      }
       return {
         label: g,
         worst: groupRows.length,
@@ -196,7 +204,7 @@ const Dashboard = () => {
 
   // 2. Dept PIC table data with new columns
   // Ganti getDeptPicTableData agar selalu tampilkan semua PIC Dept
-  const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM', 'Project'];
+  const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM', 'Project', 'Engineering'];
   const getDeptPicTableData = () => {
     return PIC_DEPT_OPTIONS.map(g => {
       const groupRows = rows.filter(r => r['PIC Dept'] === g);
