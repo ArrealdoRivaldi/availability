@@ -66,17 +66,20 @@ const Dashboard = () => {
     (!filter.pic || row['PIC Dept'] === filter.pic)
   );
 
-  // Stepper and status config (move here to use filteredRows)
+  // Stepper config sesuai permintaan
   const STEPPER_STEPS = [
-    { value: 'Identification', label: 'Identification', status: 'Done', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Identification').length },
-    { value: 'Plan Action', label: 'Plan Action', status: 'In Progress', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Plan Action').length },
-    { value: 'Assessment', label: 'Assessment', status: 'Waiting', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Assessment').length },
-    { value: 'Justification', label: 'Justification', status: 'Done', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Justification').length },
-    { value: 'Waiting Budget', label: 'Waiting Budget', status: 'On Hold', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Waiting Budget').length },
-    { value: 'Waiting PO', label: 'Waiting PO', status: 'In Progress', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Waiting PO').length },
-    { value: 'Program Execution', label: 'Execution', status: 'Done', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Execution').length },
-    { value: 'Waiting approval', label: 'Waiting approval', status: 'Waiting', count: (rows: any[]) => rows.filter((row: any) => (row['Status'] || '') === 'Waiting approval').length },
-    { value: 'Complete', label: 'Complete', status: 'Done', count: (rows: any[]) => rows.filter((row: any) => (row['Status'] || '') === 'Close').length },
+    { value: 'Identification', label: 'Identification', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Identification').length },
+    { value: 'Plan Action', label: 'Plan Action', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Plan Action').length },
+    { value: 'Assessment', label: 'Assessment TSel', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Assessment').length },
+    { value: 'Justification', label: 'Justification', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Justification').length },
+    { value: 'Waiting Budget', label: 'Waiting Budget', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Waiting Budget').length },
+    { value: 'Waiting PO', label: 'Waiting PO', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Waiting PO').length },
+    { value: 'Have Program', label: 'Have Program', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Have Program').length },
+    { value: 'Execution', label: 'Execution', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Execution').length },
+    // Step khusus: Done - Review by Tsel
+    { value: 'Done - Review by Tsel', label: 'Done - Review by Tsel', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Done' && (row['Status'] || '') === 'Waiting approval').length },
+    // Step khusus: Complete
+    { value: 'Complete', label: 'Complete', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Done' && (row['Status'] || '') === 'Close').length },
   ];
   const statusColor: Record<string, string> = {
     'Done': '#42a5f5',
