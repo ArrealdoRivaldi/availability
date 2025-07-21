@@ -6,7 +6,14 @@ import { database } from '@/app/firebaseConfig';
 import { ref, onValue, update } from "firebase/database";
 import { auth } from '@/app/firebaseConfig';
 
-const ROOT_CAUSE_OPTIONS = ['Power', 'Transport', 'Radio', 'Others'];
+const ROOT_CAUSE_OPTIONS = [
+  'Power - PLN',
+  'Power - Sewadaya',
+  'Power - SPS',
+  'Transport',
+  'Radio',
+  'Others',
+];
 const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM'];
 const PROGRESS_OPTIONS = [
   { value: 'Identification', label: 'Identification (enom)' },
