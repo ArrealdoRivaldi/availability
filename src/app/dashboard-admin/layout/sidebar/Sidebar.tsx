@@ -46,14 +46,12 @@ const MSidebar = ({
           anchor="left"
           open={isSidebarOpen}
           variant="permanent"
-          slotProps={{
-            paper: {
-              sx: {
-                boxSizing: "border-box",
-                ...scrollbarStyles,
-                width: sidebarWidth,
-              },
-            }
+          PaperProps={{
+            sx: {
+              boxSizing: "border-box",
+              ...scrollbarStyles,
+              width: sidebarWidth,
+            },
           }}
         >
           {/* ------------------------------------------- */}
@@ -83,14 +81,11 @@ const MSidebar = ({
       open={isMobileSidebarOpen}
       onClose={onSidebarClose}
       variant="temporary"
-
-      slotProps={{
-        paper: {
-          sx: {
-            boxShadow: (theme) => theme.shadows[8],
-            ...scrollbarStyles,
-          },
-        }
+      PaperProps={{
+        sx: {
+          boxShadow: (theme) => theme.shadows[8],
+          ...scrollbarStyles,
+        },
       }}
     >
       {/* ------------------------------------------- */}
