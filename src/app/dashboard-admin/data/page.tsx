@@ -452,45 +452,46 @@ const DataPage = () => {
           />
           {/* Filter Bar */}
           <Box display="flex" flexWrap="wrap" gap={1} alignItems="center" flex={1}>
-            <TextField select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }}>
-              <option value="">All</option>
-              {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }}>
-              <option value="">All</option>
-              {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Site Name" value={filterDraft.siteName} onChange={e => setFilterDraft(f => ({ ...f, siteName: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }}>
-              <option value="">All</option>
-              {uniqueOptions('Site Name').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Site Class" value={filterDraft.siteClass} onChange={e => setFilterDraft(f => ({ ...f, siteClass: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }}>
-              <option value="">All</option>
-              {uniqueOptions('Site Class').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }}>
-              <option value="">All</option>
-              {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Source Power" value={filterDraft.sourcePower} onChange={e => setFilterDraft(f => ({ ...f, sourcePower: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }}>
-              <option value="">All</option>
-              {uniqueOptions('Source Power').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Status" value={filterDraft.status} onChange={e => setFilterDraft(f => ({ ...f, status: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }}>
-              <option value="">All</option>
-              {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField size="small" label="Date Close" type="date" value={filterDraft.dateStart} onChange={e => setFilterDraft(f => ({ ...f, dateStart: e.target.value }))} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }} />
-            <Typography variant="body2" color="text.secondary">to</Typography>
-            <TextField size="small" label="" type="date" value={filterDraft.dateEnd} onChange={e => setFilterDraft(f => ({ ...f, dateEnd: e.target.value }))} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }} />
-            <TextField select size="small" label="PIC Dept" value={filterDraft.picDept} onChange={e => setFilterDraft(f => ({ ...f, picDept: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }}>
-              <option value="">All</option>
-              {PIC_DEPT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Progress" value={filterDraft.progress} onChange={e => setFilterDraft(f => ({ ...f, progress: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }}>
-              <option value="">All</option>
-              {PROGRESS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </TextField>
+            <TextField
+              select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Site Name" value={filterDraft.siteName} onChange={e => setFilterDraft(f => ({ ...f, siteName: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Site Name').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Site Class" value={filterDraft.siteClass} onChange={e => setFilterDraft(f => ({ ...f, siteClass: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Site Class').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Source Power" value={filterDraft.sourcePower} onChange={e => setFilterDraft(f => ({ ...f, sourcePower: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Source Power').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Status" value={filterDraft.status} onChange={e => setFilterDraft(f => ({ ...f, status: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField size="small" label="Date Close" type="date" value={filterDraft.dateStart} onChange={e => setFilterDraft(f => ({ ...f, dateStart: e.target.value }))} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }} />
+              <Typography variant="body2" color="text.secondary">to</Typography>
+              <TextField size="small" label="" type="date" value={filterDraft.dateEnd} onChange={e => setFilterDraft(f => ({ ...f, dateEnd: e.target.value }))} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }} />
+              <TextField select size="small" label="PIC Dept" value={filterDraft.picDept} onChange={e => setFilterDraft(f => ({ ...f, picDept: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {PIC_DEPT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Progress" value={filterDraft.progress} onChange={e => setFilterDraft(f => ({ ...f, progress: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {PROGRESS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </TextField>
             <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '' }); setSearchDraft(''); setPage(0); }}>Reset</Button>
             {filterLoading && <CircularProgress size={18} sx={{ ml: 1 }} />}
           </Box>
