@@ -481,9 +481,12 @@ const DataPage = () => {
                 <option value="">All</option>
                 {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </TextField>
-              <TextField size="small" label="Date Close" type="date" value={filterDraft.dateStart} onChange={e => setFilterDraft(f => ({ ...f, dateStart: e.target.value }))} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }} />
+            {/* Date Close filter dalam satu baris */}
+            <Box display="flex" alignItems="center" gap={1}>
+              <TextField size="small" label="Date Close" type="date" value={filterDraft.dateStart} onChange={e => setFilterDraft(f => ({ ...f, dateStart: e.target.value }))} sx={{ minWidth: 130 }} InputLabelProps={{ shrink: true }} />
               <Typography variant="body2" color="text.secondary">to</Typography>
-              <TextField size="small" label="" type="date" value={filterDraft.dateEnd} onChange={e => setFilterDraft(f => ({ ...f, dateEnd: e.target.value }))} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }} />
+              <TextField size="small" label="" type="date" value={filterDraft.dateEnd} onChange={e => setFilterDraft(f => ({ ...f, dateEnd: e.target.value }))} sx={{ minWidth: 130 }} InputLabelProps={{ shrink: true }} />
+            </Box>
               <TextField select size="small" label="PIC Dept" value={filterDraft.picDept} onChange={e => setFilterDraft(f => ({ ...f, picDept: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
                 <option value="">All</option>
                 {PIC_DEPT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
