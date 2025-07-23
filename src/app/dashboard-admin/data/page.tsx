@@ -4,6 +4,8 @@ import { Typography, CircularProgress, Box, TextField, Button, Dialog, DialogTit
 import DeleteIcon from '@mui/icons-material/Delete';
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue, update } from "firebase/database";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from '@/app/firebaseConfig';
 import { auth } from '@/app/firebaseConfig';
 
 const ROOT_CAUSE_OPTIONS = [
@@ -238,6 +240,22 @@ const DataPage = () => {
       'Remark': '',
     };
     await update(ref(database, editRow.id), updates);
+    // Logging ke Firestore data_logs
+    try {
+      const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : '';
+      await addDoc(collection(db, 'data_logs'), {
+        action: 'update',
+        user: userEmail || '-',
+        role: userRole || '-',
+        time: new Date().toISOString(),
+        dataBefore: editRow,
+        dataAfter: updates,
+        rowId: editRow.id,
+      });
+    } catch (e) {
+      // Optional: bisa tambahkan error handling/logging
+    }
     setEditOpen(false);
     setEditRow(null);
     setEditForm({});

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
 import { doc, getDoc, collection, query, where, getDocs, setDoc, deleteDoc } from "firebase/firestore";
+import { setDoc as setDocFS } from "firebase/firestore";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -67,12 +68,26 @@ export default function LoginPage() {
           localStorage.setItem('userRole', 'super_admin');
           localStorage.removeItem('hideApprovalMenu');
         }
+        // Logging user aktif ke Firestore
+        await setDocFS(doc(db, "active_users", user.uid), {
+          email: user.email,
+          displayName: user.displayName || '',
+          lastLogin: new Date().toISOString(),
+          role: userData.role,
+        });
         router.push("/dashboard-admin");
       } else if (userData.role === "admin") {
         if (typeof window !== 'undefined') {
           localStorage.setItem('userRole', 'admin');
           localStorage.setItem('hideApprovalMenu', 'true');
         }
+        // Logging user aktif ke Firestore
+        await setDocFS(doc(db, "active_users", user.uid), {
+          email: user.email,
+          displayName: user.displayName || '',
+          lastLogin: new Date().toISOString(),
+          role: userData.role,
+        });
         router.push("/dashboard-admin");
       } else {
         setError("Akses ditolak. Anda bukan admin.");

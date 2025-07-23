@@ -22,6 +22,12 @@ const allMenuitems = [
   },
   {
     id: uniqueId(),
+    title: "Logs",
+    icon: IconLayoutDashboard,
+    href: "/dashboard-admin/logs",
+  },
+  {
+    id: uniqueId(),
     title: "Logout",
     icon: IconLogout,
     href: "/logout",
@@ -30,9 +36,14 @@ const allMenuitems = [
 
 export function getMenuItemsByRole(role: string) {
   if (role === 'guest' || role === 'admin') {
-    return allMenuitems.filter(item => item.title !== 'Approval');
+    return allMenuitems.filter(item => item.title !== 'Approval' && item.title !== 'Logs');
   }
-  return allMenuitems;
+  // Hanya super_admin yang dapat melihat menu Logs
+  if (role === 'super_admin') {
+    return allMenuitems;
+  }
+  // Default: sembunyikan Logs
+  return allMenuitems.filter(item => item.title !== 'Logs');
 }
 
 export default allMenuitems;
