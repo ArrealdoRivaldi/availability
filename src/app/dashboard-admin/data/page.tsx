@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState, useCallback, memo } from 'react';
+import { useRef } from 'react';
 import { Typography, CircularProgress, Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { database } from '@/app/firebaseConfig';
@@ -133,6 +134,26 @@ const DataPage = () => {
     picDept: '',
     progress: '',
   });
+  // Search global
+  const [search, setSearch] = useState('');
+  const [searchDraft, setSearchDraft] = useState('');
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  // Debounce untuk SEMUA filter dan search
+  useEffect(() => {
+    setFilterLoading(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setFilter(filterDraft);
+      setSearch(searchDraft);
+      setPage(0);
+      setFilterLoading(false);
+    }, 400);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [filterDraft, searchDraft]);
 
   // Unique values for dropdowns
   const uniqueOptions = (key: string) => {
@@ -352,8 +373,15 @@ const DataPage = () => {
     setDateCloseLogOpen(true);
   };
 
-  // Filtered rows
+  // Filtered rows dengan search global
   const filteredRows = rows.filter(row => {
+    // Search global: cek semua kolom utama
+    const searchVal = search.trim().toLowerCase();
+    const matchSearch = !searchVal || [
+      row['Category'], row['Site ID'], row['Site Name'], row['Site Class'], row['NOP'], row['Source Power'], row['Root Cause'], row['Detail Problem'], row['Plan Action'], row['Need Support'], row['PIC Dept'], row['Progress'], row['Status'], row['Remark']
+    ].some(val => (val || '').toString().toLowerCase().includes(searchVal));
+    if (!matchSearch) return false;
+    // Filter lain
     const match = (val: string, filterVal: string) => !filterVal || (val || '').toLowerCase().includes(filterVal.toLowerCase());
     const matchDate = (dateArr: any) => {
       if (!filter.dateStart && !filter.dateEnd) return true;
@@ -405,9 +433,20 @@ const DataPage = () => {
       <Typography variant="h5" fontWeight={700} mb={3}>
         Data Availability
       </Typography>
+      {/* Search global */}
+      <Box mb={2}>
+        <input
+          type="text"
+          placeholder="Cari data... (semua kolom)"
+          value={searchDraft}
+          onChange={e => setSearchDraft(e.target.value)}
+          style={{ width: 320, padding: 8, borderRadius: 4, border: '1px solid #ccc', fontSize: 15 }}
+        />
+        {filterLoading && <span style={{ marginLeft: 12, color: '#1976d2', fontSize: 13 }}>Loading...</span>}
+      </Box>
       {/* Filter UI */}
       <Box mb={2} p={2} sx={{ background: '#f7fafd', borderRadius: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
-        <form onSubmit={e => { e.preventDefault(); setFilter(filterDraft); setPage(0); }}>
+        <form onSubmit={e => { e.preventDefault(); /* filter dihandle oleh debounce */ }}>
           <Box display="flex" flexWrap="wrap" gap={2} alignItems="flex-end">
             <Box>
               <label style={{ fontSize: 13 }}>Category<br/>
@@ -488,9 +527,8 @@ const DataPage = () => {
               </label>
             </Box>
             <Box display="flex" gap={1}>
-              <button type="submit" style={{ padding: '6px 18px', borderRadius: 4, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Terapkan Filter</button>
               <button type="button" style={{ padding: '6px 18px', borderRadius: 4, border: 'none', background: '#e0e0e0', color: '#333', fontWeight: 600, cursor: 'pointer' }}
-                onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '' }); setFilter({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '' }); setPage(0); }}>
+                onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '' }); setSearchDraft(''); setPage(0); }}>
                 Reset
               </button>
             </Box>
