@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Box, Tabs, Tab, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, CircularProgress } from "@mui/material";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { Box, Tabs, Tab, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, CircularProgress, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TableContainer, TablePagination } from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
+import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter } from "firebase/firestore";
 import { db } from '@/app/firebaseConfig';
 
 function TabPanel(props: any) {
@@ -29,6 +30,9 @@ export default function LogsPage() {
   // Data Logs
   const [logs, setLogs] = useState<any[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [deleteDialog, setDeleteDialog] = useState<{open: boolean, id: string|null}>({open: false, id: null});
 
   useEffect(() => {
     // Ambil user aktif
@@ -44,6 +48,14 @@ export default function LogsPage() {
       setLoadingLogs(false);
     });
   }, []);
+
+  // Delete log
+  const handleDeleteLog = async (id: string|null) => {
+    if (!id) return;
+    await deleteDoc(doc(db, 'data_logs', id));
+    setLogs(logs => logs.filter(l => l.id !== id));
+    setDeleteDialog({open: false, id: null});
+  };
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -79,40 +91,71 @@ export default function LogsPage() {
         )}
       </TabPanel>
       <TabPanel value={tab} index={1}>
+        <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
+          <Typography variant="body2" color="text.secondary">Total Log: {logs.length}</Typography>
+        </Box>
         {loadingLogs ? <Box display="flex" justifyContent="center" py={4}><CircularProgress /></Box> : (
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Waktu</TableCell>
-                <TableCell>User</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Aksi</TableCell>
-                <TableCell>Row ID</TableCell>
-                <TableCell>Data Sebelum</TableCell>
-                <TableCell>Data Sesudah</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {logs.length === 0 ? (
-                <TableRow><TableCell colSpan={7} align="center">Belum ada log perubahan data.</TableCell></TableRow>
-              ) : logs.map(l => (
-                <TableRow key={l.id}>
-                  <TableCell>{l.time ? new Date(l.time).toLocaleString('id-ID') : '-'}</TableCell>
-                  <TableCell>{l.user}</TableCell>
-                  <TableCell>{l.role}</TableCell>
-                  <TableCell>{l.action}</TableCell>
-                  <TableCell>{l.rowId}</TableCell>
-                  <TableCell>
-                    <pre style={{ fontSize: 11, margin: 0, maxWidth: 180, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(l.dataBefore, null, 1)}</pre>
-                  </TableCell>
-                  <TableCell>
-                    <pre style={{ fontSize: 11, margin: 0, maxWidth: 180, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(l.dataAfter, null, 1)}</pre>
-                  </TableCell>
+          <TableContainer sx={{ maxHeight: 500, borderRadius: 2 }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Waktu</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Aksi</TableCell>
+                  <TableCell>Row ID</TableCell>
+                  <TableCell>Data Sebelum</TableCell>
+                  <TableCell>Data Sesudah</TableCell>
+                  <TableCell align="center">Delete</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {logs.length === 0 ? (
+                  <TableRow><TableCell colSpan={8} align="center">Belum ada log perubahan data.</TableCell></TableRow>
+                ) : logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(l => (
+                  <TableRow key={l.id}>
+                    <TableCell>{l.time ? new Date(l.time).toLocaleString('id-ID') : '-'}</TableCell>
+                    <TableCell>{l.user || '-'}</TableCell>
+                    <TableCell>{l.role}</TableCell>
+                    <TableCell>{l.action}</TableCell>
+                    <TableCell>{l.rowId}</TableCell>
+                    <TableCell>
+                      <pre style={{ fontSize: 11, margin: 0, maxWidth: 180, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(l.dataBefore, null, 1)}</pre>
+                    </TableCell>
+                    <TableCell>
+                      <pre style={{ fontSize: 11, margin: 0, maxWidth: 180, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(l.dataAfter, null, 1)}</pre>
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton color="error" onClick={() => setDeleteDialog({open: true, id: l.id})} size="small">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
+        <TablePagination
+          component="div"
+          count={logs.length}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+          rowsPerPageOptions={[10, 20, 50, 100]}
+          labelRowsPerPage="Show"
+          sx={{ '.MuiTablePagination-toolbar': { minHeight: 40 }, '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: 13 } }}
+        />
+        {/* Delete Dialog */}
+        <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({open: false, id: null})}>
+          <DialogTitle>Hapus Log</DialogTitle>
+          <DialogContent>Yakin ingin menghapus log ini? Tindakan ini tidak bisa dibatalkan.</DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialog({open: false, id: null})}>Batal</Button>
+            <Button color="error" variant="contained" onClick={() => handleDeleteLog(deleteDialog.id)}>Hapus</Button>
+          </DialogActions>
+        </Dialog>
       </TabPanel>
     </Paper>
   );
