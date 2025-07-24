@@ -8,7 +8,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue, push, update, remove } from "firebase/database";
 // @ts-ignore
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 const DATA_COLUMNS = [
   { id: 'Category', label: 'Category' },
@@ -113,37 +113,54 @@ const CrudPage = () => {
   };
 
   // Upload Handlers
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadLoading(true);
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = evt.target?.result;
-      let json: any[] = [];
-      if (file.name.endsWith('.csv')) {
-        const text = data as string;
+    if (file.name.endsWith('.csv')) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const text = evt.target?.result as string;
         const rows = text.split(/\r?\n/).filter(Boolean);
         const headers = rows[0].split(',');
-        json = rows.slice(1).map(row => {
+        const json = rows.slice(1).map(row => {
           const values = row.split(',');
           const obj: any = {};
           headers.forEach((h, i) => obj[h.trim()] = values[i]?.trim() || '');
           return obj;
         });
-      } else {
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        json = XLSX.utils.sheet_to_json(sheet);
-      }
-      setUploadData(json);
-      setUploadLoading(false);
-      setUploadDialog(true);
-    };
-    if (file.name.endsWith('.csv')) {
+        setUploadData(json);
+        setUploadLoading(false);
+        setUploadDialog(true);
+      };
       reader.readAsText(file);
-    } else {
-      reader.readAsBinaryString(file);
+    } else if (file.name.endsWith('.xlsx')) {
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const buffer = evt.target?.result;
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+        const worksheet = workbook.worksheets[0];
+        const headers: string[] = [];
+        const json: any[] = [];
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) {
+            row.eachCell((cell, colNumber) => {
+              headers.push(String(cell.value).trim());
+            });
+          } else {
+            const obj: any = {};
+            row.eachCell((cell, colNumber) => {
+              obj[headers[colNumber - 1]] = cell.value;
+            });
+            json.push(obj);
+          }
+        });
+        setUploadData(json);
+        setUploadLoading(false);
+        setUploadDialog(true);
+      };
+      reader.readAsArrayBuffer(file);
     }
   };
   const handleUploadImport = async () => {
