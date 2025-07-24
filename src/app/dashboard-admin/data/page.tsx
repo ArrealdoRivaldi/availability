@@ -17,7 +17,16 @@ const ROOT_CAUSE_OPTIONS = [
   'Radio',
   'Others',
 ];
-const PIC_DEPT_OPTIONS = ['Radio', 'Power', 'Transport', 'Enom', 'IM', 'Project', 'Engineering'];
+const PIC_DEPT_OPTIONS = [
+  'Enom',
+  'Power',
+  'Transport',
+  'Nos', // Tambahan
+  'Radio',
+  'IM',
+  'Project',
+  'Engineering',
+];
 const PROGRESS_OPTIONS = [
   { value: 'Identification', label: 'Identification (enom)' },
   { value: 'Plan Action', label: 'Plan Action (enom)' },
@@ -410,6 +419,7 @@ const DataPage = () => {
   });
 
   const getDeptPicTableData = () => {
+    // Gunakan urutan dari PIC_DEPT_OPTIONS terbaru
     return PIC_DEPT_OPTIONS.map(g => {
       const groupRows = rows.filter(r => r['PIC Dept'] === g);
       return {
