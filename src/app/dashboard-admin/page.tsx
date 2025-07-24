@@ -95,7 +95,7 @@ const Dashboard = () => {
     'Identification': '✔️',
     'Plan Action': '🔄',
     'Assessment TSel': '⏳',
-    'Justification': '✔️',
+    'Justification / RAB / BOQ': '✔️',
     'Waiting Budget': '⏸️',
     'Waiting PO': '🔄',
     'Have Program': '🔄',

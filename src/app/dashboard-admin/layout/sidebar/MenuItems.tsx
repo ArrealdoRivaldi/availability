@@ -14,6 +14,13 @@ const allMenuitems = [
     icon: IconLayoutDashboard,
     href: "/dashboard-admin/data",
   },
+  // Menu CRUD khusus super_admin
+  {
+    id: uniqueId(),
+    title: "CRUD",
+    icon: IconLayoutDashboard,
+    href: "/dashboard-admin/crud",
+  },
   {
     id: uniqueId(),
     title: "Approval",
