@@ -28,15 +28,15 @@ const PIC_DEPT_OPTIONS = [
   'Engineering',
 ];
 const PROGRESS_OPTIONS = [
-  { value: 'Identification', label: 'Identification (enom)' },
-  { value: 'Plan Action', label: 'Plan Action (enom)' },
-  { value: 'Assessment', label: 'Assessment (tsel power)' },
-  { value: 'Justification', label: 'Justification (tsel power)' },
-  { value: 'Waiting Budget', label: 'Waiting Budget (tsel nos)' },
-  { value: 'Waiting PO', label: 'Waiting PO (tsel nos)' },
-  { value: 'Have Program', label: 'Have Program (enom)' },
-  { value: 'Execution', label: 'Execution (enom)' },
-  { value: 'Done', label: 'Done (radio)' },
+  { value: 'Identification', label: '1. Identification' },
+  { value: 'Plan Action', label: '2. Plan Action' },
+  { value: 'Assessment', label: '3. Assessment' },
+  { value: 'Justification', label: '4. Justification' },
+  { value: 'Waiting Budget', label: '5. Waiting Budget' },
+  { value: 'Waiting PO', label: '6. Waiting PO' },
+  { value: 'Have Program', label: '7. Have Program' },
+  { value: 'Execution', label: '8. Execution' },
+  { value: 'Done', label: '9. Done' },
 ];
 const columns = [
   { id: 'No', label: 'No', minWidth: 40, maxWidth: 50 },
