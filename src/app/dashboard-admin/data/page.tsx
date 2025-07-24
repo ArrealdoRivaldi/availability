@@ -273,10 +273,13 @@ const DataPage = () => {
     // Logging ke Firestore data_logs
     try {
       const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
-      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : '';
+      let email = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : '';
+      if (!email && typeof window !== 'undefined' && auth.currentUser) {
+        email = auth.currentUser.email || '';
+      }
       await addDoc(collection(db, 'data_logs'), {
         action: 'update',
-        user: userEmail || '-',
+        email: email || '-',
         role: userRole || '-',
         time: new Date().toISOString(),
         dataBefore: editRow,

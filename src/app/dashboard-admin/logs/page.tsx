@@ -115,7 +115,7 @@ export default function LogsPage() {
                 ) : logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(l => (
                   <TableRow key={l.id}>
                     <TableCell>{l.time ? new Date(l.time).toLocaleString('id-ID') : '-'}</TableCell>
-                    <TableCell>{l.user || '-'}</TableCell>
+                    <TableCell>{(l.user && l.user !== '-') ? l.user : (l.email || '-')}</TableCell>
                     <TableCell>{l.role}</TableCell>
                     <TableCell>{l.action}</TableCell>
                     <TableCell>{l.rowId}</TableCell>
