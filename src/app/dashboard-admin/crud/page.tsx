@@ -138,6 +138,11 @@ const CrudPage = () => {
       const reader = new FileReader();
       reader.onload = async (evt) => {
         const buffer = evt.target?.result;
+        if (!buffer || !(buffer instanceof ArrayBuffer)) {
+          setUploadLoading(false);
+          setSnackbar({open:true, message:'Gagal membaca file Excel', color:'error'});
+          return;
+        }
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(buffer);
         const worksheet = workbook.worksheets[0];
