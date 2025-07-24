@@ -539,10 +539,9 @@ const DataPage = () => {
           </Box>
         </Box>
       </Paper>
-      {/* Table Data */}
-      {/* Export/Copy Buttons (hanya untuk admin/user_admin/super_admin) */}
+      {/* Tombol Export/Copy untuk admin/super_admin */}
       {isAdmin() && (
-        <Box display="flex" gap={1} mb={1}>
+        <Box display="flex" gap={1} mb={2} mt={1}>
           <Button variant="outlined" size="small" onClick={() => {
             // Copy to clipboard
             const header = columns.map(col => col.label).join('\t');
@@ -567,6 +566,7 @@ const DataPage = () => {
           }}>Download CSV</Button>
         </Box>
       )}
+      {/* Table Data */}
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)', maxHeight: 520 }}>
         <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
           <TableHead>

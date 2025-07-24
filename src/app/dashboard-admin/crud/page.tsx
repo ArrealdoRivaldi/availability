@@ -9,6 +9,8 @@ import { database } from '@/app/firebaseConfig';
 import { ref, onValue, push, update, remove } from "firebase/database";
 // @ts-ignore
 import ExcelJS from 'exceljs';
+import Slide from '@mui/material/Slide';
+import { TransitionProps } from '@mui/material/transitions';
 
 const DATA_COLUMNS = [
   { id: 'Category', label: 'Category' },
@@ -33,6 +35,14 @@ function isSuperAdmin() {
   }
   return false;
 }
+
+// Komponen transition untuk Dialog (slide up)
+const TransitionUp = React.forwardRef(function Transition(
+  props: TransitionProps & { children: React.ReactElement<any, any> },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const CrudPage = () => {
   const [rows, setRows] = useState<any[]>([]);
@@ -230,7 +240,7 @@ const CrudPage = () => {
         </Box>
       </Paper>
       {/* Modal Form Tambah/Edit */}
-      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth TransitionComponent={Slide} TransitionProps={{ direction: 'up' }}>
+      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth TransitionComponent={TransitionUp}>
         <DialogTitle>{formMode === 'add' ? 'Tambah Data' : 'Edit Data'}</DialogTitle>
         <DialogContent dividers>
           <Box display="flex" flexWrap="wrap" gap={2}>
