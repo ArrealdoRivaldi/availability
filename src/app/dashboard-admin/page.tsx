@@ -205,21 +205,20 @@ const Dashboard = () => {
   };
 
   // 2. Dept PIC table data with new columns
-  // Ganti getDeptPicTableData agar selalu tampilkan semua PIC Dept
   const PIC_DEPT_OPTIONS = [
     'ENOM',
-    'Power',
-    'Transport',
-    'NOP', // Tambahan
+    'POWER',
+    'TRANSPORT',
+    'NOP',
     'NOS',
-    'Radio',
+    'RADIO',
     'IM',
-    'Project',
-    'Engineering',
+    'PROJECT',
+    'ENGINEERING',
   ];
   const getDeptPicTableData = () => {
     return PIC_DEPT_OPTIONS.map(g => {
-      const groupRows = rows.filter(r => r['PIC Dept'] === g);
+      const groupRows = rows.filter(r => (r['PIC Dept'] || '').toUpperCase() === g);
       return {
         label: g,
         open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,

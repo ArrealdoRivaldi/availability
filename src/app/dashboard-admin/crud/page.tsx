@@ -9,7 +9,6 @@ import { database } from '@/app/firebaseConfig';
 import { ref, onValue, push, update, remove } from "firebase/database";
 // @ts-ignore
 import ExcelJS from 'exceljs';
-import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
 const DATA_COLUMNS = [
