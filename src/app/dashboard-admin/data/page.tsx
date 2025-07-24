@@ -128,6 +128,7 @@ const DataPage = () => {
     dateEnd: '',
     picDept: '', // Tambah filter PIC Dept
     progress: '', // Tambah filter Progress
+    rootCause: '', // Tambah filter Root Cause
   });
   // Draft filter for input before submit
   const [filterDraft, setFilterDraft] = useState({
@@ -142,6 +143,7 @@ const DataPage = () => {
     dateEnd: '',
     picDept: '',
     progress: '',
+    rootCause: '',
   });
   // Search global
   const [search, setSearch] = useState('');
@@ -407,6 +409,14 @@ const DataPage = () => {
         return t >= start && t <= end;
       });
     };
+    // Filter Root Cause
+    const matchRootCause = () => {
+      if (!filter.rootCause) return true;
+      if (filter.rootCause === 'blank') {
+        return !row['Root Cause'] || String(row['Root Cause']).trim() === '';
+      }
+      return (row['Root Cause'] || '').toLowerCase() === filter.rootCause.toLowerCase();
+    };
     return (
       match(row['Category'], filter.category) &&
       match(row['Site ID'], filter.siteId) &&
@@ -417,7 +427,8 @@ const DataPage = () => {
       (!filter.status || (row['Status'] || '').toLowerCase() === filter.status.toLowerCase()) &&
       matchDate(row['Date Close']) &&
       (!filter.picDept || (row['PIC Dept'] || '').toLowerCase() === filter.picDept.toLowerCase()) &&
-      (!filter.progress || (row['Progress'] || '').toLowerCase() === filter.progress.toLowerCase())
+      (!filter.progress || (row['Progress'] || '').toLowerCase() === filter.progress.toLowerCase()) &&
+      matchRootCause()
     );
   });
 
@@ -508,7 +519,12 @@ const DataPage = () => {
                 <option value="">All</option>
                 {PROGRESS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </TextField>
-            <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '' }); setSearchDraft(''); setPage(0); }}>Reset</Button>
+              <TextField select size="small" label="Root Cause" value={filterDraft.rootCause || ''} onChange={e => setFilterDraft(f => ({ ...f, rootCause: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                <option value="blank">Blank</option>
+                {ROOT_CAUSE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+            <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '', rootCause: '' }); setSearchDraft(''); setPage(0); }}>Reset</Button>
             {filterLoading && <CircularProgress size={18} sx={{ ml: 1 }} />}
           </Box>
         </Box>
