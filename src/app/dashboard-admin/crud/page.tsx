@@ -45,6 +45,8 @@ const CrudPage = () => {
   const [uploadDialog, setUploadDialog] = useState(false);
   const [uploadData, setUploadData] = useState<any[]>([]);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -146,13 +148,28 @@ const CrudPage = () => {
   };
   const handleUploadImport = async () => {
     setUploadLoading(true);
-    for (const row of uploadData) {
-      await push(ref(database), row);
+    setUploadProgress(0);
+    setUploadSuccess(false);
+    const chunkSize = 25;
+    const total = uploadData.length;
+    for (let i = 0; i < total; i += chunkSize) {
+      const chunk = uploadData.slice(i, i + chunkSize);
+      for (const row of chunk) {
+        await push(ref(database), row);
+      }
+      setUploadProgress(Math.min(100, Math.round(((i + chunk.length) / total) * 100)));
+      await new Promise(res => setTimeout(res, 200)); // animasi progress
     }
     setUploadLoading(false);
-    setUploadDialog(false);
-    setSnackbar({open:true, message:'Data berhasil diimport!', color:'success'});
-    setUploadData([]);
+    setUploadProgress(100);
+    setUploadSuccess(true);
+    setTimeout(() => {
+      setUploadDialog(false);
+      setUploadData([]);
+      setUploadSuccess(false);
+      setUploadProgress(0);
+      setSnackbar({open:true, message:'Data berhasil diimport!', color:'success'});
+    }, 1200);
   };
 
   return (
@@ -217,6 +234,20 @@ const CrudPage = () => {
       <Dialog open={uploadDialog} onClose={() => setUploadDialog(false)} maxWidth="lg" fullWidth TransitionComponent={Fade}>
         <DialogTitle>Preview Data Upload</DialogTitle>
         <DialogContent dividers>
+          {/* Progress Bar & Success Animation */}
+          {(uploadLoading || uploadProgress > 0) && (
+            <Box mb={2}>
+              <Box sx={{ width: '100%', height: 16, bgcolor: '#e3eafc', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+                <Box sx={{ width: `${uploadProgress}%`, height: '100%', bgcolor: uploadSuccess ? '#43a047' : '#1976d2', transition: 'width 0.4s' }} />
+                {uploadSuccess && (
+                  <Box sx={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14, letterSpacing: 1 }}>
+                    ✓ Sukses!
+                  </Box>
+                )}
+              </Box>
+              {!uploadSuccess && <Typography fontSize={13} color="text.secondary" mt={0.5}>{uploadProgress}%</Typography>}
+            </Box>
+          )}
           {uploadLoading ? <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}><CircularProgress size={40} /></Box> : (
             <Box sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: '0 1px 4px rgba(30,58,138,0.04)', animation: 'fadeIn 0.7s' }}>
               <Table size="small">
@@ -240,7 +271,7 @@ const CrudPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setUploadDialog(false)}>Batal</Button>
-          <Button onClick={handleUploadImport} variant="contained" disabled={uploadLoading} sx={{ position: 'relative', overflow: 'hidden' }}>
+          <Button onClick={handleUploadImport} variant="contained" disabled={uploadLoading || uploadSuccess} sx={{ position: 'relative', overflow: 'hidden' }}>
             {uploadLoading && <CircularProgress size={18} sx={{ position: 'absolute', left: 10, top: 10 }} />}
             Import
           </Button>
