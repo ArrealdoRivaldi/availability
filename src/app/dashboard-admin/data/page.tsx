@@ -10,7 +10,7 @@ import { db } from '@/app/firebaseConfig';
 import { auth } from '@/app/firebaseConfig';
 
 const ROOT_CAUSE_OPTIONS = [
-  'Power - PLN',
+  'Power - Regular',
   'Power - Sewadaya',
   'Power - SPS',
   'Transport',
@@ -18,10 +18,11 @@ const ROOT_CAUSE_OPTIONS = [
   'Others',
 ];
 const PIC_DEPT_OPTIONS = [
-  'Enom',
+  'ENOM',
   'Power',
   'Transport',
-  'Nos', // Tambahan
+  'NOP', // Tambahan
+  'NOS',
   'Radio',
   'IM',
   'Project',
@@ -31,7 +32,7 @@ const PROGRESS_OPTIONS = [
   { value: 'Identification', label: '1. Identification' },
   { value: 'Plan Action', label: '2. Plan Action' },
   { value: 'Assessment', label: '3. Assessment' },
-  { value: 'Justification', label: '4. Justification' },
+  { value: 'Justification', label: '4. Justification / RAB / BOQ' },
   { value: 'Waiting Budget', label: '5. Waiting Budget' },
   { value: 'Waiting PO', label: '6. Waiting PO' },
   { value: 'Have Program', label: '7. Have Program' },
@@ -649,18 +650,7 @@ const DataPage = () => {
                 minRows={2}
                 placeholder="Tambah Need Support."
               />
-              <label style={{ fontWeight: 500 }}>PIC Dept
-                <select
-                  value={editForm['PIC Dept'] || ''}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleEditChange('PIC Dept', e)}
-                  style={{ width: '100%', padding: 6, marginTop: 2, borderRadius: 4, border: '1px solid #ccc' }}
-                >
-                  <option value="">Pilih PIC Dept</option>
-                  {PIC_DEPT_OPTIONS.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </label>
+              {/* TUKAR URUTAN: Progress lalu PIC Dept */}
               <label style={{ fontWeight: 500 }}>Progress
                 <select
                   value={editForm['Progress'] || ''}
@@ -670,6 +660,18 @@ const DataPage = () => {
                   <option value="">Pilih Progress</option>
                   {PROGRESS_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ fontWeight: 500 }}>PIC Dept
+                <select
+                  value={editForm['PIC Dept'] || ''}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleEditChange('PIC Dept', e)}
+                  style={{ width: '100%', padding: 6, marginTop: 2, borderRadius: 4, border: '1px solid #ccc' }}
+                >
+                  <option value="">Pilih PIC Dept</option>
+                  {PIC_DEPT_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
               </label>
