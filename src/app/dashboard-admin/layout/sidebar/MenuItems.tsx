@@ -14,13 +14,6 @@ const allMenuitems = [
     icon: IconLayoutDashboard,
     href: "/dashboard-admin/data",
   },
-  // Menu CRUD khusus super_admin
-  {
-    id: uniqueId(),
-    title: "CRUD",
-    icon: IconLayoutDashboard,
-    href: "/dashboard-admin/crud",
-  },
   {
     id: uniqueId(),
     title: "Approval",
@@ -35,6 +28,12 @@ const allMenuitems = [
   },
   {
     id: uniqueId(),
+    title: "CRUD",
+    icon: IconLayoutDashboard,
+    href: "/dashboard-admin/crud",
+  },
+  {
+    id: uniqueId(),
     title: "Logout",
     icon: IconLogout,
     href: "/logout",
@@ -42,15 +41,16 @@ const allMenuitems = [
 ];
 
 export function getMenuItemsByRole(role: string) {
-  if (role === 'guest' || role === 'admin') {
-    return allMenuitems.filter(item => item.title !== 'Approval' && item.title !== 'Logs');
-  }
-  // Hanya super_admin yang dapat melihat menu Logs
   if (role === 'super_admin') {
+    // Semua menu
     return allMenuitems;
   }
-  // Default: sembunyikan Logs
-  return allMenuitems.filter(item => item.title !== 'Logs');
+  if (role === 'admin' || role === 'guest') {
+    // Hanya Dashboard & Data & Logout
+    return allMenuitems.filter(item => ["Dashboard", "Data", "Logout"].includes(item.title));
+  }
+  // Default: hanya Dashboard & Data & Logout
+  return allMenuitems.filter(item => ["Dashboard", "Data", "Logout"].includes(item.title));
 }
 
 export default allMenuitems;

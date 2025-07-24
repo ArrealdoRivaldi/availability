@@ -3,25 +3,22 @@ import { getMenuItemsByRole } from "./MenuItems";
 import { Box } from "@mui/material";
 import Logo from "../shared/logo/Logo";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { IconLayoutDashboard } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
 
 const SidebarItems = () => {
   const pathname = usePathname();
-  const pathDirect = pathname;
   const [role, setRole] = React.useState('user');
+  const router = useRouter();
+
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       setRole(localStorage.getItem('userRole') || 'user');
     }
   }, []);
-  let menuItems = getMenuItemsByRole(role);
-  // Filter menu CRUD hanya untuk super_admin
-  if (role !== 'super_admin') {
-    menuItems = menuItems.filter(item => item.href !== '/dashboard-admin/crud');
-  }
-  const router = useRouter();
+
+  const menuItems = getMenuItemsByRole(role);
+
   return (
     <Box sx={{ width: '100%', p: 2 }}>
       <Logo />
@@ -72,8 +69,8 @@ const SidebarItems = () => {
                   px: 2,
                   py: 1.2,
                   borderRadius: 2,
-                  color: pathDirect === href ? '#1976d2' : '#222',
-                  background: pathDirect === href ? '#e3f2fd' : 'none',
+                  color: pathname === href ? '#1976d2' : '#222',
+                  background: pathname === href ? '#e3f2fd' : 'none',
                   fontWeight: 500,
                   cursor: 'pointer',
                   transition: 'all 0.2s',

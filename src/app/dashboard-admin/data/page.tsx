@@ -61,24 +61,24 @@ const columns = [
 ];
 
 // Helper untuk format datetime-local
-function toDatetimeLocal(dateString: string) {
+function toDatetimeLocal(dateString: string | null) {
   if (!dateString) return '';
-  const d = new Date(dateString);
+  const d = new Date(dateString || '');
   if (isNaN(d.getTime())) return '';
   return d.toISOString().slice(0, 16);
 }
 // Helper untuk format tampilan tanggal (hanya tanggal saja)
-function toDisplayDate(dateString: string) {
+function toDisplayDate(dateString: string | null) {
   if (!dateString) return '';
-  const d = new Date(dateString);
+  const d = new Date(dateString || '');
   if (isNaN(d.getTime())) return '';
   // Format hanya tanggal (tanpa waktu)
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-const isSameDay = (dateA: string, dateB: string) => {
-  const a = new Date(dateA);
-  const b = new Date(dateB);
+const isSameDay = (dateA: string | null, dateB: string | null) => {
+  const a = new Date(dateA || '');
+  const b = new Date(dateB || '');
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 };
 
@@ -180,7 +180,7 @@ const DataPage = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const role = localStorage.getItem('userRole');
-      setIsAdminState(['admin', 'user_admin', 'super_admin'].includes(role));
+      setIsAdminState(['admin', 'user_admin', 'super_admin'].includes(role || ''));
     }
   }, []);
 
