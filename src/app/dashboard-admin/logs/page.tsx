@@ -22,6 +22,15 @@ function TabPanel(props: any) {
   );
 }
 
+// Tambahkan komponen helper untuk format tanggal di client
+function ClientDate({ date }: { date: string }) {
+  const [formatted, setFormatted] = React.useState('');
+  React.useEffect(() => {
+    if (date) setFormatted(new Date(date).toLocaleString('id-ID'));
+  }, [date]);
+  return <>{formatted || '-'}</>;
+}
+
 export default function LogsPage() {
   const [tab, setTab] = useState(0);
   // User Aktif
@@ -83,7 +92,7 @@ export default function LogsPage() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.displayName}</TableCell>
                   <TableCell>{u.role}</TableCell>
-                  <TableCell>{u.lastLogin ? new Date(u.lastLogin).toLocaleString('id-ID') : '-'}</TableCell>
+                  <TableCell><ClientDate date={u.lastLogin} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -114,7 +123,7 @@ export default function LogsPage() {
                   <TableRow><TableCell colSpan={8} align="center">Belum ada log perubahan data.</TableCell></TableRow>
                 ) : logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(l => (
                   <TableRow key={l.id}>
-                    <TableCell>{l.time ? new Date(l.time).toLocaleString('id-ID') : '-'}</TableCell>
+                    <TableCell><ClientDate date={l.time} /></TableCell>
                     <TableCell>{(l.user && l.user !== '-') ? l.user : (l.email || '-')}</TableCell>
                     <TableCell>{l.role}</TableCell>
                     <TableCell>{l.action}</TableCell>

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
-import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, Slide, Fade, Tooltip } from "@mui/material";
+import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, Slide, Fade, Tooltip, TableContainer, TablePagination, InputAdornment } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -10,6 +10,7 @@ import { ref, onValue, push, update, remove } from "firebase/database";
 // @ts-ignore
 import ExcelJS from 'exceljs';
 import { TransitionProps } from '@mui/material/transitions';
+import SearchIcon from '@mui/icons-material/Search';
 
 const DATA_COLUMNS = [
   { id: 'Category', label: 'Category' },
@@ -29,9 +30,7 @@ const DATA_COLUMNS = [
 ];
 
 function isSuperAdmin() {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('userRole') === 'super_admin';
-  }
+  // Jangan gunakan localStorage di SSR, gunakan state di komponen utama
   return false;
 }
 
@@ -57,9 +56,63 @@ const CrudPage = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
+  // Filter states
+  const [filter, setFilter] = useState({
+    category: '',
+    siteId: '',
+    siteName: '',
+    nop: '',
+    status: '',
+    search: '',
+  });
+  const [filterDraft, setFilterDraft] = useState({
+    category: '',
+    siteId: '',
+    siteName: '',
+    nop: '',
+    status: '',
+    search: '',
+  });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [showDetail, setShowDetail] = useState<any | null>(null);
+  // Debounce filter
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setFilter(filterDraft);
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [filterDraft]);
+  // Unique options
+  const uniqueOptions = (key: string) => {
+    const opts = Array.from(new Set(rows.map(r => r[key]).filter(Boolean)));
+    return opts.sort();
+  };
+  // Filtered rows
+  const filteredRows = rows.filter(row => {
+    const match = (val: string, filterVal: string) => !filterVal || (val || '').toLowerCase().includes(filterVal.toLowerCase());
+    const matchStatus = !filter.status || (row['Status'] || '').toLowerCase() === filter.status.toLowerCase();
+    const matchSearch = !filter.search || DATA_COLUMNS.some(col => (row[col.id] || '').toString().toLowerCase().includes(filter.search.toLowerCase()));
+    return (
+      match(row['Category'], filter.category) &&
+      match(row['Site ID'], filter.siteId) &&
+      match(row['Site Name'], filter.siteName) &&
+      match(row['NOP'], filter.nop) &&
+      matchStatus &&
+      matchSearch
+    );
+  });
 
   useEffect(() => {
-    if (!isSuperAdmin()) return;
+    if (typeof window !== 'undefined') {
+      setIsSuperAdminState(localStorage.getItem('userRole') === 'super_admin');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isSuperAdminState) return;
     const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
@@ -72,10 +125,13 @@ const CrudPage = () => {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [isSuperAdminState]);
 
-  if (typeof window !== 'undefined' && !isSuperAdmin()) {
+  if (isSuperAdminState === false) {
     return <Box p={4}><Typography color="error" fontWeight={700} fontSize={20}>Akses ditolak. Hanya untuk super admin.</Typography></Box>;
+  }
+  if (isSuperAdminState === null) {
+    return null; // Atau loading spinner
   }
 
   // CRUD Handlers
@@ -207,13 +263,46 @@ const CrudPage = () => {
     <Box p={{ xs: 1, md: 3 }}>
       <Typography variant="h5" fontWeight={700} mb={3}>CRUD Data (Super Admin Only)</Typography>
       <Paper sx={{ p: 2, mb: 2, borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
-        <Box display="flex" gap={2} mb={2}>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenForm('add')} sx={{ borderRadius: 2 }}>Tambah Data</Button>
-          <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ borderRadius: 2 }}>Upload Excel/CSV</Button>
-          <input type="file" accept=".xlsx,.csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+        {/* Filter Bar */}
+        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }} gap={2} mb={2}>
+          <TextField
+            size="small"
+            placeholder="Cari data... (semua kolom)"
+            value={filterDraft.search}
+            onChange={e => setFilterDraft(f => ({ ...f, search: e.target.value }))}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="primary" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 2 }}
+          />
+          <TextField select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+            <option value="">All</option>
+            {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </TextField>
+          <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+            <option value="">All</option>
+            {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </TextField>
+          <TextField select size="small" label="Site Name" value={filterDraft.siteName} onChange={e => setFilterDraft(f => ({ ...f, siteName: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+            <option value="">All</option>
+            {uniqueOptions('Site Name').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </TextField>
+          <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+            <option value="">All</option>
+            {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </TextField>
+          <TextField select size="small" label="Status" value={filterDraft.status} onChange={e => setFilterDraft(f => ({ ...f, status: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+            <option value="">All</option>
+            {uniqueOptions('Status').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </TextField>
+          <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', nop: '', status: '', search: '' }); setPage(0); }}>Reset</Button>
         </Box>
-        <Box sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: '0 1px 4px rgba(30,58,138,0.04)' }}>
-          <Table size="small">
+        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)', maxHeight: 520 }}>
+          <Table size="small" sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow>
                 {DATA_COLUMNS.map(col => <TableCell key={col.id} sx={{ fontWeight: 700 }}>{col.label}</TableCell>)}
@@ -223,19 +312,34 @@ const CrudPage = () => {
             <TableBody>
               {loading ? (
                 <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center"><CircularProgress /></TableCell></TableRow>
-              ) : rows.length === 0 ? (
+              ) : filteredRows.length === 0 ? (
                 <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center">Tidak ada data.</TableCell></TableRow>
-              ) : rows.map(row => (
-                <TableRow key={row.id}>
+              ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                <TableRow key={row.id} hover sx={{ cursor: 'pointer' }} onClick={e => {
+                  if (["BUTTON", "SVG", "PATH"].indexOf((e.target as HTMLElement).tagName) === -1) setShowDetail(row);
+                }}>
                   {DATA_COLUMNS.map(col => <TableCell key={col.id}>{row[col.id]}</TableCell>)}
                   <TableCell>
-                    <IconButton color="primary" onClick={() => handleOpenForm('edit', row)}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(row.id)}><DeleteIcon /></IconButton>
+                    <IconButton color="primary" onClick={ev => { ev.stopPropagation(); handleOpenForm('edit', row); }}><EditIcon /></IconButton>
+                    <IconButton color="error" onClick={ev => { ev.stopPropagation(); handleDelete(row.id); }}><DeleteIcon /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+        </TableContainer>
+        <Box display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
+          <TablePagination
+            component="div"
+            count={filteredRows.length}
+            page={page}
+            onPageChange={(_, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            labelRowsPerPage="Show"
+            sx={{ '.MuiTablePagination-toolbar': { minHeight: 40 }, '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: 13 } }}
+          />
         </Box>
       </Paper>
       {/* Modal Form Tambah/Edit */}
@@ -308,6 +412,27 @@ const CrudPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Modal Detail Data */}
+      {showDetail && (
+        <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowDetail(null)}>
+          <div style={{ background: '#fff', borderRadius: 8, minWidth: 320, maxWidth: '95vw', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 24 }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>Detail Data</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                {DATA_COLUMNS.map(col => (
+                  <tr key={col.id}>
+                    <th style={{ width: 140, border: '1px solid #e0e0e0', padding: 8, textAlign: 'left' }}>{col.label}</th>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{showDetail[col.id] ?? ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ textAlign: 'right', marginTop: 18 }}>
+              <button onClick={() => setShowDetail(null)} style={{ padding: '6px 18px', borderRadius: 4, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Snackbar Notifikasi */}
       <Snackbar
         open={snackbar.open}

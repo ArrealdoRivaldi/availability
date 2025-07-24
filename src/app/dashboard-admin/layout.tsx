@@ -48,8 +48,10 @@ function IdleLogout() {
         modalTimeoutRef.current = setTimeout(async () => {
           setShowModal(false);
           // Hapus localStorage
-          localStorage.removeItem('userRole');
-          localStorage.removeItem('userEmail');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userEmail');
+          }
           // Hapus user dari active_users jika login
           const user = auth.currentUser;
           if (user) {

@@ -10,10 +10,12 @@ import { useRouter } from "next/navigation";
 const SidebarItems = () => {
   const pathname = usePathname();
   const pathDirect = pathname;
-  let role = 'user';
-  if (typeof window !== 'undefined') {
-    role = localStorage.getItem('userRole') || 'user';
-  }
+  const [role, setRole] = React.useState('user');
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setRole(localStorage.getItem('userRole') || 'user');
+    }
+  }, []);
   const menuItems = getMenuItemsByRole(role);
   const router = useRouter();
   return (

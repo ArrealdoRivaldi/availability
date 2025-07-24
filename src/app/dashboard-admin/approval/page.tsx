@@ -25,14 +25,29 @@ function toDisplayDate(dateString: string) {
 }
 
 const ApprovalPage = () => {
-  if (typeof window !== 'undefined' && !isSuperAdmin()) {
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        window.location.href = '/dashboard-admin';
-      }, 1500);
-      return () => clearTimeout(timer);
-    }, []);
+  // Tambah state untuk akses
+  const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isSuper = localStorage.getItem('userRole') === 'super_admin';
+      setIsSuperAdminState(isSuper);
+      if (!isSuper) {
+        setRedirecting(true);
+        const timer = setTimeout(() => {
+          window.location.href = '/dashboard-admin';
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  if (isSuperAdminState === false) {
     return <div style={{ padding: 32, color: 'red', fontWeight: 700, fontSize: 20 }}>Akses ditolak. Halaman ini hanya untuk super admin.<br/>Anda akan diarahkan ke dashboard...</div>;
+  }
+  if (isSuperAdminState === null) {
+    return null; // Atau loading spinner
   }
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

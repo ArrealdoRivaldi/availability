@@ -3,6 +3,8 @@ import React, { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { Typography, CircularProgress, Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Paper, TablePagination, InputAdornment, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DownloadIcon from '@mui/icons-material/Download';
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue, update } from "firebase/database";
 import { collection, addDoc } from "firebase/firestore";
@@ -82,18 +84,13 @@ const isSameDay = (dateA: string, dateB: string) => {
 
 // Helper untuk deteksi guest
 function isGuest() {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('userRole') === 'guest';
-  }
+  // Jangan gunakan localStorage di SSR, gunakan state di komponen utama
   return false;
 }
 
 // Helper untuk cek admin
 function isAdmin() {
-  if (typeof window !== 'undefined') {
-    const role = localStorage.getItem('userRole');
-    return role === 'admin' || role === 'user_admin' || role === 'super_admin';
-  }
+  // Jangan gunakan localStorage di SSR, gunakan state di komponen utama
   return false;
 }
 
@@ -160,6 +157,9 @@ const DataPage = () => {
   const [searchDraft, setSearchDraft] = useState('');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const [filterLoading, setFilterLoading] = useState(false);
+  // Tambah state untuk snackbar copy/download
+  const [copySnackbarOpen, setCopySnackbarOpen] = useState(false);
+  const [downloadSnackbarOpen, setDownloadSnackbarOpen] = useState(false);
 
   // Debounce untuk SEMUA filter dan search
   useEffect(() => {
@@ -542,28 +542,44 @@ const DataPage = () => {
       {/* Tombol Export/Copy untuk admin/super_admin */}
       {isAdmin() && (
         <Box display="flex" gap={1} mb={2} mt={1}>
-          <Button variant="outlined" size="small" onClick={() => {
-            // Copy to clipboard
-            const header = columns.map(col => col.label).join('\t');
-            const rowsData = filteredRows.map(row => columns.map(col => (row[col.id] ?? '').toString().replace(/\n/g, ' ')).join('\t')).join('\n');
-            const text = header + '\n' + rowsData;
-            navigator.clipboard.writeText(text);
-          }}>Copy</Button>
-          <Button variant="outlined" size="small" onClick={() => {
-            // Download as CSV
-            const header = columns.map(col => '"' + col.label.replace(/"/g, '""') + '"').join(',');
-            const rowsData = filteredRows.map(row => columns.map(col => '"' + (row[col.id] ?? '').toString().replace(/"/g, '""').replace(/\n/g, ' ') + '"').join(',')).join('\n');
-            const csv = header + '\n' + rowsData;
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'data_availability.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }}>Download CSV</Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<ContentCopyIcon />}
+            onClick={() => {
+              // Copy to clipboard
+              const header = columns.map(col => col.label).join('\t');
+              const rowsData = filteredRows.map(row => columns.map(col => (row[col.id] ?? '').toString().replace(/\n/g, ' ')).join('\t')).join('\n');
+              const text = header + '\n' + rowsData;
+              navigator.clipboard.writeText(text);
+              setCopySnackbarOpen(true);
+            }}
+          >
+            Copy
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<DownloadIcon />}
+            onClick={() => {
+              // Download as CSV
+              const header = columns.map(col => '"' + col.label.replace(/"/g, '""') + '"').join(',');
+              const rowsData = filteredRows.map(row => columns.map(col => '"' + (row[col.id] ?? '').toString().replace(/"/g, '""').replace(/\n/g, ' ') + '"').join(',')).join('\n');
+              const csv = header + '\n' + rowsData;
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'data_availability.csv';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+              setDownloadSnackbarOpen(true);
+            }}
+          >
+            Download CSV
+          </Button>
         </Box>
       )}
       {/* Table Data */}
@@ -725,7 +741,10 @@ const DataPage = () => {
           <DialogTitle>Diskusi/Log Komentar</DialogTitle>
           <DialogContent dividers>
             <Box display="flex" flexDirection="column" gap={2}>
-              {(Array.isArray(discussRow?.Discuss) && discussRow.Discuss.length > 0) ? discussRow.Discuss.map((c: any) => (
+              {(Array.isArray(discussRow?.Discuss) && discussRow.Discuss.length > 0) ? discussRow.Discuss.map((c: any) => {
+                const [formattedTime, setFormattedTime] = useState('');
+                useEffect(() => { setFormattedTime(new Date(c.time).toLocaleString('id-ID')); }, [c.time]);
+                return (
                 <Box key={c.id} sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 1, mb: 1, bgcolor: '#fafbfc' }}>
                   {editCommentId === c.id ? (
                     <Box display="flex" gap={1} alignItems="center" mt={1}>
@@ -761,7 +780,7 @@ const DataPage = () => {
                               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>{c.authorEmail}</Typography>
                             )}
                           </Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>{new Date(c.time).toLocaleString('id-ID')}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>{formattedTime}</Typography>
                         </Box>
                         <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>{c.text}</Typography>
                         {auth.currentUser && c.authorId === auth.currentUser.uid && (
@@ -774,7 +793,8 @@ const DataPage = () => {
                     </Box>
                   )}
                 </Box>
-              )) : (
+              );
+              }) : (
                 <Typography variant="body2" color="text.secondary">Belum ada komentar.</Typography>
               )}
               <TextField
@@ -814,6 +834,21 @@ const DataPage = () => {
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         />
       )}
+      {/* Snackbar Success Copy/Download */}
+      <Snackbar
+        open={copySnackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setCopySnackbarOpen(false)}
+        message="Data berhasil dicopy ke clipboard!"
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
+      <Snackbar
+        open={downloadSnackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setDownloadSnackbarOpen(false)}
+        message="File CSV berhasil diunduh!"
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
       {/* Dialog histori Date Close */}
       <Dialog open={dateCloseLogOpen} onClose={() => setDateCloseLogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Histori Date Close</DialogTitle>

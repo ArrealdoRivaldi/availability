@@ -56,7 +56,9 @@ const Profile = () => {
     setLoggingOut(true);
     await signOut(auth);
     setAnchorEl(null);
-    window.location.href = "/";
+    if (typeof window !== 'undefined') {
+      window.location.href = "/";
+    }
   };
 
   return (
