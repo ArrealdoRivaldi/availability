@@ -88,6 +88,15 @@ function isGuest() {
   return false;
 }
 
+// Helper untuk cek admin
+function isAdmin() {
+  if (typeof window !== 'undefined') {
+    const role = localStorage.getItem('userRole');
+    return role === 'admin' || role === 'user_admin' || role === 'super_admin';
+  }
+  return false;
+}
+
 const DataPage = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -531,6 +540,33 @@ const DataPage = () => {
         </Box>
       </Paper>
       {/* Table Data */}
+      {/* Export/Copy Buttons (hanya untuk admin/user_admin/super_admin) */}
+      {isAdmin() && (
+        <Box display="flex" gap={1} mb={1}>
+          <Button variant="outlined" size="small" onClick={() => {
+            // Copy to clipboard
+            const header = columns.map(col => col.label).join('\t');
+            const rowsData = filteredRows.map(row => columns.map(col => (row[col.id] ?? '').toString().replace(/\n/g, ' ')).join('\t')).join('\n');
+            const text = header + '\n' + rowsData;
+            navigator.clipboard.writeText(text);
+          }}>Copy</Button>
+          <Button variant="outlined" size="small" onClick={() => {
+            // Download as CSV
+            const header = columns.map(col => '"' + col.label.replace(/"/g, '""') + '"').join(',');
+            const rowsData = filteredRows.map(row => columns.map(col => '"' + (row[col.id] ?? '').toString().replace(/"/g, '""').replace(/\n/g, ' ') + '"').join(',')).join('\n');
+            const csv = header + '\n' + rowsData;
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data_availability.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }}>Download CSV</Button>
+        </Box>
+      )}
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)', maxHeight: 520 }}>
         <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
           <TableHead>

@@ -71,7 +71,7 @@ const Dashboard = () => {
     { value: 'Identification', label: 'Identification', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Identification').length },
     { value: 'Plan Action', label: 'Plan Action', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Plan Action').length },
     { value: 'Assessment', label: 'Assessment TSel', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Assessment').length },
-    { value: 'Justification', label: 'Justification', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Justification').length },
+    { value: 'Justification', label: 'Justification / RAB / BOQ', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Justification').length },
     { value: 'Waiting Budget', label: 'Waiting Budget', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Waiting Budget').length },
     { value: 'Waiting PO', label: 'Waiting PO', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Waiting PO').length },
     { value: 'Have Program', label: 'Have Program', count: (rows: any[]) => rows.filter((row: any) => (row['Progress'] || '') === 'Have Program').length },
@@ -188,6 +188,7 @@ const Dashboard = () => {
         label: g,
         worst: groupRows.length,
         open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+        waiting: groupRows.filter(r => r['Status'] === 'Waiting approval').length,
         close: groupRows.filter(r => r['Status'] === 'Close').length,
         ach: groupRows.length ? Math.round((groupRows.filter(r => r['Status'] === 'Close').length / groupRows.length) * 100) : 0,
       };
@@ -196,6 +197,7 @@ const Dashboard = () => {
       label: 'Grand Total',
       worst: data.reduce((a, b) => a + b.worst, 0),
       open: data.reduce((a, b) => a + b.open, 0),
+      waiting: data.reduce((a, b) => a + b.waiting, 0),
       close: data.reduce((a, b) => a + b.close, 0),
       ach: data.reduce((a, b) => a + b.worst, 0) ? Math.round((data.reduce((a, b) => a + b.close, 0) / data.reduce((a, b) => a + b.worst, 0)) * 100) : 0,
     };
@@ -205,10 +207,11 @@ const Dashboard = () => {
   // 2. Dept PIC table data with new columns
   // Ganti getDeptPicTableData agar selalu tampilkan semua PIC Dept
   const PIC_DEPT_OPTIONS = [
-    'Enom',
+    'ENOM',
     'Power',
     'Transport',
-    'Nos', // Tambahan
+    'NOP', // Tambahan
+    'NOS',
     'Radio',
     'IM',
     'Project',
@@ -390,19 +393,21 @@ const TableStatic = ({ data, label, loading }: { data: any[], label: string, loa
         <th style={{ border: '1px solid #e0e0e0', padding: 6, fontWeight: 700 }}>{label}</th>
         <th style={{ border: '1px solid #e0e0e0', padding: 6, fontWeight: 700 }}>Worst Site</th>
         <th style={{ border: '1px solid #e0e0e0', padding: 6, fontWeight: 700 }}>Open</th>
+        <th style={{ border: '1px solid #e0e0e0', padding: 6, fontWeight: 700 }}>Waiting approval</th>
         <th style={{ border: '1px solid #e0e0e0', padding: 6, fontWeight: 700 }}>Close</th>
         <th style={{ border: '1px solid #e0e0e0', padding: 6, fontWeight: 700 }}>Ach (%)</th>
       </tr>
     </thead>
     <tbody>
       {loading ? (
-        <tr><td colSpan={5} style={{ textAlign: 'center', padding: 16 }}><CircularProgress size={20} /></td></tr>
+        <tr><td colSpan={6} style={{ textAlign: 'center', padding: 16 }}><CircularProgress size={20} /></td></tr>
       ) : (
         data.map((row, i) => (
           <tr key={i} style={{ background: i % 2 === 0 ? '#fafbfc' : '#fff' }}>
             <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row.label}</td>
             <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row.worst}</td>
             <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row.open}</td>
+            <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row.waiting}</td>
             <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row.close}</td>
             <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row.ach}</td>
           </tr>
