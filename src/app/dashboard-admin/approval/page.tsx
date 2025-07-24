@@ -126,64 +126,64 @@ const ApprovalPage = () => {
                 dateClose = toDisplayDate(row['Date Close']);
               }
               return (
-                <tr key={row.id} onClick={e => { if ((e.target as HTMLElement).tagName !== 'SELECT' && (e.target as HTMLElement).tagName !== 'BUTTON' && (e.target as HTMLElement).tagName !== 'TEXTAREA') setShowDetail(row); }}>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6, textAlign: 'center' }}>{idx + 1}</td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['Category']}</td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['Site ID']}</td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['Site Class']}</td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['NOP']}</td>
+              <tr key={row.id} onClick={e => { if ((e.target as HTMLElement).tagName !== 'SELECT' && (e.target as HTMLElement).tagName !== 'BUTTON' && (e.target as HTMLElement).tagName !== 'TEXTAREA') setShowDetail(row); }}>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6, textAlign: 'center' }}>{idx + 1}</td>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['Category']}</td>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['Site ID']}</td>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['Site Class']}</td>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{row['NOP']}</td>
                   <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>{dateClose}</td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6, textAlign: 'center' }}>
-                    <select
-                      value={statusEdit[row.id] || ''}
-                      onChange={e => handleStatusChange(row.id, e.target.value)}
-                      style={{ padding: 4, borderRadius: 4, border: '1px solid #ccc', minWidth: 90, fontWeight: 600, color: statusEdit[row.id] === 'Close' ? 'green' : statusEdit[row.id] === 'Rejected' ? 'red' : undefined }}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <option value="">Pilih aksi</option>
-                      <option value="Close">Approve &#10003;</option>
-                      <option value="Rejected">Rejected &#10007;</option>
-                    </select>
-                  </td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>
-                    <textarea
-                      value={remarkEdit[row.id] ?? row['Remark'] ?? ''}
-                      onChange={e => setRemarkEdit(prev => ({ ...prev, [row.id]: e.target.value }))}
-                      rows={2}
-                      style={{ width: 140, minHeight: 32, borderRadius: 4, border: '1px solid #ccc', padding: 4, resize: 'vertical' }}
-                      placeholder="Isi remark..."
-                      onClick={e => e.stopPropagation()}
-                    />
-                  </td>
-                  <td style={{ border: '1px solid #e0e0e0', padding: 6, textAlign: 'center' }}>
-                    <button
-                      onClick={e => { e.stopPropagation(); handleSave(row); }}
-                      disabled={!statusEdit[row.id] || saving === row.id}
-                      style={{
-                        padding: '4px 16px',
-                        borderRadius: 4,
-                        border: 'none',
-                        background: '#1976d2',
-                        color: '#fff',
-                        fontWeight: 600,
-                        cursor: statusEdit[row.id] && !saving ? 'pointer' : 'not-allowed',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={e => (e.currentTarget.style.background = '#1251a3')}
-                      onMouseOut={e => (e.currentTarget.style.background = '#1976d2')}
-                    >
-                      <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24" style={{ marginRight: 2 }}>
-                        <path d="M17 21H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l5 5v9a2 2 0 0 1-2 2z" />
-                        <polyline points="17 21 17 13 7 13 7 21" />
-                      </svg>
-                      {saving === row.id ? 'Saving...' : 'Simpan'}
-                    </button>
-                  </td>
-                </tr>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6, textAlign: 'center' }}>
+                  <select
+                    value={statusEdit[row.id] || ''}
+                    onChange={e => handleStatusChange(row.id, e.target.value)}
+                    style={{ padding: 4, borderRadius: 4, border: '1px solid #ccc', minWidth: 90, fontWeight: 600, color: statusEdit[row.id] === 'Close' ? 'green' : statusEdit[row.id] === 'Rejected' ? 'red' : undefined }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <option value="">Pilih aksi</option>
+                    <option value="Close">Approve &#10003;</option>
+                    <option value="Rejected">Rejected &#10007;</option>
+                  </select>
+                </td>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6 }}>
+                  <textarea
+                    value={remarkEdit[row.id] ?? row['Remark'] ?? ''}
+                    onChange={e => setRemarkEdit(prev => ({ ...prev, [row.id]: e.target.value }))}
+                    rows={2}
+                    style={{ width: 140, minHeight: 32, borderRadius: 4, border: '1px solid #ccc', padding: 4, resize: 'vertical' }}
+                    placeholder="Isi remark..."
+                    onClick={e => e.stopPropagation()}
+                  />
+                </td>
+                <td style={{ border: '1px solid #e0e0e0', padding: 6, textAlign: 'center' }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); handleSave(row); }}
+                    disabled={!statusEdit[row.id] || saving === row.id}
+                    style={{
+                      padding: '4px 16px',
+                      borderRadius: 4,
+                      border: 'none',
+                      background: '#1976d2',
+                      color: '#fff',
+                      fontWeight: 600,
+                      cursor: statusEdit[row.id] && !saving ? 'pointer' : 'not-allowed',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseOver={e => (e.currentTarget.style.background = '#1251a3')}
+                    onMouseOut={e => (e.currentTarget.style.background = '#1976d2')}
+                  >
+                    <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24" style={{ marginRight: 2 }}>
+                      <path d="M17 21H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l5 5v9a2 2 0 0 1-2 2z" />
+                      <polyline points="17 21 17 13 7 13 7 21" />
+                    </svg>
+                    {saving === row.id ? 'Saving...' : 'Simpan'}
+                  </button>
+                </td>
+              </tr>
               );
             })}
           </tbody>
