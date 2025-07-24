@@ -121,6 +121,7 @@ const DataPage = () => {
   const [detailPopup, setDetailPopup] = useState<{title: string, value: string} | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [editNoChange, setEditNoChange] = useState<string | null>(null);
+  const [isAdminState, setIsAdminState] = useState(false);
 
   // Filter states
   const [filter, setFilter] = useState({
@@ -175,6 +176,13 @@ const DataPage = () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [filterDraft, searchDraft]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('userRole');
+      setIsAdminState(['admin', 'user_admin', 'super_admin'].includes(role));
+    }
+  }, []);
 
   // Unique values for dropdowns
   const uniqueOptions = (key: string) => {
@@ -540,7 +548,7 @@ const DataPage = () => {
         </Box>
       </Paper>
       {/* Tombol Export/Copy untuk admin/super_admin */}
-      {isAdmin() && (
+      {isAdminState && (
         <Box display="flex" gap={1} mb={2} mt={1}>
           <Button
             variant="outlined"

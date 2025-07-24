@@ -16,7 +16,11 @@ const SidebarItems = () => {
       setRole(localStorage.getItem('userRole') || 'user');
     }
   }, []);
-  const menuItems = getMenuItemsByRole(role);
+  let menuItems = getMenuItemsByRole(role);
+  // Filter menu CRUD hanya untuk super_admin
+  if (role !== 'super_admin') {
+    menuItems = menuItems.filter(item => item.href !== '/dashboard-admin/crud');
+  }
   const router = useRouter();
   return (
     <Box sx={{ width: '100%', p: 2 }}>

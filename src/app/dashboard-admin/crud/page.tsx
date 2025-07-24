@@ -263,6 +263,12 @@ const CrudPage = () => {
     <Box p={{ xs: 1, md: 3 }}>
       <Typography variant="h5" fontWeight={700} mb={3}>CRUD Data (Super Admin Only)</Typography>
       <Paper sx={{ p: 2, mb: 2, borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
+        {/* Tombol Tambah & Upload */}
+        <Box display="flex" gap={2} mb={2}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenForm('add')} sx={{ borderRadius: 2 }}>Tambah Data</Button>
+          <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ borderRadius: 2 }}>Upload Excel/CSV</Button>
+          <input type="file" accept=".xlsx,.csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+        </Box>
         {/* Filter Bar */}
         <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }} gap={2} mb={2}>
           <TextField
