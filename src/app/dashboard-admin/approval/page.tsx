@@ -49,13 +49,6 @@ const ApprovalPage = () => {
     }
   }, []);
 
-  if (isSuperAdminState === false) {
-    return <div style={{ padding: 32, color: 'red', fontWeight: 700, fontSize: 20 }}>Akses ditolak. Halaman ini hanya untuk super admin.<br/>Anda akan diarahkan ke dashboard...</div>;
-  }
-  if (isSuperAdminState === null) {
-    return null; // Atau loading spinner
-  }
-
   useEffect(() => {
     const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
@@ -72,6 +65,13 @@ const ApprovalPage = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  if (isSuperAdminState === false) {
+    return <div style={{ padding: 32, color: 'red', fontWeight: 700, fontSize: 20 }}>Akses ditolak. Halaman ini hanya untuk super admin.<br/>Anda akan diarahkan ke dashboard...</div>;
+  }
+  if (isSuperAdminState === null) {
+    return null; // Atau loading spinner
+  }
 
   const handleStatusChange = (id: string, value: string) => {
     setStatusEdit(prev => ({ ...prev, [id]: value }));
