@@ -25,9 +25,15 @@ function toDisplayDate(dateString: string) {
 }
 
 const ApprovalPage = () => {
-  // Tambah state untuk akses
+  // Semua hooks di atas
   const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
   const [redirecting, setRedirecting] = useState(false);
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusEdit, setStatusEdit] = useState<{ [id: string]: string }>({});
+  const [saving, setSaving] = useState<string | null>(null);
+  const [showDetail, setShowDetail] = useState<any | null>(null);
+  const [remarkEdit, setRemarkEdit] = useState<{ [id: string]: string }>({});
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -49,12 +55,6 @@ const ApprovalPage = () => {
   if (isSuperAdminState === null) {
     return null; // Atau loading spinner
   }
-  const [rows, setRows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statusEdit, setStatusEdit] = useState<{ [id: string]: string }>({});
-  const [saving, setSaving] = useState<string | null>(null);
-  const [showDetail, setShowDetail] = useState<any | null>(null);
-  const [remarkEdit, setRemarkEdit] = useState<{ [id: string]: string }>({});
 
   useEffect(() => {
     const dbRef = ref(database);
