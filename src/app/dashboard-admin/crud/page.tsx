@@ -386,6 +386,7 @@ const CrudPage = () => {
           <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow sx={{ background: '#f7fafd' }}>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 40, maxWidth: 50, textAlign: 'center' }}>No</TableCell>
                 {DATA_COLUMNS.map(col => (
                   <TableCell key={col.id} sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>{col.label}</TableCell>
                 ))}
@@ -394,13 +395,14 @@ const CrudPage = () => {
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center" sx={{ py: 4 }}><CircularProgress /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={DATA_COLUMNS.length+2} align="center" sx={{ py: 4 }}><CircularProgress /></TableCell></TableRow>
               ) : filteredRows.length === 0 ? (
-                <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center" sx={{ py: 4 }}>Tidak ada data.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={DATA_COLUMNS.length+2} align="center" sx={{ py: 4 }}>Tidak ada data.</TableCell></TableRow>
               ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
                 <TableRow key={row.id} hover sx={{ background: idx % 2 === 0 ? '#f9fbfd' : '#fff', transition: 'background 0.2s', cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }} onClick={e => {
                   if (["BUTTON", "SVG", "PATH"].indexOf((e.target as HTMLElement).tagName) === -1) setShowDetail(row);
                 }}>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center' }}>{page * rowsPerPage + idx + 1}</TableCell>
                   {DATA_COLUMNS.map(col => (
                     <TableCell key={col.id} sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row[col.id]}</TableCell>
                   ))}
