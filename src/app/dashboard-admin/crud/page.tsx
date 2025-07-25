@@ -297,7 +297,7 @@ const CrudPage = () => {
     setUploadLoading(false);
     setUploadProgress(100);
     setUploadSuccess(true);
-    setTimeout(() => {
+    setTimeout(() => { 
       setUploadDialog(false);
       setUploadData([]);
       setUploadSuccess(false);
