@@ -29,6 +29,39 @@ const DATA_COLUMNS = [
   { id: 'Remark', label: 'Remark' },
 ];
 
+// Tambahkan constant untuk opsi filter (ambil dari data/page.tsx)
+const ROOT_CAUSE_OPTIONS = [
+  'Power - Regular',
+  'Power - Sewadaya',
+  'Power - SPS',
+  'Transport',
+  'Radio',
+  'Others',
+];
+const PIC_DEPT_OPTIONS = [
+  'ENOM',
+  'Power',
+  'Transport',
+  'NOP',
+  'NOS',
+  'Radio',
+  'IM',
+  'Project',
+  'Engineering',
+];
+const PROGRESS_OPTIONS = [
+  { value: 'Identification', label: '1. Identification' },
+  { value: 'Plan Action', label: '2. Plan Action' },
+  { value: 'Assessment', label: '3. Assessment' },
+  { value: 'Justification', label: '4. Justification / RAB / BOQ' },
+  { value: 'Waiting Budget', label: '5. Waiting Budget' },
+  { value: 'Waiting PO', label: '6. Waiting PO' },
+  { value: 'Have Program', label: '7. Have Program' },
+  { value: 'Execution', label: '8. Execution' },
+  { value: 'Done', label: '9. Done' },
+];
+const STATUS_OPTIONS = ['Open', 'Waiting approval', 'Close', 'Rejected'];
+
 function isSuperAdmin() {
   // Jangan gunakan localStorage di SSR, gunakan state di komponen utama
   return false;
@@ -62,16 +95,30 @@ const CrudPage = () => {
     category: '',
     siteId: '',
     siteName: '',
+    siteClass: '',
     nop: '',
+    sourcePower: '',
     status: '',
+    dateStart: '',
+    dateEnd: '',
+    picDept: '',
+    progress: '',
+    rootCause: '',
     search: '',
   });
   const [filterDraft, setFilterDraft] = useState({
     category: '',
     siteId: '',
     siteName: '',
+    siteClass: '',
     nop: '',
+    sourcePower: '',
     status: '',
+    dateStart: '',
+    dateEnd: '',
+    picDept: '',
+    progress: '',
+    rootCause: '',
     search: '',
   });
   const [page, setPage] = useState(0);
@@ -285,47 +332,79 @@ const CrudPage = () => {
             }}
             sx={{ minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 2 }}
           />
-          <TextField select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
-            <option value="">All</option>
-            {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </TextField>
-          <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
-            <option value="">All</option>
-            {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </TextField>
-          <TextField select size="small" label="Site Name" value={filterDraft.siteName} onChange={e => setFilterDraft(f => ({ ...f, siteName: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
-            <option value="">All</option>
-            {uniqueOptions('Site Name').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </TextField>
-          <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
-            <option value="">All</option>
-            {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </TextField>
-          <TextField select size="small" label="Status" value={filterDraft.status} onChange={e => setFilterDraft(f => ({ ...f, status: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
-            <option value="">All</option>
-            {uniqueOptions('Status').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </TextField>
-          <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', nop: '', status: '', search: '' }); setPage(0); }}>Reset</Button>
+          <Box display="flex" flexWrap="wrap" gap={1} alignItems="center" flex={1}>
+            <TextField select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="Site Name" value={filterDraft.siteName} onChange={e => setFilterDraft(f => ({ ...f, siteName: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {uniqueOptions('Site Name').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="Site Class" value={filterDraft.siteClass} onChange={e => setFilterDraft(f => ({ ...f, siteClass: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {uniqueOptions('Site Class').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="Source Power" value={filterDraft.sourcePower} onChange={e => setFilterDraft(f => ({ ...f, sourcePower: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {uniqueOptions('Source Power').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="Status" value={filterDraft.status} onChange={e => setFilterDraft(f => ({ ...f, status: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <Box display="flex" alignItems="center" gap={1}>
+              <TextField size="small" label="Date Close" type="date" value={filterDraft.dateStart} onChange={e => setFilterDraft(f => ({ ...f, dateStart: e.target.value }))} sx={{ minWidth: 130 }} InputLabelProps={{ shrink: true }} />
+              <Typography variant="body2" color="text.secondary">to</Typography>
+              <TextField size="small" label="" type="date" value={filterDraft.dateEnd} onChange={e => setFilterDraft(f => ({ ...f, dateEnd: e.target.value }))} sx={{ minWidth: 130 }} InputLabelProps={{ shrink: true }} />
+            </Box>
+            <TextField select size="small" label="PIC Dept" value={filterDraft.picDept} onChange={e => setFilterDraft(f => ({ ...f, picDept: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {PIC_DEPT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <TextField select size="small" label="Progress" value={filterDraft.progress} onChange={e => setFilterDraft(f => ({ ...f, progress: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              {PROGRESS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </TextField>
+            <TextField select size="small" label="Root Cause" value={filterDraft.rootCause || ''} onChange={e => setFilterDraft(f => ({ ...f, rootCause: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 120 }} InputLabelProps={{ shrink: true }}>
+              <option value="">All</option>
+              <option value="blank">Blank</option>
+              {ROOT_CAUSE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </TextField>
+            <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteName: '', siteClass: '', nop: '', sourcePower: '', status: '', dateStart: '', dateEnd: '', picDept: '', progress: '', rootCause: '', search: '' }); setPage(0); }}>Reset</Button>
+          </Box>
         </Box>
         <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)', maxHeight: 520 }}>
-          <Table size="small" sx={{ minWidth: 1200 }}>
+          <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
             <TableHead>
-              <TableRow>
-                {DATA_COLUMNS.map(col => <TableCell key={col.id} sx={{ fontWeight: 700 }}>{col.label}</TableCell>)}
-                <TableCell>Aksi</TableCell>
+              <TableRow sx={{ background: '#f7fafd' }}>
+                {DATA_COLUMNS.map(col => (
+                  <TableCell key={col.id} sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>{col.label}</TableCell>
+                ))}
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Aksi</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center"><CircularProgress /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center" sx={{ py: 4 }}><CircularProgress /></TableCell></TableRow>
               ) : filteredRows.length === 0 ? (
-                <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center">Tidak ada data.</TableCell></TableRow>
-              ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                <TableRow key={row.id} hover sx={{ cursor: 'pointer' }} onClick={e => {
+                <TableRow><TableCell colSpan={DATA_COLUMNS.length+1} align="center" sx={{ py: 4 }}>Tidak ada data.</TableCell></TableRow>
+              ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
+                <TableRow key={row.id} hover sx={{ background: idx % 2 === 0 ? '#f9fbfd' : '#fff', transition: 'background 0.2s', cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }} onClick={e => {
                   if (["BUTTON", "SVG", "PATH"].indexOf((e.target as HTMLElement).tagName) === -1) setShowDetail(row);
                 }}>
-                  {DATA_COLUMNS.map(col => <TableCell key={col.id}>{row[col.id]}</TableCell>)}
-                  <TableCell>
+                  {DATA_COLUMNS.map(col => (
+                    <TableCell key={col.id} sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row[col.id]}</TableCell>
+                  ))}
+                  <TableCell sx={{ border: '1px solid #e0e0e0', padding: '0 2px', fontSize: 13, verticalAlign: 'middle', cursor: 'default' }}>
                     <IconButton color="primary" onClick={ev => { ev.stopPropagation(); handleOpenForm('edit', row); }}><EditIcon /></IconButton>
                     <IconButton color="error" onClick={ev => { ev.stopPropagation(); handleDelete(row.id); }}><DeleteIcon /></IconButton>
                   </TableCell>
