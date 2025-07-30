@@ -246,7 +246,12 @@ const DataPage = () => {
             dateCloseArr.push(now);
           }
         }
-        return { ...prev, [field]: value, 'Date Close': dateCloseArr, '_prevProgress': prev['Progress'] };
+        // Jika progress menjadi Done, otomatis set PIC Dept menjadi Radio
+        const updatedForm = { ...prev, [field]: value, 'Date Close': dateCloseArr, '_prevProgress': prev['Progress'] };
+        if (isToDone) {
+          updatedForm['PIC Dept'] = 'Radio';
+        }
+        return updatedForm;
       }
       return { ...prev, [field]: value };
     });
