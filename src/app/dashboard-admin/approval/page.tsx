@@ -146,6 +146,7 @@ const ApprovalPage = () => {
     };
     if (newStatus === 'Rejected') {
       updates.Progress = 'Identification';
+      updates['PIC Dept'] = 'ENOM';
     }
     await update(ref(database, row.id), updates);
     setSaving(null);
