@@ -29,7 +29,7 @@ const allMenuitems = [
       {
         id: uniqueId(),
         title: "Availability",
-        href: "/dashboard-admin/data/availability",
+        href: "/dashboard-admin/data/Availability",
       },
       {
         id: uniqueId(),
@@ -47,7 +47,7 @@ const allMenuitems = [
       {
         id: uniqueId(),
         title: "Availability",
-        href: "/dashboard-admin/approval/availability",
+        href: "/dashboard-admin/approval/Availability",
       },
       {
         id: uniqueId(),
@@ -65,7 +65,7 @@ const allMenuitems = [
       {
         id: uniqueId(),
         title: "Availability",
-        href: "/dashboard-admin/logs/availability",
+        href: "/dashboard-admin/logs/Availability",
       },
       {
         id: uniqueId(),
@@ -83,7 +83,7 @@ const allMenuitems = [
       {
         id: uniqueId(),
         title: "Availability",
-        href: "/dashboard-admin/crud/availability",
+        href: "/dashboard-admin/crud/Availability",
       },
       {
         id: uniqueId(),
