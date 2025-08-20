@@ -1,10 +1,10 @@
 import React from "react";
 import { getMenuItemsByRole } from "./MenuItems";
-import { Box, Badge, Chip } from "@mui/material";
+import { Box, Badge, Chip, Collapse } from "@mui/material";
 import Logo from "../shared/logo/Logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconLayoutDashboard } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue } from 'firebase/database';
 
@@ -12,6 +12,7 @@ const SidebarItems = () => {
   const pathname = usePathname();
   const [role, setRole] = React.useState('user');
   const [approvalCount, setApprovalCount] = React.useState(0);
+  const [expandedMenus, setExpandedMenus] = React.useState<{ [key: string]: boolean }>({});
   const router = useRouter();
 
   React.useEffect(() => {
@@ -41,91 +42,173 @@ const SidebarItems = () => {
 
   const menuItems = getMenuItemsByRole(role);
 
+  const handleMenuToggle = (menuId: string) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuId]: !prev[menuId]
+    }));
+  };
+
+  const renderMenuItem = (item: any) => {
+    const Icon = item.icon ? item.icon : IconLayoutDashboard;
+    const href = item.href || "#";
+    
+    // Menu Logout
+    if (href === '/logout') {
+      return (
+        <Box
+          key={item.id}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 2,
+            py: 1.2,
+            borderRadius: 2,
+            color: '#e53935',
+            background: 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            '&:hover': {
+              background: '#f5f5f5',
+            },
+          }}
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('userRole');
+              localStorage.removeItem('hideApprovalMenu');
+            }
+            router.push('/');
+          }}
+        >
+          <Icon size={20} />
+          {item.title}
+        </Box>
+      );
+    }
+
+    // Menu dengan sub-menu
+    if (item.submenu && item.submenu.length > 0) {
+      const isExpanded = expandedMenus[item.id] || false;
+      const hasActiveSubmenu = item.submenu.some((sub: any) => pathname === sub.href);
+      
+      return (
+        <Box key={item.id}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 1.2,
+              borderRadius: 2,
+              color: hasActiveSubmenu ? '#1976d2' : '#222',
+              background: hasActiveSubmenu ? '#e3f2fd' : 'none',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              '&:hover': {
+                background: '#f5f5f5',
+              },
+            }}
+            onClick={() => handleMenuToggle(item.id)}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Icon size={20} />
+              {item.title}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {/* Badge notifikasi untuk menu Approval */}
+              {item.title === 'Approval' && role === 'super_admin' && approvalCount > 0 && (
+                <Chip
+                  label={approvalCount}
+                  size="small"
+                  color="warning"
+                  sx={{
+                    minWidth: 20,
+                    height: 20,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    '& .MuiChip-label': {
+                      px: 0.5,
+                    },
+                  }}
+                />
+              )}
+              {/* Icon expand/collapse */}
+              {isExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
+            </Box>
+          </Box>
+          
+          {/* Sub-menu */}
+          <Collapse in={isExpanded}>
+            <Box sx={{ ml: 3, mt: 0.5 }}>
+              {item.submenu.map((subItem: any) => (
+                <Link href={subItem.href} key={subItem.id} style={{ textDecoration: 'none' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      color: pathname === subItem.href ? '#1976d2' : '#666',
+                      background: pathname === subItem.href ? '#e3f2fd' : 'none',
+                      fontWeight: 400,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      fontSize: '0.9rem',
+                      '&:hover': {
+                        background: '#f5f5f5',
+                      },
+                    }}
+                  >
+                    {subItem.title}
+                  </Box>
+                </Link>
+              ))}
+            </Box>
+          </Collapse>
+        </Box>
+      );
+    }
+
+    // Menu tanpa sub-menu
+    return (
+      <Link href={href} key={item.id} style={{ textDecoration: 'none' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            px: 2,
+            py: 1.2,
+            borderRadius: 2,
+            color: pathname === href ? '#1976d2' : '#222',
+            background: pathname === href ? '#e3f2fd' : 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+          transition: 'all 0.2s',
+            '&:hover': {
+              background: '#f5f5f5',
+            },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Icon size={20} />
+            {item.title}
+          </Box>
+        </Box>
+      </Link>
+    );
+  };
+
   return (
     <Box sx={{ width: '100%', p: 2 }}>
       <Logo />
       <Box mt={4}>
-        {menuItems.map((item) => {
-          const Icon = item.icon ? item.icon : IconLayoutDashboard;
-          const href = item.href || "#";
-          if (href === '/logout') {
-            return (
-              <Box
-                key={item.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  px: 2,
-                  py: 1.2,
-                  borderRadius: 2,
-                  color: '#e53935',
-                  background: 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    background: '#f5f5f5',
-                  },
-                }}
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('hideApprovalMenu');
-                  }
-                  router.push('/');
-                }}
-              >
-                <Icon size={20} />
-                {item.title}
-              </Box>
-            );
-          }
-          return (
-            <Link href={href} key={item.id} style={{ textDecoration: 'none' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  px: 2,
-                  py: 1.2,
-                  borderRadius: 2,
-                  color: pathname === href ? '#1976d2' : '#222',
-                  background: pathname === href ? '#e3f2fd' : 'none',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    background: '#f5f5f5',
-                  },
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Icon size={20} />
-                  {item.title}
-                </Box>
-                {/* Badge notifikasi untuk menu Approval */}
-                {item.title === 'Approval' && role === 'super_admin' && approvalCount > 0 && (
-                  <Chip
-                    label={approvalCount}
-                    size="small"
-                    color="warning"
-                    sx={{
-                      minWidth: 20,
-                      height: 20,
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      '& .MuiChip-label': {
-                        px: 0.5,
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-            </Link>
-          );
-        })}
+        {menuItems.map(renderMenuItem)}
       </Box>
     </Box>
   );
