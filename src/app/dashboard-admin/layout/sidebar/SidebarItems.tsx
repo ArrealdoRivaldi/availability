@@ -119,23 +119,6 @@ const SidebarItems = () => {
               {item.title}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {/* Badge notifikasi untuk menu Approval */}
-              {item.title === 'Approval' && role === 'super_admin' && approvalCount > 0 && (
-                <Chip
-                  label={approvalCount}
-                  size="small"
-                  color="warning"
-                  sx={{
-                    minWidth: 20,
-                    height: 20,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    '& .MuiChip-label': {
-                      px: 0.5,
-                    },
-                  }}
-                />
-              )}
               {/* Icon expand/collapse */}
               {isExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
             </Box>
@@ -150,6 +133,7 @@ const SidebarItems = () => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'space-between',
                       px: 2,
                       py: 1,
                       borderRadius: 2,
@@ -164,7 +148,24 @@ const SidebarItems = () => {
                       },
                     }}
                   >
-                    {subItem.title}
+                    <span>{subItem.title}</span>
+                    {/* Badge notifikasi untuk submenu Availability */}
+                    {item.title === 'Approval' && subItem.title === 'Availability' && role === 'super_admin' && approvalCount > 0 && (
+                      <Chip
+                        label={approvalCount}
+                        size="small"
+                        color="warning"
+                        sx={{
+                          minWidth: 20,
+                          height: 20,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          '& .MuiChip-label': {
+                            px: 0.5,
+                          },
+                        }}
+                      />
+                    )}
                   </Box>
                 </Link>
               ))}
