@@ -27,7 +27,7 @@ function toDisplayDate(dateString: string) {
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-const ApprovalPage = () => {
+const AvailabilityApprovalPage = () => {
   const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
   const [redirecting, setRedirecting] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
@@ -163,11 +163,11 @@ const ApprovalPage = () => {
     <Box p={{ xs: 1, md: 3 }}>
       <Box display="flex" alignItems="center" gap={2} mb={3}>
         <Typography variant="h5" fontWeight={700} sx={{ letterSpacing: 0.2 }}>
-          Approval
+          Availability Approval
         </Typography>
         <Chip
           icon={<NotificationsIcon />}
-          label={`${filteredRows.length} data menunggu approval`}
+          label={`${filteredRows.length} data Availability menunggu approval`}
           color="warning"
           variant="outlined"
           sx={{ fontWeight: 600 }}
@@ -355,4 +355,4 @@ const ApprovalPage = () => {
   );
 };
 
-export default ApprovalPage; 
+export default AvailabilityApprovalPage; 

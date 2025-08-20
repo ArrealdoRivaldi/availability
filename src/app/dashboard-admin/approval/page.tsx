@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, TableContainer, TablePagination, InputAdornment, Chip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue, update } from 'firebase/database';
 
@@ -27,7 +26,7 @@ function toDisplayDate(dateString: string) {
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-const ApprovalPage = () => {
+const ApprovalManagementPage = () => {
   const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
   const [redirecting, setRedirecting] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
@@ -163,15 +162,8 @@ const ApprovalPage = () => {
     <Box p={{ xs: 1, md: 3 }}>
       <Box display="flex" alignItems="center" gap={2} mb={3}>
         <Typography variant="h5" fontWeight={700} sx={{ letterSpacing: 0.2 }}>
-          Approval
+          Approval Management
         </Typography>
-        <Chip
-          icon={<NotificationsIcon />}
-          label={`${filteredRows.length} data menunggu approval`}
-          color="warning"
-          variant="outlined"
-          sx={{ fontWeight: 600 }}
-        />
       </Box>
 
       {/* Search & Filter Bar */}
@@ -355,4 +347,4 @@ const ApprovalPage = () => {
   );
 };
 
-export default ApprovalPage; 
+export default ApprovalManagementPage; 
