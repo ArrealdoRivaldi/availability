@@ -11,7 +11,7 @@ const allMenuitems = [
       {
         id: uniqueId(),
         title: "Availability",
-        href: "/dashboard-admin/dashboard/availability",
+        href: "/dashboard-admin/dashboard/Availability",
       },
       {
         id: uniqueId(),
