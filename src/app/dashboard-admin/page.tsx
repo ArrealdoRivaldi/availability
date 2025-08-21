@@ -3,12 +3,6 @@ import React from 'react';
 import { Box, Typography, Paper, Grid, Card, CardContent, CardActionArea, Avatar } from '@mui/material';
 import { 
   Assessment, 
-  Timeline, 
-  Analytics, 
-  Dashboard as DashboardIcon,
-  TrendingUp,
-  BarChart,
-  PieChart,
   TableChart
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -26,44 +20,12 @@ const DashboardLanding = () => {
       features: ['Status Distribution', 'Progress Stepper', 'Dept PIC Analysis', 'NOP & Root Cause Tables']
     },
     {
-      title: 'Cell Down Dashboard',
-      description: 'Track cell down incidents, resolution progress, and downtime analytics',
-      icon: <Timeline sx={{ fontSize: 40, color: '#388e3c' }} />,
-      color: '#388e3c',
-      path: '/dashboard-admin/dashboard/Cell Down',
-      features: ['Incident Tracking', 'Resolution Time', 'Impact Analysis', 'Performance Metrics']
-    },
-    {
-      title: 'Analytics Overview',
-      description: 'Comprehensive data analysis and reporting dashboard',
-      icon: <Analytics sx={{ fontSize: 40, color: '#f57c00' }} />,
-      color: '#f57c00',
-      path: '/dashboard-admin/dashboard/Analytics',
-      features: ['Data Visualization', 'Trend Analysis', 'Custom Reports', 'Export Options']
-    },
-    {
-      title: 'Performance Metrics',
-      description: 'Real-time performance monitoring and KPI tracking',
-      icon: <TrendingUp sx={{ fontSize: 40, color: '#7b1fa2' }} />,
-      color: '#7b1fa2',
-      path: '/dashboard-admin/dashboard/Performance',
-      features: ['KPI Dashboard', 'Real-time Monitoring', 'Alert System', 'Historical Data']
-    },
-    {
       title: 'Data Management',
       description: 'Manage and organize dashboard data and configurations',
       icon: <TableChart sx={{ fontSize: 40, color: '#d32f2f' }} />,
       color: '#d32f2f',
-      path: '/dashboard-admin/data',
+      path: '/dashboard-admin/data/Availability',
       features: ['Data Import/Export', 'Configuration Settings', 'User Management', 'System Logs']
-    },
-    {
-      title: 'Approval System',
-      description: 'Manage approval workflows and decision processes',
-      icon: <BarChart sx={{ fontSize: 40, color: '#00838f' }} />,
-      color: '#00838f',
-      path: '/dashboard-admin/approval',
-      features: ['Workflow Management', 'Approval Queue', 'Decision Tracking', 'Audit Trail']
     }
   ];
 
@@ -183,7 +145,7 @@ const DashboardLanding = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
             <Box textAlign="center" p={2}>
-              <Typography variant="h4" fontWeight={700} color="#1976d2">6</Typography>
+              <Typography variant="h4" fontWeight={700} color="#1976d2">2</Typography>
               <Typography variant="body2" color="text.secondary">Available Dashboards</Typography>
             </Box>
           </Grid>
