@@ -103,7 +103,7 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
             Cell Down Detail - {data.siteId}
           </Typography>
           <Button
-            icon={<CloseIcon />}
+            startIcon={<CloseIcon />}
             onClick={onClose}
             size="small"
           >
