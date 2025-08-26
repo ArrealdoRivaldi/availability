@@ -69,7 +69,7 @@ const DetailRow = ({ label, value }: { label: string; value: any }) => (
       color: '#666',
       wordBreak: 'break-word'
     }}>
-      {value || '-'}
+      {value || ''}
     </Box>
   </Box>
 );

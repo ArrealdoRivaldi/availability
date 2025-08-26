@@ -452,11 +452,11 @@ export default function CellDownDataPage() {
                     </TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.cellDownName}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.rootCause || 'Not Set'}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.detailProblem || 'Not Set'}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.planAction || 'Not Set'}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.needSupport || 'Not Set'}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.picDept || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.rootCause || ''}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.detailProblem || ''}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.planAction || ''}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.needSupport || ''}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.picDept || ''}</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                       <Chip 
                         label={row.progress || 'OPEN'} 
@@ -464,7 +464,7 @@ export default function CellDownDataPage() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.closedDate || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.closedDate || ''}</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                       <Chip label="Ready to Upload" color="info" size="small" />
                     </TableCell>
@@ -647,27 +647,27 @@ export default function CellDownDataPage() {
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.rootCause || 'Not Set'}
+                          {row.rootCause || ''}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.detailProblem || 'Not Set'}
+                          {row.detailProblem || ''}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.planAction || 'Not Set'}
+                          {row.planAction || ''}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.needSupport || 'Not Set'}
+                          {row.needSupport || ''}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.picDept || 'Not Set'}
+                          {row.picDept || ''}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
@@ -678,7 +678,7 @@ export default function CellDownDataPage() {
                         />
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Typography variant="body2">{row.closedDate || 'Not Set'}</Typography>
+                        <Typography variant="body2">{row.closedDate || ''}</Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Chip label={row.status} color={getStatusColor(row.status) as any} size="small" />
