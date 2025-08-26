@@ -57,7 +57,7 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
     <Dialog 
       open={open} 
       onClose={onClose} 
-      maxWidth="xl" 
+      maxWidth="md" 
       fullWidth
       PaperProps={{
         sx: { maxHeight: '90vh' }
@@ -69,113 +69,163 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
         </Typography>
       </DialogTitle>
       
-             <DialogContent dividers>
-         <Grid container spacing={3}>
-           {/* Basic Information - Kolom 1-8 */}
-           <Grid item xs={12}>
-             <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-               Basic Information
-             </Typography>
-             <Box sx={{ 
-               border: '1px solid #e0e0e0', 
-               borderRadius: 1, 
-               backgroundColor: 'white',
-               overflow: 'hidden'
-             }}>
-               <Grid container>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category</Typography>
-                     <Typography variant="body1">{data.siteClass || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Site ID</Typography>
-                     <Typography variant="body1">{data.siteId || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Site Name</Typography>
-                     <Typography variant="body1">{data.cellDownName || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Site Class</Typography>
-                     <Typography variant="body1">{data.siteClass || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>NOP</Typography>
-                     <Typography variant="body1">{data.nop || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Source Power</Typography>
-                     <Typography variant="body1">{data.alarmSource || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Root Cause</Typography>
-                     <Typography variant="body1">{data.rootCause || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Detail Problem</Typography>
-                     <Typography variant="body1">{data.detailProblem || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Plan Action</Typography>
-                     <Typography variant="body1">{data.planAction || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Need Support</Typography>
-                     <Typography variant="body1">{data.needSupport || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>PIC Dept</Typography>
-                     <Typography variant="body1">{data.picDept || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Progress</Typography>
-                     <Typography variant="body1">{data.progress || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6} sx={{ borderRight: '1px solid #e0e0e0' }}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Status</Typography>
-                     <Typography variant="body1">{data.status || ''}</Typography>
-                   </Box>
-                 </Grid>
-                 <Grid item xs={12} md={6}>
-                   <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Remark</Typography>
-                     <Typography variant="body1">{data.remarkSite || ''}</Typography>
-                   </Box>
-                 </Grid>
-               </Grid>
-             </Box>
-           </Grid>
-
-
-
-
-         </Grid>
-       </DialogContent>
+      <DialogContent>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Category
+              </Typography>
+              <Typography variant="body1">
+                {data.siteClass || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Site ID
+              </Typography>
+              <Typography variant="body1">
+                {data.siteId || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Site Name
+              </Typography>
+              <Typography variant="body1">
+                {data.cellDownName || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Site Class
+              </Typography>
+              <Typography variant="body1">
+                {data.siteClass || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                NOP
+              </Typography>
+              <Typography variant="body1">
+                {data.nop || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Source Power
+              </Typography>
+              <Typography variant="body1">
+                {data.alarmSource || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Root Cause
+              </Typography>
+              <Typography variant="body1">
+                {data.rootCause || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Detail Problem
+              </Typography>
+              <Typography variant="body1">
+                {data.detailProblem || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Plan Action
+              </Typography>
+              <Typography variant="body1">
+                {data.planAction || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Need Support
+              </Typography>
+              <Typography variant="body1">
+                {data.needSupport || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                PIC Dept
+              </Typography>
+              <Typography variant="body1">
+                {data.picDept || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Progress
+              </Typography>
+              <Typography variant="body1">
+                {data.progress || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Status
+              </Typography>
+              <Typography variant="body1">
+                {data.status || ''}
+              </Typography>
+            </Box>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'textSecondary' }} gutterBottom>
+                Remark
+              </Typography>
+              <Typography variant="body1">
+                {data.remarkSite || ''}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </DialogContent>
       
       <DialogActions>
         <Button 
