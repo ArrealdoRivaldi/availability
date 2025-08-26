@@ -336,42 +336,6 @@ export default function CellDownDataPage() {
     return status === 'open' ? 'warning' : 'success';
   };
 
-  const truncateText = (text: string, maxLength: number = 20) => {
-    if (!text || text.trim() === '') return '';
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
-  const renderDetailButton = (text: string, field: string, row: CellDownData) => {
-    const truncatedText = truncateText(text, 15);
-    const hasContent = text && text.trim() !== '';
-    
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {hasContent && (
-          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-            {truncatedText}
-          </Typography>
-        )}
-        <Button
-          size="small"
-          variant="text"
-          color="primary"
-          startIcon={<VisibilityIcon />}
-          onClick={() => handleViewDetail(row)}
-          sx={{ 
-            minWidth: 'auto', 
-            p: 0.5, 
-            fontSize: '0.75rem',
-            textTransform: 'none'
-          }}
-        >
-          Detail
-        </Button>
-      </Box>
-    );
-  };
-
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -442,47 +406,47 @@ export default function CellDownDataPage() {
         <DialogTitle>Preview Upload Data ({previewData.length} records)</DialogTitle>
         <DialogContent>
           <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-            <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+            <Table stickyHeader size="small">
               <TableHead>
-                                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>No.</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Week</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Site ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>NOP</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>AGING DOWN</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>RANGE AGING DOWN</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>SITE CLASS</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Sub Domain</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Cell Down Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Root Cause</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Detail Problem</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Plan Action</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Need Support</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>PIC Dept</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Progress</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Closed Date</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Status</TableCell>
-                  </TableRow>
+                <TableRow>
+                  <TableCell>No.</TableCell>
+                  <TableCell>Week</TableCell>
+                  <TableCell>Site ID</TableCell>
+                  <TableCell>NOP</TableCell>
+                  <TableCell>AGING DOWN</TableCell>
+                  <TableCell>RANGE AGING DOWN</TableCell>
+                  <TableCell>SITE CLASS</TableCell>
+                  <TableCell>Sub Domain</TableCell>
+                  <TableCell>Cell Down Name</TableCell>
+                  <TableCell>Root Cause</TableCell>
+                  <TableCell>Detail Problem</TableCell>
+                  <TableCell>Plan Action</TableCell>
+                  <TableCell>Need Support</TableCell>
+                  <TableCell>PIC Dept</TableCell>
+                  <TableCell>Progress</TableCell>
+                  <TableCell>Closed Date</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {previewData.slice(0, 20).map((row, index) => (
-                  <TableRow key={index} sx={{ '&:nth-of-type(even)': { backgroundColor: '#fafafa' } }}>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{index + 1}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.week}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.siteId}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.nop}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.agingDown}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.rangeAgingDown}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.siteClass}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.subDomain}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.cellDownName}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.rootCause || ''}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.detailProblem || ''}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.planAction || ''}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.needSupport || ''}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.picDept || ''}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.progress || 'OPEN'}</TableCell>
-                    <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.closedDate || ''}</TableCell>
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{row.week}</TableCell>
+                    <TableCell>{row.siteId}</TableCell>
+                    <TableCell>{row.nop}</TableCell>
+                    <TableCell>{row.agingDown}</TableCell>
+                    <TableCell>{row.rangeAgingDown}</TableCell>
+                    <TableCell>{row.siteClass}</TableCell>
+                    <TableCell>{row.subDomain}</TableCell>
+                    <TableCell>{row.cellDownName}</TableCell>
+                    <TableCell>{row.rootCause || 'Not Set'}</TableCell>
+                    <TableCell>{row.detailProblem || 'Not Set'}</TableCell>
+                    <TableCell>{row.planAction || 'Not Set'}</TableCell>
+                    <TableCell>{row.needSupport || 'Not Set'}</TableCell>
+                    <TableCell>{row.picDept || 'Not Set'}</TableCell>
+                    <TableCell>{row.progress || 'OPEN'}</TableCell>
+                    <TableCell>{row.closedDate || 'Not Set'}</TableCell>
                     <TableCell><Chip label="Ready to Upload" color="info" size="small" /></TableCell>
                   </TableRow>
                 ))}
@@ -535,37 +499,13 @@ export default function CellDownDataPage() {
               <TextField fullWidth label="Closed Date" type="date" value={editData.closedDate} onChange={(e) => setEditData({ ...editData, closedDate: e.target.value })} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                multiline 
-                rows={3} 
-                label="Detail Problem" 
-                value={editData.detailProblem} 
-                onChange={(e) => setEditData({ ...editData, detailProblem: e.target.value })}
-                placeholder="Enter detail problem description..."
-              />
+              <TextField fullWidth multiline rows={3} label="Detail Problem" value={editData.detailProblem} onChange={(e) => setEditData({ ...editData, detailProblem: e.target.value })} />
             </Grid>
             <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                multiline 
-                rows={3} 
-                label="Plan Action" 
-                value={editData.planAction} 
-                onChange={(e) => setEditData({ ...editData, planAction: e.target.value })}
-                placeholder="Enter plan action..."
-              />
+              <TextField fullWidth multiline rows={3} label="Plan Action" value={editData.planAction} onChange={(e) => setEditData({ ...editData, planAction: e.target.value })} />
             </Grid>
             <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                multiline 
-                rows={3} 
-                label="Need Support" 
-                value={editData.needSupport} 
-                onChange={(e) => setEditData({ ...editData, needSupport: e.target.value })}
-                placeholder="Enter support requirements..."
-              />
+              <TextField fullWidth multiline rows={3} label="Need Support" value={editData.needSupport} onChange={(e) => setEditData({ ...editData, needSupport: e.target.value })} />
             </Grid>
           </Grid>
         </DialogContent>
@@ -578,23 +518,7 @@ export default function CellDownDataPage() {
       <Card>
         <CardHeader
           title={`Cell Down Data (${totalCount} records)`}
-          action={
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<VisibilityIcon />}
-                sx={{ 
-                  backgroundColor: '#1976d2', 
-                  color: 'white',
-                  '&:hover': { backgroundColor: '#1565c0' }
-                }}
-              >
-                Copy
-              </Button>
-              <ExportToExcel data={data} onExport={() => {}} />
-            </Box>
-          }
+          action={<ExportToExcel data={data} onExport={() => {}} />}
         />
         
         <CardContent sx={{ pb: 0 }}>
@@ -646,75 +570,81 @@ export default function CellDownDataPage() {
           
           {!loading && data.length > 0 && (
             <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-              <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+              <Table stickyHeader size="small">
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>No.</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Week</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Site ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>NOP</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>AGING DOWN</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>RANGE AGING DOWN</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>SITE CLASS</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Sub Domain</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Cell Down Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Root Cause</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Detail Problem</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Plan Action</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Need Support</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>PIC Dept</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Progress</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Closed Date</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                  <TableRow>
+                    <TableCell>No.</TableCell>
+                    <TableCell>Week</TableCell>
+                    <TableCell>Site ID</TableCell>
+                    <TableCell>NOP</TableCell>
+                    <TableCell>AGING DOWN</TableCell>
+                    <TableCell>RANGE AGING DOWN</TableCell>
+                    <TableCell>SITE CLASS</TableCell>
+                    <TableCell>Sub Domain</TableCell>
+                    <TableCell>Cell Down Name</TableCell>
+                    <TableCell>Root Cause</TableCell>
+                    <TableCell>Detail Problem</TableCell>
+                    <TableCell>Plan Action</TableCell>
+                    <TableCell>Need Support</TableCell>
+                    <TableCell>PIC Dept</TableCell>
+                    <TableCell>Progress</TableCell>
+                    <TableCell>Closed Date</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.map((row, index) => (
-                    <TableRow key={row.id} hover sx={{ '&:nth-of-type(even)': { backgroundColor: '#fafafa' } }}>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{page * rowsPerPage + index + 1}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.week}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.siteId}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.nop}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.agingDown}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.rangeAgingDown}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.siteClass}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>{row.subDomain}</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                    <TableRow key={row.id} hover>
+                      <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                      <TableCell>{row.week}</TableCell>
+                      <TableCell>{row.siteId}</TableCell>
+                      <TableCell>{row.nop}</TableCell>
+                      <TableCell>{row.agingDown}</TableCell>
+                      <TableCell>{row.rangeAgingDown}</TableCell>
+                      <TableCell>{row.siteClass}</TableCell>
+                      <TableCell>{row.subDomain}</TableCell>
+                      <TableCell>
                         <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.cellDownName}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                      <TableCell>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.rootCause || ''}
+                          {row.rootCause || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                        {renderDetailButton(row.detailProblem, 'detailProblem', row)}
+                      <TableCell>
+                        <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {row.detailProblem || 'Not Set'}
+                        </Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                        {renderDetailButton(row.planAction, 'planAction', row)}
+                      <TableCell>
+                        <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {row.planAction || 'Not Set'}
+                        </Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                        {renderDetailButton(row.needSupport, 'needSupport', row)}
+                      <TableCell>
+                        <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {row.needSupport || 'Not Set'}
+                        </Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                      <TableCell>
                         <Typography variant="body2" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.picDept || ''}
+                          {row.picDept || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                      <TableCell>
                         <Chip 
                           label={row.progress || 'OPEN'} 
                           color={row.progress === 'DONE' ? 'success' : 'warning'}
                           size="small"
                         />
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                        <Typography variant="body2">{row.closedDate || ''}</Typography>
+                      <TableCell>
+                        <Typography variant="body2">{row.closedDate || 'Not Set'}</Typography>
                       </TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
+                      <TableCell>
                         <Chip label={row.status} color={getStatusColor(row.status) as any} />
                       </TableCell>
                       <TableCell>
