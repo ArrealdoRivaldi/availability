@@ -222,39 +222,39 @@ export default function CellDownDataPage() {
       let rowCount = 0;
       const totalRows = worksheet.rowCount - 1; // Exclude header
 
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return; // Skip header
+             worksheet.eachRow((row, rowNumber) => {
+         if (rowNumber === 1) return; // Skip header
 
-        const rowData: CellDownData = {
-          week: parseInt(row.getCell(1)?.value?.toString() || '0'),
-          regional: row.getCell(2)?.value?.toString() || '',
-          siteId: row.getCell(3)?.value?.toString() || '',
-          alarmSource: row.getCell(4)?.value?.toString() || '',
-          nop: row.getCell(5)?.value?.toString() || '',
-          districtOperation: row.getCell(6)?.value?.toString() || '',
-          firstOccurredOn: row.getCell(7)?.value?.toString() || '',
-          agingDown: parseInt(row.getCell(8)?.value?.toString() || '0'),
-          rangeAgingDown: row.getCell(9)?.value?.toString() || '',
-          ticketId: row.getCell(10)?.value?.toString() || '',
-          alarmName: row.getCell(11)?.value?.toString() || '',
-          siteClass: row.getCell(12)?.value?.toString() || '',
-          subDomain: row.getCell(13)?.value?.toString() || '',
-          alarmSeverity: row.getCell(14)?.value?.toString() || '',
-          alarmLocationInfo: row.getCell(15)?.value?.toString() || '',
-          remarkRedsector: row.getCell(16)?.value?.toString() || '',
-          remarkSite: row.getCell(17)?.value?.toString() || '',
-          cellDownName: row.getCell(18)?.value?.toString() || '',
-          rootCause: '',
-          detailProblem: '',
-          planAction: '',
-          needSupport: '',
-          picDept: '',
-          progress: 'OPEN',
-          closedDate: '',
-          status: 'open',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
+         const rowData: CellDownData = {
+           week: parseInt(row.getCell(1)?.value?.toString() || '0'),
+           regional: '', // Not in Excel, will be empty
+           siteId: row.getCell(2)?.value?.toString() || '',
+           alarmSource: '', // Not in Excel, will be empty
+           nop: row.getCell(3)?.value?.toString() || '',
+           districtOperation: '', // Not in Excel, will be empty
+           firstOccurredOn: '', // Not in Excel, will be empty
+           agingDown: parseInt(row.getCell(4)?.value?.toString() || '0'),
+           rangeAgingDown: row.getCell(5)?.value?.toString() || '',
+           ticketId: '', // Not in Excel, will be empty
+           alarmName: '', // Not in Excel, will be empty
+           siteClass: row.getCell(6)?.value?.toString() || '',
+           subDomain: row.getCell(7)?.value?.toString() || '',
+           alarmSeverity: '', // Not in Excel, will be empty
+           alarmLocationInfo: '', // Not in Excel, will be empty
+           remarkRedsector: '', // Not in Excel, will be empty
+           remarkSite: '', // Not in Excel, will be empty
+           cellDownName: row.getCell(8)?.value?.toString() || '',
+           rootCause: '',
+           detailProblem: '',
+           planAction: '',
+           needSupport: '',
+           picDept: '',
+           progress: 'OPEN',
+           closedDate: '',
+           status: 'open',
+           createdAt: new Date(),
+           updatedAt: new Date()
+         };
 
         previewRows.push(rowData);
         rowCount++;

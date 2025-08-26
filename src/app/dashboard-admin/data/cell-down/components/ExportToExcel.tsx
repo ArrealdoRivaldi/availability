@@ -76,37 +76,27 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
       const workbook = new XLSX.Workbook();
       const worksheet = workbook.addWorksheet('Cell Down Data');
 
-      // Define headers
-      const headers = [
-        'Week',
-        'Regional',
-        'Site ID',
-        'Alarm Source',
-        'NOP',
-        'District Operation',
-        'First Occurred On',
-        'AGING DOWN',
-        'RANGE AGING DOWN',
-        'Ticket ID',
-        'Alarm Name',
-        'SITE CLASS',
-        'Sub Domain',
-        'Alarm Severity',
-        'Alarm Location Info',
-        'remark_redsector',
-        'Remark Site',
-        'Cell Down Name',
-        'Root Cause',
-        'Detail Problem',
-        'Plan Action',
-        'Need Support',
-        'PIC Dept',
-        'Progress',
-        'Closed Date',
-        'Status',
-        'Created At',
-        'Updated At'
-      ];
+             // Define headers (8 upload columns + 7 editable columns + 2 system columns)
+       const headers = [
+         'Week',
+         'Site ID',
+         'NOP',
+         'AGING DOWN',
+         'RANGE AGING DOWN',
+         'SITE CLASS',
+         'Sub Domain',
+         'Cell Down Name',
+         'Root Cause',
+         'Detail Problem',
+         'Plan Action',
+         'Need Support',
+         'PIC Dept',
+         'Progress',
+         'Closed Date',
+         'Status',
+         'Created At',
+         'Updated At'
+       ];
 
       // Add headers
       worksheet.addRow(headers);
@@ -120,39 +110,29 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
         fgColor: { argb: 'FFE0E0E0' }
       };
 
-      // Add data rows
-      filteredData.forEach(item => {
-        worksheet.addRow([
-          item.week,
-          item.regional,
-          item.siteId,
-          item.alarmSource,
-          item.nop,
-          item.districtOperation,
-          item.firstOccurredOn,
-          item.agingDown,
-          item.rangeAgingDown,
-          item.ticketId,
-          item.alarmName,
-          item.siteClass,
-          item.subDomain,
-          item.alarmSeverity,
-          item.alarmLocationInfo,
-          item.remarkRedsector,
-          item.remarkSite,
-          item.cellDownName,
-          item.rootCause,
-          item.detailProblem,
-          item.planAction,
-          item.needSupport,
-          item.picDept,
-          item.progress,
-          item.closedDate,
-          item.status,
-          item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
-          item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
-        ]);
-      });
+             // Add data rows
+       filteredData.forEach(item => {
+         worksheet.addRow([
+           item.week,
+           item.siteId,
+           item.nop,
+           item.agingDown,
+           item.rangeAgingDown,
+           item.siteClass,
+           item.subDomain,
+           item.cellDownName,
+           item.rootCause,
+           item.detailProblem,
+           item.planAction,
+           item.needSupport,
+           item.picDept,
+           item.progress,
+           item.closedDate,
+           item.status,
+           item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
+           item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
+         ]);
+       });
 
       // Auto-fit columns
       worksheet.columns.forEach(column => {
@@ -244,9 +224,9 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
                 <Typography variant="body2" gutterBottom>
                   <strong>Export will include:</strong>
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  • All 27 columns as specified in your requirements
-                </Typography>
+                                 <Typography variant="body2" color="textSecondary">
+                   • All 17 columns (8 upload + 7 editable + 2 system)
+                 </Typography>
                 <Typography variant="body2" color="textSecondary">
                   • Formatted headers with proper column names
                 </Typography>

@@ -23,27 +23,17 @@ export default function ExcelTemplate() {
       const workbook = new XLSX.Workbook();
       const worksheet = workbook.addWorksheet('Template');
 
-      // Define headers with descriptions
-      const headers = [
-        'Week',
-        'Regional',
-        'Site ID',
-        'Alarm Source',
-        'NOP',
-        'District Operation',
-        'First Occurred On',
-        'AGING DOWN',
-        'RANGE AGING DOWN',
-        'Ticket ID',
-        'Alarm Name',
-        'SITE CLASS',
-        'Sub Domain',
-        'Alarm Severity',
-        'Alarm Location Info',
-        'remark_redsector',
-        'Remark Site',
-        'Cell Down Name'
-      ];
+             // Define headers with descriptions (only 8 columns as per Excel structure)
+       const headers = [
+         'Week',
+         'Site ID',
+         'NOP',
+         'AGING DOWN',
+         'RANGE AGING DOWN',
+         'SITE CLASS',
+         'Sub Domain',
+         'Cell Down Name'
+       ];
 
       // Add headers
       worksheet.addRow(headers);
@@ -57,27 +47,17 @@ export default function ExcelTemplate() {
         fgColor: { argb: 'FF1976D2' }
       };
 
-      // Add sample data row
-      const sampleData = [
-        34,
-        'REGIONAL8',
-        'BPP011',
-        'E_BPP011M41_KEMENDUR',
-        'NOP BALIKPAPAN',
-        'TO BALIKPAPAN',
-        '18/08/2025 00:11',
-        88,
-        '8-30 Days',
-        'EM-20250818-00000297',
-        'CELL LOGICAL CHANNEL AVAILABILITY SUPERVISION',
-        'BRONZE',
-        '4G',
-        'Critical',
-        'OFFICEID:304007;OFFICENAME:KSN007_MENDAWAI;OBJECTTYPE:CELL;OBJECTID:24;OBJECTNAME:KSN007ME1_MENDAWAI_ME02;BOARDTYPE:#Remark:G BSCId: 317; U RNCId: 767; Cell type: normal cell,70001000,Cell ID: 24.LTE eNBId:304007.Location: rack=1,shelf=1,board=1.#AID:1749073232Aid:1749073232@Restype:LTE-TDD@Position:ENBCUCPFunction=510-10_304007,CULTE=1,CUEUtranCellTDDLTE=24@Umeid:umeidDC=www.zte.com.cn,SubNetwork=ZTE_UTRAN_SYSTEM,SubNetwork=2108,ManagedElement=ITBBU_304007,ENBCUCPFunction=510-10_304007,CULTE=1,CUEUtranCell',
-        '3. Green Sector',
-        'Belum Perpanjangan',
-        'COH709MR1_COMBATPANTAIMANGGARMR02'
-      ];
+             // Add sample data row (only 8 columns as per Excel structure)
+       const sampleData = [
+         34,
+         'BPP011',
+         'BALIKPAPAN',
+         88,
+         '8-30 Days',
+         'BRONZE',
+         '4G',
+         'COH709MR1_COMBATPANTAIMANGGARMR02'
+       ];
 
       worksheet.addRow(sampleData);
 
@@ -92,27 +72,17 @@ export default function ExcelTemplate() {
       // Add instructions worksheet
       const instructionsSheet = workbook.addWorksheet('Instructions');
       
-      const instructions = [
-        ['Column', 'Description', 'Format', 'Example', 'Required'],
-        ['Week', 'Week number of the year', 'Number', '34', 'Yes'],
-        ['Regional', 'Regional identifier', 'Text', 'REGIONAL8', 'Yes'],
-        ['Site ID', 'Unique site identifier', 'Text', 'BPP011', 'Yes'],
-        ['Alarm Source', 'Source of the alarm', 'Text', 'E_BPP011M41_KEMENDUR', 'Yes'],
-        ['NOP', 'Network Operation Center', 'Text', 'NOP BALIKPAPAN', 'Yes'],
-        ['District Operation', 'District operation center', 'Text', 'TO BALIKPAPAN', 'Yes'],
-        ['First Occurred On', 'When the issue first occurred', 'Date/Time', '18/08/2025 00:11', 'Yes'],
-        ['AGING DOWN', 'Aging down value', 'Number', '88', 'Yes'],
-        ['RANGE AGING DOWN', 'Range of aging down', 'Text', '8-30 Days', 'Yes'],
-        ['Ticket ID', 'Support ticket identifier', 'Text', 'EM-20250818-00000297', 'Yes'],
-        ['Alarm Name', 'Name of the alarm', 'Text', 'CELL LOGICAL CHANNEL AVAILABILITY SUPERVISION', 'Yes'],
-        ['SITE CLASS', 'Classification of the site', 'Text', 'BRONZE', 'Yes'],
-        ['Sub Domain', 'Sub domain information', 'Text', '4G', 'Yes'],
-        ['Alarm Severity', 'Severity level of alarm', 'Text', 'Critical', 'Yes'],
-        ['Alarm Location Info', 'Detailed location information', 'Text', 'Long text...', 'Yes'],
-        ['remark_redsector', 'Red sector remarks', 'Text', '3. Green Sector', 'Yes'],
-        ['Remark Site', 'Site-specific remarks', 'Text', 'Belum Perpanjangan', 'Yes'],
-        ['Cell Down Name', 'Name of the cell down', 'Text', 'COH709MR1_COMBATPANTAIMANGGARMR02', 'Yes']
-      ];
+             const instructions = [
+         ['Column', 'Description', 'Format', 'Example', 'Required'],
+         ['Week', 'Week number of the year', 'Number', '34', 'Yes'],
+         ['Site ID', 'Unique site identifier', 'Text', 'BPP011', 'Yes'],
+         ['NOP', 'Network Operation Center', 'Text', 'BALIKPAPAN', 'Yes'],
+         ['AGING DOWN', 'Aging down value', 'Number', '88', 'Yes'],
+         ['RANGE AGING DOWN', 'Range of aging down', 'Text', '8-30 Days', 'Yes'],
+         ['SITE CLASS', 'Classification of the site', 'Text', 'BRONZE', 'Yes'],
+         ['Sub Domain', 'Sub domain information', 'Text', '4G', 'Yes'],
+         ['Cell Down Name', 'Name of the cell down', 'Text', 'COH709MR1_COMBATPANTAIMANGGARMR02', 'Yes']
+       ];
 
       instructions.forEach((row, index) => {
         const excelRow = instructionsSheet.addRow(row);
