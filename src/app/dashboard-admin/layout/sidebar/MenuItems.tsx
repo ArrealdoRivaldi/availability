@@ -1,96 +1,78 @@
-import { IconLayoutDashboard, IconLogout, IconDatabase, IconClipboardList, IconFileAnalytics, IconEdit, IconChevronDown } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconLogout, IconDatabase, IconClipboardList, IconFileAnalytics, IconEdit, IconUsers, IconSignal } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 
 const allMenuitems = [
   {
     id: uniqueId(),
-    title: "Dashboard",
-    icon: IconLayoutDashboard,
-    href: "/dashboard-admin",
+    title: "Worst Site Availability",
+    icon: IconSignal,
+    href: "/dashboard-admin/availability",
     submenu: [
       {
         id: uniqueId(),
-        title: "Availability",
+        title: "Dashboard",
         href: "/dashboard-admin/dashboard/Availability",
       },
       {
         id: uniqueId(),
-        title: "Cell Down",
-        href: "/dashboard-admin/dashboard/cell-down",
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: "Data",
-    icon: IconDatabase,
-    href: "/dashboard-admin/data",
-    submenu: [
-      {
-        id: uniqueId(),
-        title: "Availability",
+        title: "Data",
         href: "/dashboard-admin/data/Availability",
       },
       {
         id: uniqueId(),
-        title: "Cell Down",
-        href: "/dashboard-admin/data/cell-down",
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: "Approval",
-    icon: IconClipboardList,
-    href: "/dashboard-admin/approval",
-    submenu: [
-      {
-        id: uniqueId(),
-        title: "Availability",
+        title: "Approval",
         href: "/dashboard-admin/approval/Availability",
       },
       {
         id: uniqueId(),
-        title: "Cell Down",
-        href: "/dashboard-admin/approval/cell-down",
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: "Logs",
-    icon: IconFileAnalytics,
-    href: "/dashboard-admin/logs",
-    submenu: [
-      {
-        id: uniqueId(),
-        title: "Availability",
+        title: "Logs",
         href: "/dashboard-admin/logs/Availability",
       },
       {
         id: uniqueId(),
-        title: "Cell Down",
-        href: "/dashboard-admin/logs/cell-down",
+        title: "CRUD",
+        href: "/dashboard-admin/crud/Availability",
       },
     ],
   },
   {
     id: uniqueId(),
-    title: "CRUD",
-    icon: IconEdit,
-    href: "/dashboard-admin/crud",
+    title: "Cell Down",
+    icon: IconSignal,
+    href: "/dashboard-admin/cell-down",
     submenu: [
       {
         id: uniqueId(),
-        title: "Availability",
-        href: "/dashboard-admin/crud/Availability",
+        title: "Dashboard",
+        href: "/dashboard-admin/dashboard/cell-down",
       },
       {
         id: uniqueId(),
-        title: "Cell Down",
+        title: "Data",
+        href: "/dashboard-admin/data/cell-down",
+      },
+      {
+        id: uniqueId(),
+        title: "Approval",
+        href: "/dashboard-admin/approval/cell-down",
+      },
+      {
+        id: uniqueId(),
+        title: "Logs",
+        href: "/dashboard-admin/logs/cell-down",
+      },
+      {
+        id: uniqueId(),
+        title: "CRUD",
         href: "/dashboard-admin/crud/cell-down",
       },
     ],
+  },
+  {
+    id: uniqueId(),
+    title: "User Management",
+    icon: IconUsers,
+    href: "/dashboard-admin/user-management",
   },
   {
     id: uniqueId(),
@@ -106,11 +88,11 @@ export function getMenuItemsByRole(role: string) {
     return allMenuitems;
   }
   if (role === 'admin' || role === 'guest') {
-    // Hanya Dashboard & Data & Logout
-    return allMenuitems.filter(item => ["Dashboard", "Data", "Logout"].includes(item.title));
+    // Hanya Worst Site Availability, Cell Down, User Management & Logout
+    return allMenuitems.filter(item => ["Worst Site Availability", "Cell Down", "User Management", "Logout"].includes(item.title));
   }
-  // Default: hanya Dashboard & Data & Logout
-  return allMenuitems.filter(item => ["Dashboard", "Data", "Logout"].includes(item.title));
+  // Default: hanya Worst Site Availability, Cell Down, User Management & Logout
+  return allMenuitems.filter(item => ["Worst Site Availability", "Cell Down", "User Management", "Logout"].includes(item.title));
 }
 
 export default allMenuitems;
