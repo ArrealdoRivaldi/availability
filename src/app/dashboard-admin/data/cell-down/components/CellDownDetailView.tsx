@@ -112,117 +112,94 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
         </Box>
       </DialogTitle>
       
-      <DialogContent dividers>
-        <Grid container spacing={3}>
-          {/* Basic Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-              Basic Information
-            </Typography>
-            <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-              <Grid container spacing={2}>
-                <DetailField label="Week" value={data.week} />
-                <DetailField label="Regional" value={data.regional} />
-                <DetailField label="Site ID" value={data.siteId} />
-                <DetailField label="Site Class" value={data.siteClass} />
-                <DetailField label="Sub Domain" value={data.subDomain} />
-                <DetailField label="NOP" value={data.nop} />
-                <DetailField label="District Operation" value={data.districtOperation} />
-                <DetailField label="Cell Down Name" value={data.cellDownName} />
-              </Grid>
-            </Paper>
-          </Grid>
+             <DialogContent dividers>
+         <Grid container spacing={3}>
+           {/* Basic Information - Kolom 1-8 */}
+           <Grid item xs={12}>
+             <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
+               Basic Information
+             </Typography>
+             <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+               <Grid container spacing={2}>
+                 <DetailField label="1. Week" value={data.week} />
+                 <DetailField label="2. Regional" value={data.regional} />
+                 <DetailField label="3. Site ID" value={data.siteId} />
+                 <DetailField label="4. Alarm Source" value={data.alarmSource} />
+                 <DetailField label="5. NOP" value={data.nop} />
+                 <DetailField label="6. District Operation" value={data.districtOperation} />
+                 <DetailField label="7. First Occurred On" value={data.firstOccurredOn} />
+                 <DetailField label="8. AGING DOWN" value={data.agingDown} />
+               </Grid>
+             </Paper>
+           </Grid>
 
-          <Grid item xs={12}>
-            <Divider />
-          </Grid>
+           <Grid item xs={12}>
+             <Divider />
+           </Grid>
 
-          {/* Alarm Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-              Alarm Information
-            </Typography>
-            <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-              <Grid container spacing={2}>
-                <DetailField label="Alarm Source" value={data.alarmSource} />
-                <DetailField label="Alarm Name" value={data.alarmName} />
-                <DetailField label="Alarm Severity" value={data.alarmSeverity} type="chip" />
-                <DetailField label="First Occurred On" value={data.firstOccurredOn} />
-                <DetailField label="Aging Down" value={data.agingDown} />
-                <DetailField label="Range Aging Down" value={data.rangeAgingDown} />
-                <DetailField label="Ticket ID" value={data.ticketId} />
-              </Grid>
-            </Paper>
-          </Grid>
+           {/* Additional Upload Columns - Kolom 9-18 */}
+           <Grid item xs={12}>
+             <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
+               Additional Information
+             </Typography>
+             <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+               <Grid container spacing={2}>
+                 <DetailField label="9. RANGE AGING DOWN" value={data.rangeAgingDown} />
+                 <DetailField label="10. Ticket ID" value={data.ticketId} />
+                 <DetailField label="11. Alarm Name" value={data.alarmName} />
+                 <DetailField label="12. SITE CLASS" value={data.siteClass} />
+                 <DetailField label="13. Sub Domain" value={data.subDomain} />
+                 <DetailField label="14. Alarm Severity" value={data.alarmSeverity} type="chip" />
+                 <DetailField label="15. Alarm Location Info" value={data.alarmLocationInfo} type="longText" />
+                 <DetailField label="16. remark_redsector" value={data.remarkRedsector} />
+                 <DetailField label="17. Remark Site" value={data.remarkSite} />
+                 <DetailField label="18. Cell Down Name" value={data.cellDownName} />
+               </Grid>
+             </Paper>
+           </Grid>
 
-          <Grid item xs={12}>
-            <Divider />
-          </Grid>
+           <Grid item xs={12}>
+             <Divider />
+           </Grid>
 
-          {/* Location & Remarks */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-              Location & Remarks
-            </Typography>
-            <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-              <Grid container spacing={2}>
-                <DetailField label="Remark Red Sector" value={data.remarkRedsector} />
-                <DetailField label="Remark Site" value={data.remarkSite} />
-                <Grid item xs={12}>
-                  <DetailField label="Alarm Location Info" value={data.alarmLocationInfo} type="longText" />
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
+           {/* Editable Columns - Kolom 19-26 */}
+           <Grid item xs={12}>
+             <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
+               Analysis & Action (Editable)
+             </Typography>
+             <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+               <Grid container spacing={2}>
+                 <DetailField label="19. Root Cause" value={data.rootCause} />
+                 <DetailField label="20. Detail Problem" value={data.detailProblem} type="longText" />
+                 <DetailField label="21. Plan Action" value={data.planAction} type="longText" />
+                 <DetailField label="22. Need Support" value={data.needSupport} type="longText" />
+                 <DetailField label="23. PIC Dept" value={data.picDept} />
+                 <DetailField label="24. Progress" value={data.progress} type="chip" />
+                 <DetailField label="25. Closed Date" value={data.closedDate} />
+                 <DetailField label="26. Status" value={data.status} type="chip" />
+               </Grid>
+             </Paper>
+           </Grid>
 
-          <Grid item xs={12}>
-            <Divider />
-          </Grid>
+           <Grid item xs={12}>
+             <Divider />
+           </Grid>
 
-          {/* Analysis & Action */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-              Analysis & Action
-            </Typography>
-            <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-              <Grid container spacing={2}>
-                <DetailField label="Root Cause" value={data.rootCause} />
-                <DetailField label="PIC Department" value={data.picDept} />
-                <DetailField label="Progress" value={data.progress} type="chip" />
-                <DetailField label="Status" value={data.status} type="chip" />
-                <DetailField label="Closed Date" value={data.closedDate} />
-                <Grid item xs={12}>
-                  <DetailField label="Detail Problem" value={data.detailProblem} type="longText" />
-                </Grid>
-                <Grid item xs={12}>
-                  <DetailField label="Plan Action" value={data.planAction} type="longText" />
-                </Grid>
-                <Grid item xs={12}>
-                  <DetailField label="Need Support" value={data.needSupport} type="longText" />
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Divider />
-          </Grid>
-
-          {/* System Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-              System Information
-            </Typography>
-            <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-              <Grid container spacing={2}>
-                <DetailField label="Created At" value={data.createdAt ? new Date(data.createdAt).toLocaleString() : 'Not Set'} />
-                <DetailField label="Updated At" value={data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'Not Set'} />
-                <DetailField label="Document ID" value={data.id} />
-              </Grid>
-            </Paper>
-          </Grid>
-        </Grid>
-      </DialogContent>
+           {/* System Information - Kolom 27-28 */}
+           <Grid item xs={12}>
+             <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
+               System Information
+             </Typography>
+             <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+               <Grid container spacing={2}>
+                 <DetailField label="27. Created At" value={data.createdAt ? new Date(data.createdAt).toLocaleString() : 'Not Set'} />
+                 <DetailField label="28. Updated At" value={data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'Not Set'} />
+                 <DetailField label="Document ID" value={data.id} />
+               </Grid>
+             </Paper>
+           </Grid>
+         </Grid>
+       </DialogContent>
       
       <DialogActions>
         <Button onClick={onClose} variant="contained">
