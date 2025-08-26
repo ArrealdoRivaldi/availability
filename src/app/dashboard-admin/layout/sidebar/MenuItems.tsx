@@ -1,11 +1,11 @@
-import { IconLogout, IconAntennaBars, IconUsers } from "@tabler/icons-react";
+import { IconLogout, IconWifi, IconWifiOff, IconUsers } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 
 const allMenuitems = [
   {
     id: uniqueId(),
     title: "Worst Site Availability",
-    icon: IconAntennaBars,
+    icon: IconWifi,
     href: "/dashboard-admin/availability",
     submenu: [
       {
@@ -38,7 +38,7 @@ const allMenuitems = [
   {
     id: uniqueId(),
     title: "Cell Down",
-    icon: IconAntennaBars,
+    icon: IconWifiOff,
     href: "/dashboard-admin/cell-down",
     submenu: [
       {
