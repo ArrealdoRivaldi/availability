@@ -332,6 +332,11 @@ export default function CellDownDataPage() {
     }
   };
 
+  const handleRowClick = (row: CellDownData) => {
+    setSelectedData(row);
+    setDetailModal(true);
+  };
+
   const getStatusColor = (status: string) => {
     return status === 'open' ? 'warning' : 'success';
   };
@@ -406,53 +411,68 @@ export default function CellDownDataPage() {
         <DialogTitle>Preview Upload Data ({previewData.length} records)</DialogTitle>
         <DialogContent>
           <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-            <Table stickyHeader size="small">
+            <Table stickyHeader size="small" sx={{ borderCollapse: 'collapse' }}>
               <TableHead>
-                <TableRow>
-                  <TableCell>No.</TableCell>
-                  <TableCell>Week</TableCell>
-                  <TableCell>Site ID</TableCell>
-                  <TableCell>NOP</TableCell>
-                  <TableCell>AGING DOWN</TableCell>
-                  <TableCell>RANGE AGING DOWN</TableCell>
-                  <TableCell>SITE CLASS</TableCell>
-                  <TableCell>Sub Domain</TableCell>
-                  <TableCell>Cell Down Name</TableCell>
-                  <TableCell>Root Cause</TableCell>
-                  <TableCell>Detail Problem</TableCell>
-                  <TableCell>Plan Action</TableCell>
-                  <TableCell>Need Support</TableCell>
-                  <TableCell>PIC Dept</TableCell>
-                  <TableCell>Progress</TableCell>
-                  <TableCell>Closed Date</TableCell>
-                  <TableCell>Status</TableCell>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 60 }}>No.</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Week</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Site ID</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>NOP</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>AGING DOWN</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 150 }}>Cell Down Name</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Root Cause</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Detail Problem</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Plan Action</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Need Support</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>PIC Dept</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Progress</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Closed Date</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {previewData.slice(0, 20).map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{row.week}</TableCell>
-                    <TableCell>{row.siteId}</TableCell>
-                    <TableCell>{row.nop}</TableCell>
-                    <TableCell>{row.agingDown}</TableCell>
-                    <TableCell>{row.rangeAgingDown}</TableCell>
-                    <TableCell>{row.siteClass}</TableCell>
-                    <TableCell>{row.subDomain}</TableCell>
-                    <TableCell>{row.cellDownName}</TableCell>
-                    <TableCell>{row.rootCause || 'Not Set'}</TableCell>
-                    <TableCell>{row.detailProblem || 'Not Set'}</TableCell>
-                    <TableCell>{row.planAction || 'Not Set'}</TableCell>
-                    <TableCell>{row.needSupport || 'Not Set'}</TableCell>
-                    <TableCell>{row.picDept || 'Not Set'}</TableCell>
-                    <TableCell>{row.progress || 'OPEN'}</TableCell>
-                    <TableCell>{row.closedDate || 'Not Set'}</TableCell>
-                    <TableCell><Chip label="Ready to Upload" color="info" size="small" /></TableCell>
+                  <TableRow key={index} sx={{ '&:nth-of-type(even)': { backgroundColor: '#fafafa' } }}>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{index + 1}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.nop}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.agingDown}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.rangeAgingDown}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      <Chip 
+                        label={row.siteClass} 
+                        color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.cellDownName}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.rootCause || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.detailProblem || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.planAction || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.needSupport || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.picDept || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      <Chip 
+                        label={row.progress || 'OPEN'} 
+                        color={row.progress === 'DONE' ? 'success' : 'warning'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.closedDate || 'Not Set'}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      <Chip label="Ready to Upload" color="info" size="small" />
+                    </TableCell>
                   </TableRow>
                 ))}
                 {previewData.length > 20 && (
                   <TableRow>
-                    <TableCell colSpan={17} align="center">
+                    <TableCell colSpan={17} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
                       <Typography variant="body2" color="textSecondary">... and {previewData.length - 20} more records</Typography>
                     </TableCell>
                   </TableRow>
@@ -570,90 +590,130 @@ export default function CellDownDataPage() {
           
           {!loading && data.length > 0 && (
             <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-              <Table stickyHeader size="small">
+              <Table stickyHeader size="small" sx={{ borderCollapse: 'collapse' }}>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>No.</TableCell>
-                    <TableCell>Week</TableCell>
-                    <TableCell>Site ID</TableCell>
-                    <TableCell>NOP</TableCell>
-                    <TableCell>AGING DOWN</TableCell>
-                    <TableCell>RANGE AGING DOWN</TableCell>
-                    <TableCell>SITE CLASS</TableCell>
-                    <TableCell>Sub Domain</TableCell>
-                    <TableCell>Cell Down Name</TableCell>
-                    <TableCell>Root Cause</TableCell>
-                    <TableCell>Detail Problem</TableCell>
-                    <TableCell>Plan Action</TableCell>
-                    <TableCell>Need Support</TableCell>
-                    <TableCell>PIC Dept</TableCell>
-                    <TableCell>Progress</TableCell>
-                    <TableCell>Closed Date</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 60 }}>No.</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Week</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Site ID</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>NOP</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>AGING DOWN</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 150 }}>Cell Down Name</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Root Cause</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Detail Problem</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Plan Action</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Need Support</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>PIC Dept</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Progress</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Closed Date</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Status</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.map((row, index) => (
-                    <TableRow key={row.id} hover>
-                      <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                      <TableCell>{row.week}</TableCell>
-                      <TableCell>{row.siteId}</TableCell>
-                      <TableCell>{row.nop}</TableCell>
-                      <TableCell>{row.agingDown}</TableCell>
-                      <TableCell>{row.rangeAgingDown}</TableCell>
-                      <TableCell>{row.siteClass}</TableCell>
-                      <TableCell>{row.subDomain}</TableCell>
-                      <TableCell>
+                    <TableRow 
+                      key={row.id} 
+                      hover 
+                      onClick={() => handleRowClick(row)}
+                      sx={{ 
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: '#f0f8ff' },
+                        '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
+                      }}
+                    >
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{page * rowsPerPage + index + 1}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.nop}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.agingDown}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.rangeAgingDown}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        <Chip 
+                          label={row.siteClass} 
+                          color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.cellDownName}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.rootCause || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.detailProblem || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.planAction || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.needSupport || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.picDept || 'Not Set'}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Chip 
                           label={row.progress || 'OPEN'} 
                           color={row.progress === 'DONE' ? 'success' : 'warning'}
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Typography variant="body2">{row.closedDate || 'Not Set'}</Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip label={row.status} color={getStatusColor(row.status) as any} />
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        <Chip label={row.status} color={getStatusColor(row.status) as any} size="small" />
                       </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <IconButton size="small" onClick={() => handleViewDetail(row)} color="info" title="View Details">
-                            <VisibilityIcon />
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetail(row);
+                            }} 
+                            color="info" 
+                            title="View Details"
+                            sx={{ 
+                              backgroundColor: '#e3f2fd',
+                              '&:hover': { backgroundColor: '#bbdefb' }
+                            }}
+                          >
+                            <VisibilityIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" onClick={() => handleEdit(row)} color="primary" title="Edit Data">
-                            <EditIcon />
+                          <IconButton 
+                            size="small" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(row);
+                            }} 
+                            color="primary" 
+                            title="Edit Data"
+                            sx={{ 
+                              backgroundColor: '#e8f5e8',
+                              '&:hover': { backgroundColor: '#c8e6c9' }
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
                           </IconButton>
                         </Box>
                       </TableCell>
