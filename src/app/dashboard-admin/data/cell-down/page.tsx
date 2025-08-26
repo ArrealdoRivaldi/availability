@@ -29,14 +29,17 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Divider
+  Divider,
+  TablePagination,
+  InputAdornment
 } from '@mui/material';
 import {
   Upload as UploadIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
   Download as DownloadIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import CellDownDetailView from './components/CellDownDetailView';
 import ExportToExcel from './components/ExportToExcel';
@@ -133,9 +136,16 @@ export default function CellDownDataPage() {
     progress: 'OPEN',
     closedDate: ''
   });
-  const [lastDoc, setLastDoc] = useState<any>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [chunkSize] = useState(50);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchField, setSearchField] = useState('all');
+  
   const [userRole, setUserRole] = useState<string>('');
 
   // Check user role on component mount
@@ -150,15 +160,32 @@ export default function CellDownDataPage() {
   // Load initial data
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, rowsPerPage]);
+
+  // Reload data when search changes
+  useEffect(() => {
+    if (searchTerm) {
+      // Implement search logic here if needed
+      loadData();
+    } else {
+      loadData();
+    }
+  }, [searchTerm, searchField]);
 
   const loadData = async () => {
     setLoading(true);
     try {
+      // Get total count first
+      const countQuery = query(collection(db, 'data_celldown'));
+      const countSnapshot = await getDocs(countQuery);
+      setTotalCount(countSnapshot.size);
+      
+      // Get paginated data
       const q = query(
         collection(db, 'data_celldown'),
         orderBy('createdAt', 'desc'),
-        limit(chunkSize)
+        limit(rowsPerPage),
+        startAfter(page * rowsPerPage)
       );
       const querySnapshot = await getDocs(q);
       const newData: CellDownData[] = [];
@@ -166,8 +193,6 @@ export default function CellDownDataPage() {
         newData.push({ id: doc.id, ...doc.data() } as CellDownData);
       });
       setData(newData);
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      setHasMore(querySnapshot.docs.length === chunkSize);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -175,27 +200,23 @@ export default function CellDownDataPage() {
     }
   };
 
-  const loadMoreData = async () => {
-    if (!hasMore || !lastDoc) return;
-    
-    try {
-      const q = query(
-        collection(db, 'data_celldown'),
-        orderBy('createdAt', 'desc'),
-        startAfter(lastDoc),
-        limit(chunkSize)
-      );
-      const querySnapshot = await getDocs(q);
-      const newData: CellDownData[] = [];
-      querySnapshot.forEach((doc) => {
-        newData.push({ id: doc.id, ...doc.data() } as CellDownData);
-      });
-      setData(prev => [...prev, ...newData]);
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      setHasMore(querySnapshot.docs.length === chunkSize);
-    } catch (error) {
-      console.error('Error loading more data:', error);
-    }
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(0); // Reset to first page when searching
+  };
+
+  const handleSearchFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchField(event.target.value);
+    setPage(0); // Reset to first page when changing search field
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -478,6 +499,7 @@ export default function CellDownDataPage() {
             <Table stickyHeader size="small">
                              <TableHead>
                  <TableRow>
+                   <TableCell>No.</TableCell>
                    <TableCell>Week</TableCell>
                    <TableCell>Site ID</TableCell>
                    <TableCell>NOP</TableCell>
@@ -499,6 +521,7 @@ export default function CellDownDataPage() {
               <TableBody>
                                  {previewData.slice(0, 20).map((row, index) => (
                    <TableRow key={index}>
+                     <TableCell>{index + 1}</TableCell>
                      <TableCell>{row.week}</TableCell>
                      <TableCell>{row.siteId}</TableCell>
                      <TableCell>{row.nop}</TableCell>
@@ -521,7 +544,7 @@ export default function CellDownDataPage() {
                  ))}
                                  {previewData.length > 20 && (
                    <TableRow>
-                     <TableCell colSpan={16} align="center">
+                     <TableCell colSpan={17} align="center">
                        <Typography variant="body2" color="textSecondary">
                          ... and {previewData.length - 20} more records
                        </Typography>
@@ -642,7 +665,7 @@ export default function CellDownDataPage() {
       {/* Data Table */}
       <Card>
         <CardHeader
-          title={`Cell Down Data (${data.length} records)`}
+          title={`Cell Down Data (${totalCount} records)`}
           action={
             <ExportToExcel 
               data={data} 
@@ -652,11 +675,51 @@ export default function CellDownDataPage() {
             />
           }
         />
+        
+        {/* Search Section */}
+        <CardContent sx={{ pb: 0 }}>
+          <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                placeholder="Search data..."
+                value={searchTerm}
+                onChange={handleSearch}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Search Field</InputLabel>
+                <Select
+                  value={searchField}
+                  onChange={handleSearchFieldChange}
+                  label="Search Field"
+                >
+                  <MenuItem value="all">All Fields</MenuItem>
+                  <MenuItem value="siteId">Site ID</MenuItem>
+                  <MenuItem value="nop">NOP</MenuItem>
+                  <MenuItem value="cellDownName">Cell Down Name</MenuItem>
+                  <MenuItem value="rootCause">Root Cause</MenuItem>
+                  <MenuItem value="picDept">PIC Dept</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </CardContent>
         <CardContent>
           <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
             <Table stickyHeader size="small">
                              <TableHead>
                  <TableRow>
+                   <TableCell>No.</TableCell>
                    <TableCell>Week</TableCell>
                    <TableCell>Site ID</TableCell>
                    <TableCell>NOP</TableCell>
@@ -677,8 +740,9 @@ export default function CellDownDataPage() {
                  </TableRow>
                </TableHead>
                 <TableBody>
-                                     {data.map((row) => (
+                                     {data.map((row, index) => (
                      <TableRow key={row.id} hover>
+                       <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                        <TableCell>{row.week}</TableCell>
                        <TableCell>{row.siteId}</TableCell>
                        <TableCell>{row.nop}</TableCell>
@@ -760,17 +824,20 @@ export default function CellDownDataPage() {
             </Table>
           </TableContainer>
           
-          {hasMore && (
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Button 
-                variant="outlined" 
-                onClick={loadMoreData}
-                disabled={loading}
-              >
-                Load More Data
-              </Button>
-            </Box>
-          )}
+          {/* Pagination */}
+          <TablePagination
+            component="div"
+            count={totalCount}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[25, 50, 100]}
+            labelDisplayedRows={({ from, to, count }) => 
+              `${from}-${to} of ${count !== -1 ? count : `more than ${to}`}`
+            }
+            labelRowsPerPage="Show:"
+          />
         </CardContent>
       </Card>
 

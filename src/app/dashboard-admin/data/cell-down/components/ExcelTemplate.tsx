@@ -157,12 +157,12 @@ export default function ExcelTemplate() {
                   Template Features
                 </Typography>
                 <List dense>
-                  <ListItem>
-                    <ListItemIcon>
-                      <CheckCircleIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText primary="18 columns with proper headers" />
-                  </ListItem>
+                                     <ListItem>
+                     <ListItemIcon>
+                       <CheckCircleIcon color="primary" />
+                     </ListItemIcon>
+                     <ListItemText primary="8 columns with proper headers" />
+                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       <CheckCircleIcon color="primary" />
@@ -203,12 +203,12 @@ export default function ExcelTemplate() {
                     </ListItemIcon>
                     <ListItemText primary="Data starts from second row" />
                   </ListItem>
-                  <ListItem>
-                    <ListItemIcon>
-                      <InfoIcon color="info" />
-                    </ListItemIcon>
-                    <ListItemText primary="All 18 columns are required" />
-                  </ListItem>
+                                     <ListItem>
+                     <ListItemIcon>
+                       <InfoIcon color="info" />
+                     </ListItemIcon>
+                     <ListItemText primary="All 8 columns are required" />
+                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       <InfoIcon color="info" />
@@ -227,9 +227,9 @@ export default function ExcelTemplate() {
                 <Typography variant="body2" color="textSecondary">
                   • The template includes sample data that should be replaced with your actual data
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  • Date format should be DD/MM/YYYY HH:mm for "First Occurred On" column
-                </Typography>
+                                 <Typography variant="body2" color="textSecondary">
+                   • Numbers should be entered as numbers, not text
+                 </Typography>
                 <Typography variant="body2" color="textSecondary">
                   • Numbers should be entered as numbers, not text
                 </Typography>
