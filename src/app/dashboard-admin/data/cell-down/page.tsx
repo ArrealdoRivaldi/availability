@@ -204,7 +204,7 @@ export default function CellDownDataPage() {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -214,7 +214,7 @@ export default function CellDownDataPage() {
     setPage(0); // Reset to first page when searching
   };
 
-  const handleSearchFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchFieldChange = (event: any) => {
     setSearchField(event.target.value);
     setPage(0); // Reset to first page when changing search field
   };
