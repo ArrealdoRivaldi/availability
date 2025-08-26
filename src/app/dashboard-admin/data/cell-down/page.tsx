@@ -486,6 +486,13 @@ export default function CellDownDataPage() {
                    <TableCell>SITE CLASS</TableCell>
                    <TableCell>Sub Domain</TableCell>
                    <TableCell>Cell Down Name</TableCell>
+                   <TableCell>Root Cause</TableCell>
+                   <TableCell>Detail Problem</TableCell>
+                   <TableCell>Plan Action</TableCell>
+                   <TableCell>Need Support</TableCell>
+                   <TableCell>PIC Dept</TableCell>
+                   <TableCell>Progress</TableCell>
+                   <TableCell>Closed Date</TableCell>
                    <TableCell>Status</TableCell>
                  </TableRow>
                </TableHead>
@@ -500,6 +507,13 @@ export default function CellDownDataPage() {
                      <TableCell>{row.siteClass}</TableCell>
                      <TableCell>{row.subDomain}</TableCell>
                      <TableCell>{row.cellDownName}</TableCell>
+                     <TableCell>{row.rootCause || 'Not Set'}</TableCell>
+                     <TableCell>{row.detailProblem || 'Not Set'}</TableCell>
+                     <TableCell>{row.planAction || 'Not Set'}</TableCell>
+                     <TableCell>{row.needSupport || 'Not Set'}</TableCell>
+                     <TableCell>{row.picDept || 'Not Set'}</TableCell>
+                     <TableCell>{row.progress || 'OPEN'}</TableCell>
+                     <TableCell>{row.closedDate || 'Not Set'}</TableCell>
                      <TableCell>
                        <Chip label="Ready to Upload" color="info" size="small" />
                      </TableCell>
@@ -507,7 +521,7 @@ export default function CellDownDataPage() {
                  ))}
                                  {previewData.length > 20 && (
                    <TableRow>
-                     <TableCell colSpan={9} align="center">
+                     <TableCell colSpan={16} align="center">
                        <Typography variant="body2" color="textSecondary">
                          ... and {previewData.length - 20} more records
                        </Typography>
@@ -651,6 +665,13 @@ export default function CellDownDataPage() {
                    <TableCell>SITE CLASS</TableCell>
                    <TableCell>Sub Domain</TableCell>
                    <TableCell>Cell Down Name</TableCell>
+                   <TableCell>Root Cause</TableCell>
+                   <TableCell>Detail Problem</TableCell>
+                   <TableCell>Plan Action</TableCell>
+                   <TableCell>Need Support</TableCell>
+                   <TableCell>PIC Dept</TableCell>
+                   <TableCell>Progress</TableCell>
+                   <TableCell>Closed Date</TableCell>
                    <TableCell>Status</TableCell>
                    <TableCell>Actions</TableCell>
                  </TableRow>
@@ -668,6 +689,43 @@ export default function CellDownDataPage() {
                        <TableCell>
                          <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                            {row.cellDownName}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {row.rootCause || 'Not Set'}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {row.detailProblem || 'Not Set'}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {row.planAction || 'Not Set'}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {row.needSupport || 'Not Set'}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Typography variant="body2" sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {row.picDept || 'Not Set'}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Chip 
+                           label={row.progress || 'OPEN'} 
+                           color={row.progress === 'DONE' ? 'success' : 'warning'}
+                           size="small"
+                         />
+                       </TableCell>
+                       <TableCell>
+                         <Typography variant="body2">
+                           {row.closedDate || 'Not Set'}
                          </Typography>
                        </TableCell>
                        <TableCell>
