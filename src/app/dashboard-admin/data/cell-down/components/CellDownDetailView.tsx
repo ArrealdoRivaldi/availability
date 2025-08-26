@@ -74,7 +74,7 @@ const DetailRow = ({ label, value }: { label: string; value: any }) => (
   </Box>
 );
 
-export default function CellDownDetailView({ open, onClose, data }: CellDownDetailViewProps) {
+  export default function CellDownDetailView({ open, onClose, data }: CellDownDetailViewProps) {
   if (!data) return null;
 
   return (
@@ -105,12 +105,12 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
           {/* Only show the columns that are present in the table */}
           <DetailRow label="Week" value={data.week} />
           <DetailRow label="Site ID" value={data.siteId} />
+          <DetailRow label="Cell Down Name" value={data.cellDownName} />
           <DetailRow label="NOP" value={data.nop} />
           <DetailRow label="AGING DOWN" value={data.agingDown} />
           <DetailRow label="RANGE AGING DOWN" value={data.rangeAgingDown} />
           <DetailRow label="SITE CLASS" value={data.siteClass} />
           <DetailRow label="Sub Domain" value={data.subDomain} />
-          <DetailRow label="Cell Down Name" value={data.cellDownName} />
           <DetailRow label="Root Cause" value={data.rootCause} />
           <DetailRow label="Detail Problem" value={data.detailProblem} />
           <DetailRow label="Plan Action" value={data.planAction} />
