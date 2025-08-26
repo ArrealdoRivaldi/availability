@@ -29,19 +29,25 @@ import {
   CardContent,
   CardHeader,
   TablePagination,
-  InputAdornment
+  InputAdornment,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   Upload as UploadIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
   CloudUpload as CloudUploadIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Clear as ClearIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import CellDownDetailView from './components/CellDownDetailView';
 import ExportToExcel from './components/ExportToExcel';
 import ExcelTemplate from './components/ExcelTemplate';
-import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/app/firebaseConfig';
 import * as XLSX from 'exceljs';
 
@@ -88,12 +94,25 @@ interface EditModalData {
   closedDate: string;
 }
 
+interface FilterData {
+  week: string;
+  nop: string;
+  rootCause: string;
+  siteClass: string;
+  picDept: string;
+  progress: string;
+  status: string;
+}
+
 const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN'];
 const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
 const progressOptions = ['OPEN', 'DONE'];
+const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
+const statusOptions = ['open', 'close'];
 
 export default function CellDownDataPage() {
   const [data, setData] = useState<CellDownData[]>([]);
+  const [allData, setAllData] = useState<CellDownData[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -112,6 +131,17 @@ export default function CellDownDataPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
   const [userRole, setUserRole] = useState<string>('');
+  const [filters, setFilters] = useState<FilterData>({
+    week: '',
+    nop: '',
+    rootCause: '',
+    siteClass: '',
+    picDept: '',
+    progress: '',
+    status: ''
+  });
+  const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
+  const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -125,18 +155,21 @@ export default function CellDownDataPage() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [page, rowsPerPage]);
+    applyFilters();
+  }, [allData, filters, searchTerm, searchField]);
+
+  useEffect(() => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedData = filteredData.slice(startIndex, endIndex);
+    setData(paginatedData);
+    setTotalCount(filteredData.length);
+  }, [filteredData, page, rowsPerPage]);
 
   const loadData = async () => {
     setLoading(true);
     try {
       console.log('Loading data...');
-      const countQuery = query(collection(db, 'data_celldown'));
-      const countSnapshot = await getDocs(countQuery);
-      setTotalCount(countSnapshot.size);
-      console.log('Total count:', countSnapshot.size);
-      
       const q = query(collection(db, 'data_celldown'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       const allData: CellDownData[] = [];
@@ -144,16 +177,80 @@ export default function CellDownDataPage() {
         allData.push({ id: doc.id, ...doc.data() } as CellDownData);
       });
       
-      const startIndex = page * rowsPerPage;
-      const endIndex = startIndex + rowsPerPage;
-      const paginatedData = allData.slice(startIndex, endIndex);
+      setAllData(allData);
+      setFilteredData(allData);
       
-      setData(paginatedData);
+      // Extract unique NOPs for filter dropdown
+      const nops = Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).sort();
+      setUniqueNOPs(nops);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...allData];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(item => {
+        if (searchField === 'all') {
+          return (
+            item.siteId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.nop?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.cellDownName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.rootCause?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.picDept?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        } else {
+          const fieldValue = item[searchField as keyof CellDownData];
+          return fieldValue?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+        }
+      });
+    }
+
+    // Apply other filters
+    if (filters.week) {
+      filtered = filtered.filter(item => item.week?.toString() === filters.week);
+    }
+    if (filters.nop) {
+      filtered = filtered.filter(item => item.nop === filters.nop);
+    }
+    if (filters.rootCause) {
+      filtered = filtered.filter(item => item.rootCause === filters.rootCause);
+    }
+    if (filters.siteClass) {
+      filtered = filtered.filter(item => item.siteClass === filters.siteClass);
+    }
+    if (filters.picDept) {
+      filtered = filtered.filter(item => item.picDept === filters.picDept);
+    }
+    if (filters.progress) {
+      filtered = filtered.filter(item => item.progress === filters.progress);
+    }
+    if (filters.status) {
+      filtered = filtered.filter(item => item.status === filters.status);
+    }
+
+    setFilteredData(filtered);
+    setPage(0); // Reset to first page when filters change
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      week: '',
+      nop: '',
+      rootCause: '',
+      siteClass: '',
+      picDept: '',
+      progress: '',
+      status: ''
+    });
+    setSearchTerm('');
+    setSearchField('all');
+    setPage(0);
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -167,12 +264,17 @@ export default function CellDownDataPage() {
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
 
   const handleSearchFieldChange = (event: any) => {
     setSearchField(event.target.value);
-    setPage(0);
+  };
+
+  const handleFilterChange = (field: keyof FilterData, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -537,11 +639,22 @@ export default function CellDownDataPage() {
 
       <Card>
         <CardHeader
-          title={`Cell Down Data (${totalCount} records)`}
-          action={<ExportToExcel data={data} onExport={() => {}} />}
+          title={
+            <Box>
+              <Typography variant="h6">Cell Down Data</Typography>
+              <Typography variant="body2" color="textSecondary">
+                {filteredData.length === allData.length 
+                  ? `${filteredData.length} records` 
+                  : `${filteredData.length} of ${allData.length} records (filtered)`
+                }
+              </Typography>
+            </Box>
+          }
+          action={<ExportToExcel data={filteredData} onExport={() => {}} />}
         />
         
         <CardContent sx={{ pb: 0 }}>
+          {/* Search Section */}
           <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
             <Grid item xs={12} md={4}>
               <TextField
@@ -568,7 +681,150 @@ export default function CellDownDataPage() {
                 </Select>
               </FormControl>
             </Grid>
+            <Grid item xs={12} md={2}>
+              <Button
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                onClick={resetFilters}
+                size="small"
+                fullWidth
+              >
+                Reset
+              </Button>
+            </Grid>
           </Grid>
+
+          {/* Filters Section */}
+          <Accordion sx={{ mb: 2 }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FilterListIcon />
+                <Typography variant="subtitle1">Filters</Typography>
+                <Chip 
+                  label={`${Object.values(filters).filter(f => f !== '').length} active`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              {loading ? (
+                <Box sx={{ textAlign: 'center', py: 2 }}>
+                  <LinearProgress />
+                  <Typography variant="body2" sx={{ mt: 1 }}>Loading filters...</Typography>
+                </Box>
+              ) : (
+                <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Week</InputLabel>
+                    <Select 
+                      value={filters.week} 
+                      onChange={(e) => handleFilterChange('week', e.target.value)} 
+                      label="Week"
+                    >
+                      <MenuItem value="">All Weeks</MenuItem>
+                      {Array.from({ length: 52 }, (_, i) => i + 1).map(week => (
+                        <MenuItem key={week} value={week.toString()}>{week}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>NOP</InputLabel>
+                    <Select 
+                      value={filters.nop} 
+                      onChange={(e) => handleFilterChange('nop', e.target.value)} 
+                      label="NOP"
+                    >
+                      <MenuItem value="">All NOPs</MenuItem>
+                      {uniqueNOPs.map(nop => (
+                        <MenuItem key={nop} value={nop}>{nop}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Root Cause</InputLabel>
+                    <Select 
+                      value={filters.rootCause} 
+                      onChange={(e) => handleFilterChange('rootCause', e.target.value)} 
+                      label="Root Cause"
+                    >
+                      <MenuItem value="">All Root Causes</MenuItem>
+                      {rootCauseOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Site Class</InputLabel>
+                    <Select 
+                      value={filters.siteClass} 
+                      onChange={(e) => handleFilterChange('siteClass', e.target.value)} 
+                      label="Site Class"
+                    >
+                      <MenuItem value="">All Site Classes</MenuItem>
+                      {siteClassOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>PIC Department</InputLabel>
+                    <Select 
+                      value={filters.picDept} 
+                      onChange={(e) => handleFilterChange('picDept', e.target.value)} 
+                      label="PIC Department"
+                    >
+                      <MenuItem value="">All PIC Departments</MenuItem>
+                      {picDeptOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Progress</InputLabel>
+                    <Select 
+                      value={filters.progress} 
+                      onChange={(e) => handleFilterChange('progress', e.target.value)} 
+                      label="Progress"
+                    >
+                      <MenuItem value="">All Progress</MenuItem>
+                      {progressOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Status</InputLabel>
+                    <Select 
+                      value={filters.status} 
+                      onChange={(e) => handleFilterChange('status', e.target.value)} 
+                      label="Status"
+                    >
+                      <MenuItem value="">All Status</MenuItem>
+                      {statusOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                </Grid>
+              )}
+            </AccordionDetails>
+          </Accordion>
         </CardContent>
         
         <CardContent>
@@ -583,11 +839,79 @@ export default function CellDownDataPage() {
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="h6" color="textSecondary" gutterBottom>No data found</Typography>
               <Typography variant="body2" color="textSecondary">
-                {totalCount === 0 ? 'No records in the database.' : 'No records match your search criteria.'}
+                {allData.length === 0 ? 'No records in the database.' : 'No records match your search criteria.'}
               </Typography>
             </Box>
           )}
           
+          {/* Active Filters Summary */}
+          {Object.values(filters).some(f => f !== '') && (
+            <Box sx={{ mb: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FilterListIcon fontSize="small" />
+                Active Filters:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {filters.week && (
+                  <Chip 
+                    label={`Week: ${filters.week}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('week', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.nop && (
+                  <Chip 
+                    label={`NOP: ${filters.nop}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('nop', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.rootCause && (
+                  <Chip 
+                    label={`Root Cause: ${filters.rootCause}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('rootCause', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.siteClass && (
+                  <Chip 
+                    label={`Site Class: ${filters.siteClass}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('siteClass', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.picDept && (
+                  <Chip 
+                    label={`PIC: ${filters.picDept}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('picDept', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.progress && (
+                  <Chip 
+                    label={`Progress: ${filters.progress}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('progress', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.status && (
+                  <Chip 
+                    label={`Status: ${filters.status}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('status', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+              </Box>
+            </Box>
+          )}
+
           {!loading && data.length > 0 && (
             <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
               <Table stickyHeader size="small" sx={{ borderCollapse: 'collapse' }}>
@@ -726,7 +1050,7 @@ export default function CellDownDataPage() {
           
           <TablePagination
             component="div"
-            count={totalCount}
+            count={filteredData.length}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
