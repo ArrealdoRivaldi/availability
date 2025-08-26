@@ -476,38 +476,44 @@ export default function CellDownDataPage() {
         <DialogContent>
           <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
             <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Week</TableCell>
-                  <TableCell>Regional</TableCell>
-                  <TableCell>Site ID</TableCell>
-                  <TableCell>Alarm Source</TableCell>
-                  <TableCell>NOP</TableCell>
-                  <TableCell>Status</TableCell>
-                </TableRow>
-              </TableHead>
+                             <TableHead>
+                 <TableRow>
+                   <TableCell>Week</TableCell>
+                   <TableCell>Site ID</TableCell>
+                   <TableCell>NOP</TableCell>
+                   <TableCell>AGING DOWN</TableCell>
+                   <TableCell>RANGE AGING DOWN</TableCell>
+                   <TableCell>SITE CLASS</TableCell>
+                   <TableCell>Sub Domain</TableCell>
+                   <TableCell>Cell Down Name</TableCell>
+                   <TableCell>Status</TableCell>
+                 </TableRow>
+               </TableHead>
               <TableBody>
-                {previewData.slice(0, 20).map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.week}</TableCell>
-                    <TableCell>{row.regional}</TableCell>
-                    <TableCell>{row.siteId}</TableCell>
-                    <TableCell>{row.alarmSource}</TableCell>
-                    <TableCell>{row.nop}</TableCell>
-                    <TableCell>
-                      <Chip label="Ready to Upload" color="info" size="small" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {previewData.length > 20 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      <Typography variant="body2" color="textSecondary">
-                        ... and {previewData.length - 20} more records
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
+                                 {previewData.slice(0, 20).map((row, index) => (
+                   <TableRow key={index}>
+                     <TableCell>{row.week}</TableCell>
+                     <TableCell>{row.siteId}</TableCell>
+                     <TableCell>{row.nop}</TableCell>
+                     <TableCell>{row.agingDown}</TableCell>
+                     <TableCell>{row.rangeAgingDown}</TableCell>
+                     <TableCell>{row.siteClass}</TableCell>
+                     <TableCell>{row.subDomain}</TableCell>
+                     <TableCell>{row.cellDownName}</TableCell>
+                     <TableCell>
+                       <Chip label="Ready to Upload" color="info" size="small" />
+                     </TableCell>
+                   </TableRow>
+                 ))}
+                                 {previewData.length > 20 && (
+                   <TableRow>
+                     <TableCell colSpan={9} align="center">
+                       <Typography variant="body2" color="textSecondary">
+                         ... and {previewData.length - 20} more records
+                       </Typography>
+                     </TableCell>
+                   </TableRow>
+                 )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -635,73 +641,63 @@ export default function CellDownDataPage() {
         <CardContent>
           <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
             <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Week</TableCell>
-                  <TableCell>Regional</TableCell>
-                  <TableCell>Site ID</TableCell>
-                  <TableCell>Alarm Source</TableCell>
-                  <TableCell>NOP</TableCell>
-                  <TableCell>Alarm Severity</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Progress</TableCell>
-                                      <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
+                             <TableHead>
+                 <TableRow>
+                   <TableCell>Week</TableCell>
+                   <TableCell>Site ID</TableCell>
+                   <TableCell>NOP</TableCell>
+                   <TableCell>AGING DOWN</TableCell>
+                   <TableCell>RANGE AGING DOWN</TableCell>
+                   <TableCell>SITE CLASS</TableCell>
+                   <TableCell>Sub Domain</TableCell>
+                   <TableCell>Cell Down Name</TableCell>
+                   <TableCell>Status</TableCell>
+                   <TableCell>Actions</TableCell>
+                 </TableRow>
+               </TableHead>
                 <TableBody>
-                  {data.map((row) => (
-                    <TableRow key={row.id} hover>
-                      <TableCell>{row.week}</TableCell>
-                      <TableCell>{row.regional}</TableCell>
-                      <TableCell>{row.siteId}</TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {row.alarmSource}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{row.nop}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.alarmSeverity} 
-                          color={getSeverityColor(row.alarmSeverity) as any}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.status} 
-                          color={getStatusColor(row.status) as any}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.progress || 'OPEN'} 
-                          color={row.progress === 'DONE' ? 'success' : 'warning'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewDetail(row)}
-                            color="info"
-                            title="View Details"
-                          >
-                            <VisibilityIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEdit(row)}
-                            color="primary"
-                            title="Edit Data"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                                     {data.map((row) => (
+                     <TableRow key={row.id} hover>
+                       <TableCell>{row.week}</TableCell>
+                       <TableCell>{row.siteId}</TableCell>
+                       <TableCell>{row.nop}</TableCell>
+                       <TableCell>{row.agingDown}</TableCell>
+                       <TableCell>{row.rangeAgingDown}</TableCell>
+                       <TableCell>{row.siteClass}</TableCell>
+                       <TableCell>{row.subDomain}</TableCell>
+                       <TableCell>
+                         <Typography variant="body2" sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {row.cellDownName}
+                         </Typography>
+                       </TableCell>
+                       <TableCell>
+                         <Chip 
+                           label={row.status} 
+                           color={getStatusColor(row.status) as any}
+                         />
+                       </TableCell>
+                       <TableCell>
+                         <Box sx={{ display: 'flex', gap: 1 }}>
+                           <IconButton
+                             size="small"
+                             onClick={() => handleViewDetail(row)}
+                             color="info"
+                             title="View Details"
+                           >
+                             <VisibilityIcon />
+                           </IconButton>
+                           <IconButton
+                             size="small"
+                             onClick={() => handleEdit(row)}
+                             color="primary"
+                             title="Edit Data"
+                           >
+                             <EditIcon />
+                           </IconButton>
+                         </Box>
+                       </TableCell>
+                     </TableRow>
+                   ))}
                 </TableBody>
             </Table>
           </TableContainer>
