@@ -21,6 +21,8 @@ import SearchAndFilter from './components/SearchAndFilter';
 import UserFormModal from './components/UserFormModal';
 import UserDetailsModal from './components/UserDetailsModal';
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
+import DebugInfo from './components/DebugInfo';
+import AddTestUser from './components/AddTestUser';
 import { useUsers, User } from './hooks/useUsers';
 import { filterUsers, getFilterStats, getNopCounts, getRoleCounts } from './utils/userFilters';
 
@@ -185,6 +187,14 @@ export default function UserManagement() {
           </Box>
         </Box>
 
+        {/* Debug Information */}
+        <DebugInfo users={users} loading={loading} error={error} />
+
+        {/* Add Test User if no users exist */}
+        {!loading && users.length === 0 && !error && (
+          <AddTestUser onUserAdded={refreshUsers} />
+        )}
+
         {/* Dashboard Cards */}
         <Grid container spacing={3} mb={3}>
           <Grid item xs={12} md={3}>
@@ -252,7 +262,24 @@ export default function UserManagement() {
         <DashboardCard title="Users">
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
+              <Typography variant="body1" gutterBottom>
+                <strong>Error Loading Users:</strong>
+              </Typography>
+              <Typography variant="body2">
+                {error}
+              </Typography>
+              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                This could be due to:
+              </Typography>
+              <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                <li>Firebase connection issues</li>
+                <li>Firestore security rules</li>
+                <li>Collection doesn't exist</li>
+                <li>Network connectivity problems</li>
+              </ul>
+              <Typography variant="caption">
+                Check the debug panel above for more details and try the "Test Connection" button.
+              </Typography>
             </Alert>
           )}
           
