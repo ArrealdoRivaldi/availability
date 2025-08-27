@@ -421,16 +421,35 @@ export default function CellDownDataPage() {
     }
 
     // Check existing data that won't be in upload data and will become 'close'
+    // ONLY if their Cell Down Name doesn't appear in upload data at all
     for (const existingItem of allData) {
       const willBeInUpload = uploadData.some(uploadItem => 
         uploadItem.week === existingItem.week && 
         uploadItem.cellDownName === existingItem.cellDownName
       );
       
-      if (!willBeInUpload) {
+      // Check if this Cell Down Name appears in upload data (regardless of week)
+      const cellDownNameInUpload = uploadData.some(uploadItem => 
+        uploadItem.cellDownName === existingItem.cellDownName
+      );
+      
+      // Only close if: not in upload AND Cell Down Name not in upload
+      if (!willBeInUpload && !cellDownNameInUpload) {
         willBeClose++;
+      } else if (!willBeInUpload && cellDownNameInUpload) {
+        // Existing data with Cell Down Name that appears in upload stays OPEN
+        willBeOpen++;
       }
     }
+    
+    // Log untuk debugging
+    console.log('Upload Analysis:', {
+      newData,
+      updatedData,
+      willBeOpen,
+      willBeClose,
+      totalData: uploadData.length
+    });
 
     return {
       newData,
@@ -541,6 +560,7 @@ export default function CellDownDataPage() {
       }
 
       // Update status of existing data that wasn't in upload to 'close'
+      // ONLY if their Cell Down Name doesn't appear in upload data at all
       const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
       const uploadWeekCellDownPairs = new Set(
         previewData.map(item => `${item.week}-${item.cellDownName}`)
@@ -550,14 +570,19 @@ export default function CellDownDataPage() {
         const weekCellDownPair = `${existingItem.week}-${existingItem.cellDownName}`;
         const willBeInUpload = uploadWeekCellDownPairs.has(weekCellDownPair);
         
-        if (!willBeInUpload) {
-          // Update status to 'close' for existing data not in upload
+        // Check if this Cell Down Name appears in upload data (regardless of week)
+        const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
+        
+        // Only close if: not in upload AND Cell Down Name not in upload
+        if (!willBeInUpload && !cellDownNameInUpload) {
+          // Update status to 'close' for existing data not in upload AND Cell Down Name not in upload
           const docRef = doc(db, 'data_celldown', existingItem.id!);
           await updateDoc(docRef, {
             status: 'close',
             updatedAt: new Date()
           });
         }
+        // If !willBeInUpload && cellDownNameInUpload, keep existing status (OPEN)
       }
 
       // Show success message with detailed information
