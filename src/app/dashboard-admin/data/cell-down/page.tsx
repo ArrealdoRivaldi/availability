@@ -397,6 +397,23 @@ export default function CellDownDataPage() {
     };
   };
 
+  // New function to reset file input and upload state
+  const resetUploadState = () => {
+    // Reset file input element
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+    
+    // Reset all upload-related state
+    setPreviewData([]);
+    setUploadStats({ newData: 0, updatedData: 0, totalData: 0 });
+    setChunkProgress({ current: 0, total: 0, percentage: 0 });
+    setUploadStatus('');
+    setUploadProgress(0);
+    setUploading(false);
+  };
+
   const confirmUpload = async () => {
     if (!isSuperAdmin) {
       alert('Access denied. Only Super Admin users can upload data.');
@@ -477,10 +494,7 @@ export default function CellDownDataPage() {
       alert(successMessage);
       
       setShowPreview(false);
-      setPreviewData([]);
-      setUploadStats({ newData: 0, updatedData: 0, totalData: 0 });
-      setChunkProgress({ current: 0, total: 0, percentage: 0 });
-      setUploadStatus('');
+      resetUploadState();
       
       // Reload data to show updated information
       loadData();
@@ -660,7 +674,10 @@ export default function CellDownDataPage() {
         </Card>
       )}
 
-      <Dialog open={showPreview} onClose={() => setShowPreview(false)} maxWidth="xl" fullWidth>
+      <Dialog open={showPreview} onClose={() => {
+        setShowPreview(false);
+        resetUploadState();
+      }} maxWidth="xl" fullWidth>
         <DialogTitle>
           Preview Upload Data ({previewData.length} records)
           <Box sx={{ mt: 1 }}>
@@ -744,7 +761,10 @@ export default function CellDownDataPage() {
           </TableContainer>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowPreview(false)}>Cancel</Button>
+          <Button onClick={() => {
+            setShowPreview(false);
+            resetUploadState();
+          }}>Cancel</Button>
           <Button onClick={confirmUpload} variant="contained" disabled={uploading}>
             {uploading ? 'Uploading...' : 'Confirm Upload'}
           </Button>
