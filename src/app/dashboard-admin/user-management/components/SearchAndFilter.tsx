@@ -27,10 +27,13 @@ interface SearchAndFilterProps {
 const nopOptions = [
   { value: '', label: 'All NOP' },
   { value: 'kalimantan', label: 'Kalimantan' },
-  { value: 'sumatra', label: 'Sumatra' },
-  { value: 'jawa', label: 'Jawa' },
-  { value: 'sulawesi', label: 'Sulawesi' },
-  { value: 'papua', label: 'Papua' }
+  { value: 'balikpapan', label: 'Balikpapan' },
+  { value: 'banjarmasin', label: 'Banjarmasin' },
+  { value: 'palangkaraya', label: 'Palangkaraya' },
+  { value: 'pangkalan_bun', label: 'Pangkalan Bun' },
+  { value: 'pontianak', label: 'Pontianak' },
+  { value: 'samarinda', label: 'Samarinda' },
+  { value: 'tarakan', label: 'Tarakan' }
 ];
 
 const roleOptions = [

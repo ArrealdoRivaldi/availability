@@ -102,10 +102,13 @@ export default function UserTable({ users, onEdit, onDelete, onView, loading }: 
   const getNopColor = (nop: string) => {
     const nopColors: { [key: string]: string } = {
       'kalimantan': 'success',
-      'sumatra': 'info',
-      'jawa': 'warning',
-      'sulawesi': 'secondary',
-      'papua': 'default'
+      'balikpapan': 'primary',
+      'banjarmasin': 'secondary',
+      'palangkaraya': 'info',
+      'pangkalan_bun': 'warning',
+      'pontianak': 'success',
+      'samarinda': 'primary',
+      'tarakan': 'secondary'
     };
     return nopColors[nop.toLowerCase()] || 'default';
   };

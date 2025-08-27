@@ -3,5 +3,3 @@ export { default as SearchAndFilter } from './SearchAndFilter';
 export { default as UserFormModal } from './UserFormModal';
 export { default as UserDetailsModal } from './UserDetailsModal';
 export { default as DeleteConfirmationDialog } from './DeleteConfirmationDialog';
-export { default as DebugInfo } from './DebugInfo';
-export { default as AddTestUser } from './AddTestUser';
