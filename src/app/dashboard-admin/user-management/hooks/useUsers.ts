@@ -50,7 +50,8 @@ export function useUsers() {
       },
       (err) => {
         console.error('useUsers: Error in onSnapshot:', err);
-        setError(`Failed to fetch users: ${err.message}`);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+        setError(`Failed to fetch users: ${errorMessage}`);
         setLoading(false);
       }
     );
@@ -66,7 +67,8 @@ export function useUsers() {
       })
       .catch((err) => {
         console.error('useUsers: One-time fetch failed:', err);
-        setError(`One-time fetch failed: ${err.message}`);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+        setError(`One-time fetch failed: ${errorMessage}`);
       });
 
     return () => {
@@ -82,7 +84,8 @@ export function useUsers() {
       return true;
     } catch (err) {
       console.error('Error deleting user:', err);
-      setError('Failed to delete user');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to delete user: ${errorMessage}`);
       return false;
     } finally {
       setLoading(false);
@@ -114,7 +117,8 @@ export function useUsers() {
       setError(null);
     } catch (err) {
       console.error('Error refreshing users:', err);
-      setError(`Failed to refresh users: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to refresh users: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

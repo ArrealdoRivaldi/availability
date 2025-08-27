@@ -46,11 +46,12 @@ export default function AddTestUser({ onUserAdded }: AddTestUserProps) {
       // Call the callback to refresh the user list
       onUserAdded();
       
-    } catch (error: any) {
-      console.error('Error adding test user:', error);
+    } catch (err) {
+      console.error('Error adding test user:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setMessage({
         type: 'error',
-        text: `Failed to add test user: ${error.message}`
+        text: `Failed to add test user: ${errorMessage}`
       });
     } finally {
       setLoading(false);

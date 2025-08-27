@@ -48,11 +48,13 @@ export default function DebugInfo({ users, loading, error }: DebugInfoProps) {
         timestamp: new Date().toISOString()
       });
       
-    } catch (err: any) {
+    } catch (err) {
       console.error('Connection test failed:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      const errorCode = (err as any)?.code || 'UNKNOWN';
       setDebugInfo({
-        error: err.message,
-        code: err.code,
+        error: errorMessage,
+        code: errorCode,
         timestamp: new Date().toISOString()
       });
     } finally {
