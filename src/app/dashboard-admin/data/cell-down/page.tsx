@@ -108,6 +108,8 @@ interface UploadStats {
   newData: number;
   updatedData: number;
   totalData: number;
+  willBeOpen: number;
+  willBeClose: number;
 }
 
 const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN'];
@@ -151,7 +153,13 @@ export default function CellDownDataPage() {
   const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
   
   // New state for enhanced upload functionality
-  const [uploadStats, setUploadStats] = useState<UploadStats>({ newData: 0, updatedData: 0, totalData: 0 });
+  const [uploadStats, setUploadStats] = useState<UploadStats>({ 
+    newData: 0, 
+    updatedData: 0, 
+    totalData: 0, 
+    willBeOpen: 0, 
+    willBeClose: 0 
+  });
   const [chunkProgress, setChunkProgress] = useState({ current: 0, total: 0, percentage: 0 });
   const [uploadStatus, setUploadStatus] = useState<string>('');
 
@@ -371,10 +379,18 @@ export default function CellDownDataPage() {
     }
   };
 
-  // New function to analyze upload data
+  // Enhanced function to analyze upload data with status prediction
   const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
     let newData = 0;
     let updatedData = 0;
+    let willBeOpen = 0;
+    let willBeClose = 0;
+
+    // Get all unique Cell Down Names from upload data
+    const uploadCellDownNames = new Set(uploadData.map(item => item.cellDownName));
+    
+    // Get all unique Cell Down Names from existing data
+    const existingCellDownNames = new Set(allData.map(item => item.cellDownName));
 
     for (const item of uploadData) {
       // Check if data exists based on Week and Cell Down Name
@@ -385,15 +401,43 @@ export default function CellDownDataPage() {
 
       if (existingData) {
         updatedData++;
+        // Updated data will have status 'close'
+        willBeClose++;
       } else {
         newData++;
+        // Check if this Cell Down Name exists in existing data (regardless of week)
+        const existingWithSameName = allData.find(existing => 
+          existing.cellDownName === item.cellDownName
+        );
+        
+        if (existingWithSameName) {
+          // New data with existing Cell Down Name will have status 'close'
+          willBeClose++;
+        } else {
+          // New data with new Cell Down Name will have status 'open'
+          willBeOpen++;
+        }
+      }
+    }
+
+    // Check existing data that won't be in upload data and will become 'close'
+    for (const existingItem of allData) {
+      const willBeInUpload = uploadData.some(uploadItem => 
+        uploadItem.week === existingItem.week && 
+        uploadItem.cellDownName === existingItem.cellDownName
+      );
+      
+      if (!willBeInUpload) {
+        willBeClose++;
       }
     }
 
     return {
       newData,
       updatedData,
-      totalData: uploadData.length
+      totalData: uploadData.length,
+      willBeOpen,
+      willBeClose
     };
   };
 
@@ -407,7 +451,7 @@ export default function CellDownDataPage() {
     
     // Reset all upload-related state
     setPreviewData([]);
-    setUploadStats({ newData: 0, updatedData: 0, totalData: 0 });
+    setUploadStats({ newData: 0, updatedData: 0, totalData: 0, willBeOpen: 0, willBeClose: 0 });
     setChunkProgress({ current: 0, total: 0, percentage: 0 });
     setUploadStatus('');
     setUploadProgress(0);
@@ -465,10 +509,21 @@ export default function CellDownDataPage() {
             await updateDoc(docRef, updateData);
             updatedDataCount++;
           } else {
+            // Check if there's existing data with the same Cell Down Name (regardless of week)
+            const existingWithSameName = allData.find(existing => 
+              existing.cellDownName === item.cellDownName
+            );
+            
             // Add new data
             const newItem = {
               ...item,
-              status: 'open', // New data starts with open status
+              // Copy existing data fields if Cell Down Name exists
+              rootCause: existingWithSameName?.rootCause || item.rootCause || '',
+              detailProblem: existingWithSameName?.detailProblem || item.detailProblem || '',
+              planAction: existingWithSameName?.planAction || item.planAction || '',
+              needSupport: existingWithSameName?.needSupport || item.needSupport || '',
+              picDept: existingWithSameName?.picDept || item.picDept || '',
+              status: existingWithSameName ? 'close' : 'open', // Update status to close if same Cell Down Name exists
               createdAt: new Date(),
               updatedAt: new Date()
             };
@@ -485,11 +540,33 @@ export default function CellDownDataPage() {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
+      // Update status of existing data that wasn't in upload to 'close'
+      const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
+      const uploadWeekCellDownPairs = new Set(
+        previewData.map(item => `${item.week}-${item.cellDownName}`)
+      );
+      
+      for (const existingItem of allData) {
+        const weekCellDownPair = `${existingItem.week}-${existingItem.cellDownName}`;
+        const willBeInUpload = uploadWeekCellDownPairs.has(weekCellDownPair);
+        
+        if (!willBeInUpload) {
+          // Update status to 'close' for existing data not in upload
+          const docRef = doc(db, 'data_celldown', existingItem.id!);
+          await updateDoc(docRef, {
+            status: 'close',
+            updatedAt: new Date()
+          });
+        }
+      }
+
       // Show success message with detailed information
       const successMessage = `Upload berhasil! 
         - Data baru yang ditambahkan: ${newDataCount}
         - Data yang diupdate: ${updatedDataCount}
-        - Total data yang diproses: ${previewData.length}`;
+        - Total data yang diproses: ${previewData.length}
+        - Data dengan status Open setelah upload: ${uploadStats.willBeOpen}
+        - Data dengan status Close setelah upload: ${uploadStats.willBeClose}`;
       
       alert(successMessage);
       
@@ -690,6 +767,17 @@ export default function CellDownDataPage() {
             <Typography variant="body2" color="textSecondary">
               Total data yang akan diproses: {uploadStats.totalData}
             </Typography>
+            <Box sx={{ mt: 1, p: 1, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
+                Status setelah upload:
+              </Typography>
+              <Typography variant="body2" color="success.main">
+                • Data dengan status Open: {uploadStats.willBeOpen}
+              </Typography>
+              <Typography variant="body2" color="warning.main">
+                • Data dengan status Close: {uploadStats.willBeClose}
+              </Typography>
+            </Box>
           </Box>
         </DialogTitle>
         <DialogContent>
