@@ -104,6 +104,12 @@ interface FilterData {
   status: string;
 }
 
+interface UploadStats {
+  newData: number;
+  updatedData: number;
+  totalData: number;
+}
+
 const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN'];
 const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
 const progressOptions = ['OPEN', 'DONE'];
@@ -143,6 +149,11 @@ export default function CellDownDataPage() {
   const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
   const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
+  
+  // New state for enhanced upload functionality
+  const [uploadStats, setUploadStats] = useState<UploadStats>({ newData: 0, updatedData: 0, totalData: 0 });
+  const [chunkProgress, setChunkProgress] = useState({ current: 0, total: 0, percentage: 0 });
+  const [uploadStatus, setUploadStatus] = useState<string>('');
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -294,6 +305,7 @@ export default function CellDownDataPage() {
     try {
       setUploading(true);
       setUploadProgress(0);
+      setUploadStatus('Processing Excel file...');
       
       const workbook = new XLSX.Workbook();
       await workbook.xlsx.load(await file.arrayBuffer());
@@ -344,8 +356,12 @@ export default function CellDownDataPage() {
         setUploadProgress((rowCount / totalRows) * 100);
       });
 
+      // Analyze data to determine new vs update counts
+      const stats = await analyzeUploadData(previewRows);
+      setUploadStats(stats);
       setPreviewData(previewRows);
       setShowPreview(true);
+      setUploadStatus('');
     } catch (error) {
       console.error('Error processing file:', error);
       alert('Error processing file. Please check the file format.');
@@ -353,6 +369,32 @@ export default function CellDownDataPage() {
       setUploading(false);
       setUploadProgress(0);
     }
+  };
+
+  // New function to analyze upload data
+  const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
+    let newData = 0;
+    let updatedData = 0;
+
+    for (const item of uploadData) {
+      // Check if data exists based on Week and Cell Down Name
+      const existingData = allData.find(existing => 
+        existing.week === item.week && 
+        existing.cellDownName === item.cellDownName
+      );
+
+      if (existingData) {
+        updatedData++;
+      } else {
+        newData++;
+      }
+    }
+
+    return {
+      newData,
+      updatedData,
+      totalData: uploadData.length
+    };
   };
 
   const confirmUpload = async () => {
@@ -365,26 +407,82 @@ export default function CellDownDataPage() {
 
     setUploading(true);
     setUploadProgress(0);
+    setUploadStatus('Starting upload process...');
     
     try {
       const batchSize = 100;
+      const totalChunks = Math.ceil(previewData.length / batchSize);
       let processed = 0;
+      let newDataCount = 0;
+      let updatedDataCount = 0;
 
       for (let i = 0; i < previewData.length; i += batchSize) {
+        const currentChunk = Math.floor(i / batchSize) + 1;
+        setChunkProgress({
+          current: currentChunk,
+          total: totalChunks,
+          percentage: Math.round((currentChunk / totalChunks) * 100)
+        });
+        
+        setUploadStatus(`Uploading chunk ${currentChunk}/${totalChunks}... ${Math.round((currentChunk / totalChunks) * 100)}%`);
+        
         const batch = previewData.slice(i, i + batchSize);
         
         for (const item of batch) {
-          await addDoc(collection(db, 'data_celldown'), item);
+          // Check if data exists based on Week and Cell Down Name
+          const existingData = allData.find(existing => 
+            existing.week === item.week && 
+            existing.cellDownName === item.cellDownName
+          );
+
+          if (existingData) {
+            // Update existing data
+            const docRef = doc(db, 'data_celldown', existingData.id!);
+            const updateData = {
+              ...item,
+              id: existingData.id,
+              updatedAt: new Date(),
+              status: 'close' // Update status to close for existing data
+            };
+            
+            await updateDoc(docRef, updateData);
+            updatedDataCount++;
+          } else {
+            // Add new data
+            const newItem = {
+              ...item,
+              status: 'open', // New data starts with open status
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+            
+            await addDoc(collection(db, 'data_celldown'), newItem);
+            newDataCount++;
+          }
+          
+          processed++;
+          setUploadProgress((processed / previewData.length) * 100);
         }
         
-        processed += batch.length;
-        setUploadProgress((processed / previewData.length) * 100);
+        // Small delay to show progress
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      alert(`Successfully uploaded ${previewData.length} records!`);
+      // Show success message with detailed information
+      const successMessage = `Upload berhasil! 
+        - Data baru yang ditambahkan: ${newDataCount}
+        - Data yang diupdate: ${updatedDataCount}
+        - Total data yang diproses: ${previewData.length}`;
+      
+      alert(successMessage);
+      
       setShowPreview(false);
       setPreviewData([]);
+      setUploadStats({ newData: 0, updatedData: 0, totalData: 0 });
+      setChunkProgress({ current: 0, total: 0, percentage: 0 });
+      setUploadStatus('');
+      
+      // Reload data to show updated information
       loadData();
     } catch (error) {
       console.error('Error uploading data:', error);
@@ -392,6 +490,8 @@ export default function CellDownDataPage() {
     } finally {
       setUploading(false);
       setUploadProgress(0);
+      setChunkProgress({ current: 0, total: 0, percentage: 0 });
+      setUploadStatus('');
     }
   };
 
@@ -526,7 +626,24 @@ export default function CellDownDataPage() {
             {uploading && (
               <Box sx={{ mt: 2 }}>
                 <LinearProgress variant="determinate" value={uploadProgress} />
-                <Typography variant="body2" sx={{ mt: 1 }}>Processing: {Math.round(uploadProgress)}%</Typography>
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  {uploadStatus || `Processing: ${Math.round(uploadProgress)}%`}
+                </Typography>
+                
+                {/* Chunk Progress Display */}
+                {chunkProgress.total > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2" color="primary">
+                      Chunk Progress: {chunkProgress.current}/{chunkProgress.total} ({chunkProgress.percentage}%)
+                    </Typography>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={chunkProgress.percentage} 
+                      sx={{ mt: 0.5 }}
+                      color="secondary"
+                    />
+                  </Box>
+                )}
               </Box>
             )}
           </CardContent>
@@ -544,74 +661,80 @@ export default function CellDownDataPage() {
       )}
 
       <Dialog open={showPreview} onClose={() => setShowPreview(false)} maxWidth="xl" fullWidth>
-        <DialogTitle>Preview Upload Data ({previewData.length} records)</DialogTitle>
+        <DialogTitle>
+          Preview Upload Data ({previewData.length} records)
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+              Data baru yang akan ditambahkan: {uploadStats.newData}
+            </Typography>
+            <Typography variant="body2" color="secondary" sx={{ fontWeight: 'bold' }}>
+              Data yang akan diupdate: {uploadStats.updatedData}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Total data yang akan diproses: {uploadStats.totalData}
+            </Typography>
+          </Box>
+        </DialogTitle>
         <DialogContent>
           <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
             <Table stickyHeader size="small" sx={{ borderCollapse: 'collapse' }}>
-                              <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 60 }}>No.</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Week</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Site ID</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 150 }}>Cell Down Name</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>NOP</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>AGING DOWN</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Root Cause</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Detail Problem</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Plan Action</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Need Support</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>PIC Dept</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Progress</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Closed Date</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Status</TableCell>
-                  </TableRow>
-                </TableHead>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 60 }}>No.</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Week</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Site ID</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 150 }}>Cell Down Name</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>NOP</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>AGING DOWN</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Action</TableCell>
+                </TableRow>
+              </TableHead>
               <TableBody>
-                {previewData.slice(0, 20).map((row, index) => (
-                  <TableRow key={index} sx={{ '&:nth-of-type(even)': { backgroundColor: '#fafafa' } }}>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{index + 1}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.cellDownName}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.nop}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.agingDown}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.rangeAgingDown}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                      <Chip 
-                        label={row.siteClass} 
-                        color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.rootCause || ''}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.detailProblem || ''}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.planAction || ''}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.needSupport || ''}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.picDept || ''}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                        <Typography variant="h6" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
-                          {row.progress === 'DONE' ? '✅' : '❌'}
-                        </Typography>
-                        <Typography variant="body2" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
-                          {row.progress || 'OPEN'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.closedDate || ''}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                      <Chip label="Ready to Upload" color="info" size="small" />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {previewData.slice(0, 20).map((row, index) => {
+                  // Check if this row will be new or updated
+                  const isNewData = !allData.find(existing => 
+                    existing.week === row.week && 
+                    existing.cellDownName === row.cellDownName
+                  );
+                  
+                  return (
+                    <TableRow key={index} sx={{ 
+                      '&:nth-of-type(even)': { backgroundColor: '#fafafa' },
+                      backgroundColor: isNewData ? '#e8f5e8' : '#fff3e0'
+                    }}>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{index + 1}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.cellDownName}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.nop}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.agingDown}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.rangeAgingDown}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        <Chip 
+                          label={row.siteClass} 
+                          color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        <Chip 
+                          label={isNewData ? 'New Data' : 'Update'} 
+                          color={isNewData ? 'success' : 'warning'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {previewData.length > 20 && (
                   <TableRow>
-                    <TableCell colSpan={17} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
+                    <TableCell colSpan={10} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
                       <Typography variant="body2" color="textSecondary">... and {previewData.length - 20} more records</Typography>
                     </TableCell>
                   </TableRow>
@@ -622,7 +745,9 @@ export default function CellDownDataPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowPreview(false)}>Cancel</Button>
-          <Button onClick={confirmUpload} variant="contained" disabled={uploading}>Confirm Upload</Button>
+          <Button onClick={confirmUpload} variant="contained" disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Confirm Upload'}
+          </Button>
         </DialogActions>
       </Dialog>
 
