@@ -142,6 +142,7 @@ export default function CellDownDataPage() {
   });
   const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
+  const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -183,6 +184,10 @@ export default function CellDownDataPage() {
       // Extract unique NOPs for filter dropdown
       const nops = Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).sort();
       setUniqueNOPs(nops);
+      
+      // Extract unique weeks for filter dropdown
+      const weeks = Array.from(new Set(allData.map(item => item.week).filter(Boolean))).sort((a, b) => a - b);
+      setUniqueWeeks(weeks);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -725,7 +730,7 @@ export default function CellDownDataPage() {
                       label="Week"
                     >
                       <MenuItem value="">All Weeks</MenuItem>
-                      {Array.from({ length: 52 }, (_, i) => i + 1).map(week => (
+                      {uniqueWeeks.map(week => (
                         <MenuItem key={week} value={week.toString()}>{week}</MenuItem>
                       ))}
                     </Select>
