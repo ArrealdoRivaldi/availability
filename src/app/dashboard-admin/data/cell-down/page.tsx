@@ -411,8 +411,8 @@ export default function CellDownDataPage() {
         );
         
         if (existingWithSameName) {
-          // New data with existing Cell Down Name will have status 'close'
-          willBeClose++;
+          // New data with existing Cell Down Name will have status 'open' (copies existing fields but keeps open status)
+          willBeOpen++;
         } else {
           // New data with new Cell Down Name will have status 'open'
           willBeOpen++;
@@ -523,7 +523,7 @@ export default function CellDownDataPage() {
               planAction: existingWithSameName?.planAction || item.planAction || '',
               needSupport: existingWithSameName?.needSupport || item.needSupport || '',
               picDept: existingWithSameName?.picDept || item.picDept || '',
-              status: existingWithSameName ? 'close' : 'open', // Update status to close if same Cell Down Name exists
+              status: 'open', // New data always starts with 'open' status (copies existing fields but keeps open status)
               createdAt: new Date(),
               updatedAt: new Date()
             };
