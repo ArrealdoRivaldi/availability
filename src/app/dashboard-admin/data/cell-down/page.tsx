@@ -594,11 +594,14 @@ export default function CellDownDataPage() {
                     <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.needSupport || ''}</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.picDept || ''}</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                      <Chip 
-                        label={row.progress || 'OPEN'} 
-                        color={row.progress === 'DONE' ? 'success' : 'warning'}
-                        size="small"
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <Typography variant="h6" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
+                          {row.progress === 'DONE' ? '✅' : '❌'}
+                        </Typography>
+                        <Typography variant="body2" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
+                          {row.progress || 'OPEN'}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.closedDate || ''}</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
@@ -847,7 +850,14 @@ export default function CellDownDataPage() {
                     >
                       <MenuItem value="">All Progress</MenuItem>
                       {progressOptions.map(option => (
-                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                        <MenuItem key={option} value={option}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="h6" color={option === 'DONE' ? 'success.main' : 'error.main'}>
+                              {option === 'DONE' ? '✅' : '❌'}
+                            </Typography>
+                            {option}
+                          </Box>
+                        </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
@@ -862,7 +872,14 @@ export default function CellDownDataPage() {
                     >
                       <MenuItem value="">All Status</MenuItem>
                       {statusOptions.map(option => (
-                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                        <MenuItem key={option} value={option}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="h6" color={option === 'close' ? 'success.main' : 'error.main'}>
+                              {option === 'close' ? '✅' : '❌'}
+                            </Typography>
+                            {option}
+                          </Box>
+                        </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
@@ -940,7 +957,14 @@ export default function CellDownDataPage() {
                 )}
                 {filters.progress && (
                   <Chip 
-                    label={`Progress: ${filters.progress}`} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h6" color={filters.progress === 'DONE' ? 'success.main' : 'error.main'}>
+                          {filters.progress === 'DONE' ? '✅' : '❌'}
+                        </Typography>
+                        <Typography variant="body2">Progress: {filters.progress}</Typography>
+                      </Box>
+                    }
                     size="small" 
                     onDelete={() => handleFilterChange('progress', '')}
                     deleteIcon={<ClearIcon />}
@@ -948,7 +972,14 @@ export default function CellDownDataPage() {
                 )}
                 {filters.status && (
                   <Chip 
-                    label={`Status: ${filters.status}`} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h6" color={filters.status === 'close' ? 'success.main' : 'error.main'}>
+                          {filters.status === 'close' ? '✅' : '❌'}
+                        </Typography>
+                        <Typography variant="body2">Status: {filters.status}</Typography>
+                      </Box>
+                    }
                     size="small" 
                     onDelete={() => handleFilterChange('status', '')}
                     deleteIcon={<ClearIcon />}
@@ -1041,17 +1072,27 @@ export default function CellDownDataPage() {
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Chip 
-                          label={row.progress || 'OPEN'} 
-                          color={row.progress === 'DONE' ? 'success' : 'warning'}
-                          size="small"
-                        />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                          <Typography variant="h6" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
+                            {row.progress === 'DONE' ? '✅' : '❌'}
+                          </Typography>
+                          <Typography variant="body2" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
+                            {row.progress || 'OPEN'}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Typography variant="body2">{row.closedDate || ''}</Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Chip label={row.status} color={getStatusColor(row.status) as any} size="small" />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                          <Typography variant="h6" color={row.status === 'close' ? 'success.main' : 'error.main'}>
+                            {row.status === 'close' ? '✅' : '❌'}
+                          </Typography>
+                          <Typography variant="body2" color={row.status === 'close' ? 'success.main' : 'error.main'}>
+                            {row.status}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <IconButton 
