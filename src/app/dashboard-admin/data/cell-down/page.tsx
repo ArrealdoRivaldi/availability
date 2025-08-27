@@ -37,16 +37,16 @@ import {
 import {
   Upload as UploadIcon,
   Edit as EditIcon,
-  Visibility as VisibilityIcon,
   CloudUpload as CloudUploadIcon,
   Search as SearchIcon,
   FilterList as FilterListIcon,
   Clear as ClearIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import CellDownDetailView from './components/CellDownDetailView';
 import ExportToExcel from './components/ExportToExcel';
-import ExcelTemplate from './components/ExcelTemplate';
+
 import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/app/firebaseConfig';
 import * as XLSX from 'exceljs';
@@ -409,9 +409,38 @@ export default function CellDownDataPage() {
     setEditModal(true);
   };
 
-  const handleViewDetail = (row: CellDownData) => {
-    setSelectedData(row);
-    setDetailModal(true);
+  const handleCopyData = async () => {
+    try {
+      const dataToCopy = filteredData.map(item => ({
+        Week: item.week,
+        'Site ID': item.siteId,
+        NOP: item.nop,
+        'Aging Down': item.agingDown,
+        'Range Aging Down': item.rangeAgingDown,
+        'Site Class': item.siteClass,
+        'Sub Domain': item.subDomain,
+        'Cell Down Name': item.cellDownName,
+        'Root Cause': item.rootCause || '',
+        'Detail Problem': item.detailProblem || '',
+        'Plan Action': item.planAction || '',
+        'Need Support': item.needSupport || '',
+        'PIC Dept': item.picDept || '',
+        Progress: item.progress || 'OPEN',
+        'Closed Date': item.closedDate || '',
+        Status: item.status
+      }));
+
+      const csvContent = [
+        Object.keys(dataToCopy[0]).join(','),
+        ...dataToCopy.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+      ].join('\n');
+
+      await navigator.clipboard.writeText(csvContent);
+      alert('Data copied to clipboard! You can paste it into Excel or any spreadsheet application.');
+    } catch (error) {
+      console.error('Error copying data:', error);
+      alert('Error copying data. Please try again.');
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -488,7 +517,7 @@ export default function CellDownDataPage() {
                   </Button>
                 </label>
               </Grid>
-              <Grid item><ExcelTemplate /></Grid>
+
               <Grid item>
                 <Typography variant="body2" color="textSecondary">Supported formats: .xlsx, .xls</Typography>
               </Grid>
@@ -655,7 +684,19 @@ export default function CellDownDataPage() {
               </Typography>
             </Box>
           }
-          action={<ExportToExcel data={filteredData} onExport={() => {}} />}
+          action={
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<ContentCopyIcon />}
+                onClick={handleCopyData}
+                size="small"
+              >
+                Copy Data
+              </Button>
+              <ExportToExcel data={filteredData} onExport={() => {}} />
+            </Box>
+          }
         />
         
         <CardContent sx={{ pb: 0 }}>
@@ -1013,38 +1054,21 @@ export default function CellDownDataPage() {
                         <Chip label={row.status} color={getStatusColor(row.status) as any} size="small" />
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                          <IconButton 
-                            size="small" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDetail(row);
-                            }} 
-                            color="info" 
-                            title="View Details"
-                            sx={{ 
-                              backgroundColor: '#e3f2fd',
-                              '&:hover': { backgroundColor: '#bbdefb' }
-                            }}
-                          >
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(row);
-                            }} 
-                            color="primary" 
-                            title="Edit Data"
-                            sx={{ 
-                              backgroundColor: '#e8f5e8',
-                              '&:hover': { backgroundColor: '#c8e6c9' }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
+                        <IconButton 
+                          size="small" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(row);
+                          }} 
+                          color="primary" 
+                          title="Edit Data"
+                          sx={{ 
+                            backgroundColor: '#e8f5e8',
+                            '&:hover': { backgroundColor: '#c8e6c9' }
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
