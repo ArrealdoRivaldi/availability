@@ -6,18 +6,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue, update } from 'firebase/database';
+import { SuperAdminGuard } from '@/components/SuperAdminGuard';
 
 const STATUS_OPTIONS = [
   { value: 'Close', label: 'Approve' },
   { value: 'Rejected', label: 'Rejected' },
 ];
-
-function isSuperAdmin() {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('userRole') === 'super_admin';
-  }
-  return false;
-}
 
 // Helper untuk format tampilan tanggal (hanya tanggal saja)
 function toDisplayDate(dateString: string) {
@@ -28,8 +22,6 @@ function toDisplayDate(dateString: string) {
 }
 
 const AvailabilityApprovalPage = () => {
-  const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusEdit, setStatusEdit] = useState<{ [id: string]: string }>({});
@@ -72,20 +64,6 @@ const AvailabilityApprovalPage = () => {
   }, [filterDraft]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isSuper = localStorage.getItem('userRole') === 'super_admin';
-      setIsSuperAdminState(isSuper);
-      if (!isSuper) {
-        setRedirecting(true);
-        const timer = setTimeout(() => {
-          window.location.href = '/dashboard-admin';
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
     const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
@@ -101,13 +79,6 @@ const AvailabilityApprovalPage = () => {
     });
     return () => unsubscribe();
   }, []);
-
-  if (isSuperAdminState === false) {
-    return <div style={{ padding: 32, color: 'red', fontWeight: 700, fontSize: 20 }}>Akses ditolak. Halaman ini hanya untuk super admin.<br/>Anda akan diarahkan ke dashboard...</div>;
-  }
-  if (isSuperAdminState === null) {
-    return null; // Atau loading spinner
-  }
 
   // Unique options for filter dropdowns
   const uniqueOptions = (key: string) => {
@@ -160,198 +131,191 @@ const AvailabilityApprovalPage = () => {
   ];
 
   return (
-    <Box p={{ xs: 1, md: 3 }}>
-      <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <Typography variant="h5" fontWeight={700} sx={{ letterSpacing: 0.2 }}>
-          Availability Approval
-        </Typography>
-        <Chip
-          icon={<NotificationsIcon />}
-          label={`${filteredRows.length} data Availability menunggu approval`}
-          color="warning"
-          variant="outlined"
-          sx={{ fontWeight: 600 }}
-        />
-      </Box>
-
-      {/* Search & Filter Bar */}
-      <Paper sx={{ mb: 2, p: { xs: 1, md: 2 }, borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
-        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }} gap={2}>
-          <TextField
-            size="small"
-            placeholder="Cari data... (semua kolom)"
-            value={filterDraft.search}
-            onChange={e => setFilterDraft(f => ({ ...f, search: e.target.value }))}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="primary" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 2 }}
+    <SuperAdminGuard>
+      <Box p={{ xs: 1, md: 3 }}>
+        <Box display="flex" alignItems="center" gap={2} mb={3}>
+          <Typography variant="h5" fontWeight={700} sx={{ letterSpacing: 0.2 }}>
+            Availability Approval
+          </Typography>
+          <Chip
+            icon={<NotificationsIcon />}
+            label={`${filteredRows.length} data Availability menunggu approval`}
+            color="warning"
+            variant="outlined"
+            sx={{ fontWeight: 600 }}
           />
-          <Box display="flex" flexWrap="wrap" gap={1} alignItems="center" flex={1}>
-            <TextField select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
-              <option value="">All</option>
-              {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
-              <option value="">All</option>
-              {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="Site Class" value={filterDraft.siteClass} onChange={e => setFilterDraft(f => ({ ...f, siteClass: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
-              <option value="">All</option>
-              {uniqueOptions('Site Class').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
-              <option value="">All</option>
-              {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </TextField>
-            <Button variant="outlined" size="small" color="inherit" sx={{ ml: 1, minWidth: 80, fontWeight: 600, borderRadius: 2 }} onClick={() => { setFilterDraft({ category: '', siteId: '', siteClass: '', nop: '', status: '', search: '' }); setPage(0); }}>Reset</Button>
-            {filterLoading && <CircularProgress size={18} sx={{ ml: 1 }} />}
-          </Box>
         </Box>
-      </Paper>
 
-      {/* Table Data */}
-      <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)', maxHeight: 520 }}>
-        <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
-          <TableHead>
-            <TableRow sx={{ background: '#f7fafd' }}>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 40, maxWidth: 50, textAlign: 'center' }}>No</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Category</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site ID</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site Class</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>NOP</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Date Close</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, textAlign: 'center' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Remark</TableCell>
-              <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, textAlign: 'center' }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
-                  <CircularProgress />
-                </TableCell>
-              </TableRow>
-            ) : filteredRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
-                  Tidak ada data menunggu approval.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => {
-                // Ambil tanggal terakhir dari Date Close (array atau string)
-                let dateClose = '';
-                if (Array.isArray(row['Date Close'])) {
-                  const arr = row['Date Close'];
-                  dateClose = arr.length > 0 ? toDisplayDate(arr[arr.length - 1]) : '';
-                } else if (row['Date Close']) {
-                  dateClose = toDisplayDate(row['Date Close']);
-                }
-                return (
-                  <TableRow key={row.id} hover sx={{ background: idx % 2 === 0 ? '#f9fbfd' : '#fff', transition: 'background 0.2s', cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }} onClick={e => { if ((e.target as HTMLElement).tagName !== 'SELECT' && (e.target as HTMLElement).tagName !== 'BUTTON' && (e.target as HTMLElement).tagName !== 'TEXTAREA') setShowDetail(row); }}>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center' }}>{page * rowsPerPage + idx + 1}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Category']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site ID']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site Class']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['NOP']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{dateClose}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center' }}>
-                      <select
-                        value={statusEdit[row.id] || ''}
-                        onChange={e => handleStatusChange(row.id, e.target.value)}
-                        style={{ padding: 4, borderRadius: 4, border: '1px solid #ccc', minWidth: 90, fontWeight: 600, color: statusEdit[row.id] === 'Close' ? 'green' : statusEdit[row.id] === 'Rejected' ? 'red' : undefined }}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <option value="">Pilih aksi</option>
-                        <option value="Close">Approve &#10003;</option>
-                        <option value="Rejected">Rejected &#10007;</option>
-                      </select>
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <textarea
-                        value={remarkEdit[row.id] ?? row['Remark'] ?? ''}
-                        onChange={e => setRemarkEdit(prev => ({ ...prev, [row.id]: e.target.value }))}
-                        rows={2}
-                        style={{ width: 140, minHeight: 32, borderRadius: 4, border: '1px solid #ccc', padding: 4, resize: 'vertical' }}
-                        placeholder="Isi remark..."
-                        onClick={e => e.stopPropagation()}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '0 2px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center', cursor: 'default' }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={e => { e.stopPropagation(); handleSave(row); }}
-                        disabled={!statusEdit[row.id] || saving === row.id}
-                        sx={{
-                          minWidth: 'auto',
-                          px: 2,
-                          py: 0.5,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
-                        }}
-                        startIcon={
-                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M17 21H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l5 5v9a2 2 0 0 1-2 2z" />
-                            <polyline points="17 21 17 13 7 13 7 21" />
-                          </svg>
-                        }
-                      >
-                        {saving === row.id ? 'Saving...' : 'Simpan'}
-                      </Button>
+        {/* Search & Filter Bar */}
+        <Paper sx={{ mb: 2, p: { xs: 1, md: 2 }, borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
+          <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }} gap={2}>
+            <TextField
+              size="small"
+              placeholder="Cari data... (semua kolom)"
+              value={filterDraft.search}
+              onChange={e => setFilterDraft(f => ({ ...f, search: e.target.value }))}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="primary" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 2 }}
+            />
+            <Box display="flex" flexWrap="wrap" gap={1} alignItems="center" flex={1}>
+              <TextField select size="small" label="Category" value={filterDraft.category} onChange={e => setFilterDraft(f => ({ ...f, category: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Category').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Site ID" value={filterDraft.siteId} onChange={e => setFilterDraft(f => ({ ...f, siteId: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Site ID').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Site Class" value={filterDraft.siteClass} onChange={e => setFilterDraft(f => ({ ...f, siteClass: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('Site Class').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="NOP" value={filterDraft.nop} onChange={e => setFilterDraft(f => ({ ...f, nop: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 110 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {uniqueOptions('NOP').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </TextField>
+              <TextField select size="small" label="Status" value={filterDraft.status} onChange={e => setFilterDraft(f => ({ ...f, status: e.target.value }))} SelectProps={{ native: true }} sx={{ minWidth: 90 }} InputLabelProps={{ shrink: true }}>
+                <option value="">All</option>
+                {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </TextField>
+            </Box>
+          </Box>
+        </Paper>
+
+        {/* Table */}
+        <Paper sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
+          <TableContainer sx={{ maxHeight: 520 }}>
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow sx={{ background: '#f7fafd' }}>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 40, maxWidth: 50, textAlign: 'center' }}>No</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Category</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site Class</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>NOP</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Source Power</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Root Cause</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Detail Problem</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Plan Action</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Need Support</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>PIC Dept</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Progress</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Remark</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Aksi</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
+                      <CircularProgress />
                     </TableCell>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Pagination */}
-      <Box display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
-        <TablePagination
-          component="div"
-          count={filteredRows.length}
-          page={page}
-          onPageChange={(_, newPage) => setPage(newPage)}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-          rowsPerPageOptions={[10, 25, 50, 100]}
-          labelRowsPerPage="Show"
-          sx={{ '.MuiTablePagination-toolbar': { minHeight: 40 }, '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: 13 } }}
-        />
-      </Box>
-
-      {/* Modal detail */}
-      {showDetail && (
-        <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowDetail(null)}>
-          <div style={{ background: '#fff', borderRadius: 8, minWidth: 320, maxWidth: '95vw', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 24 }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>Detail Data</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <tbody>
-                {detailFields.map(field => (
-                  <tr key={field}>
-                    <th style={{ width: 140, border: '1px solid #e0e0e0', padding: 8, textAlign: 'left' }}>{field}</th>
-                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{Array.isArray(showDetail[field]) ? showDetail[field].join(', ') : (showDetail[field] ?? '')}</td>
-                  </tr>
+                ) : filteredRows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
+                      Tidak ada data yang menunggu approval.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
+                  <TableRow key={row.id} hover sx={{ background: idx % 2 === 0 ? '#f9fbfd' : '#fff', transition: 'background 0.2s' }}>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center' }}>
+                      {page * rowsPerPage + idx + 1}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Category']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site ID']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site Name']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site Class']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['NOP']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Source Power']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Root Cause']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Detail Problem']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Plan Action']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Need Support']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['PIC Dept']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Progress']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Status']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Remark']}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '0 2px', fontSize: 13, verticalAlign: 'middle', cursor: 'default' }}>
+                      <Box display="flex" gap={0.5}>
+                        <TextField
+                          select
+                          size="small"
+                          value={statusEdit[row.id] || ''}
+                          onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                          sx={{ minWidth: 100, '& .MuiSelect-select': { py: 0.5, px: 1, fontSize: 12 } }}
+                          SelectProps={{ native: true }}
+                        >
+                          <option value="">Pilih Status</option>
+                          {STATUS_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </TextField>
+                        <TextField
+                          size="small"
+                          placeholder="Remark"
+                          value={remarkEdit[row.id] || ''}
+                          onChange={(e) => setRemarkEdit(prev => ({ ...prev, [row.id]: e.target.value }))}
+                          sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 0.5, px: 1, fontSize: 12 } }}
+                        />
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={() => handleSave(row)}
+                          disabled={!statusEdit[row.id] || saving === row.id}
+                          sx={{ minWidth: 60, py: 0.5, px: 1, fontSize: 12 }}
+                        >
+                          {saving === row.id ? <CircularProgress size={16} /> : 'Save'}
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-            <div style={{ textAlign: 'right', marginTop: 18 }}>
-              <button onClick={() => setShowDetail(null)} style={{ padding: '6px 18px', borderRadius: 4, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Tutup</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </Box>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={filteredRows.length}
+            page={page}
+            onPageChange={(_, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            labelRowsPerPage="Show"
+            sx={{ '.MuiTablePagination-toolbar': { minHeight: 40 }, '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: 13 } }}
+          />
+        </Paper>
+
+        {/* Detail Dialog */}
+        {showDetail && (
+          <Dialog open={!!showDetail} onClose={() => setShowDetail(null)} maxWidth="md" fullWidth>
+            <DialogTitle>Detail Data</DialogTitle>
+            <DialogContent>
+              <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={2} mt={1}>
+                {detailFields.map(field => (
+                  <Box key={field}>
+                    <Typography variant="caption" color="text.secondary" display="block">{field}</Typography>
+                    <Typography variant="body2">{showDetail[field] || '-'}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowDetail(null)}>Tutup</Button>
+            </DialogActions>
+          </Dialog>
+        )}
+      </Box>
+    </SuperAdminGuard>
   );
 };
 

@@ -11,6 +11,7 @@ import { ref, onValue, push, update, remove } from "firebase/database";
 import ExcelJS from 'exceljs';
 import { TransitionProps } from '@mui/material/transitions';
 import SearchIcon from '@mui/icons-material/Search';
+import { SuperAdminGuard } from '@/components/SuperAdminGuard';
 
 const DATA_COLUMNS = [
   { id: 'Category', label: 'Category' },
@@ -89,7 +90,7 @@ const CrudPage = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isSuperAdminState, setIsSuperAdminState] = useState<boolean | null>(null);
+
   // Filter states
   const [filter, setFilter] = useState({
     category: '',
@@ -152,14 +153,9 @@ const CrudPage = () => {
     );
   });
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsSuperAdminState(localStorage.getItem('userRole') === 'super_admin');
-    }
-  }, []);
+
 
   useEffect(() => {
-    if (!isSuperAdminState) return;
     const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
@@ -172,14 +168,9 @@ const CrudPage = () => {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [isSuperAdminState]);
+  }, []);
 
-  if (isSuperAdminState === false) {
-    return <Box p={4}><Typography color="error" fontWeight={700} fontSize={20}>Akses ditolak. Hanya untuk super admin.</Typography></Box>;
-  }
-  if (isSuperAdminState === null) {
-    return null; // Atau loading spinner
-  }
+
 
   // CRUD Handlers
   const handleOpenForm = (mode: 'add'|'edit', row?: any) => {
@@ -307,7 +298,8 @@ const CrudPage = () => {
   };
 
   return (
-    <Box p={{ xs: 1, md: 3 }}>
+    <SuperAdminGuard>
+      <Box p={{ xs: 1, md: 3 }}>
       <Typography variant="h5" fontWeight={700} mb={3}>CRUD Data (Super Admin Only)</Typography>
       <Paper sx={{ p: 2, mb: 2, borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
         {/* Tombol Tambah & Upload */}
@@ -533,6 +525,7 @@ const CrudPage = () => {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: none; } }
       `}</style>
     </Box>
+    </SuperAdminGuard>
   );
 };
 

@@ -4,6 +4,7 @@ import { Box, Tabs, Tab, Typography, Paper, Table, TableHead, TableRow, TableCel
 import DeleteIcon from '@mui/icons-material/Delete';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter } from "firebase/firestore";
 import { db } from '@/app/firebaseConfig';
+import { SuperAdminGuard } from '@/components/SuperAdminGuard';
 
 function TabPanel(props: any) {
   const { children, value, index, ...other } = props;
@@ -67,7 +68,8 @@ export default function LogsPage() {
   };
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <SuperAdminGuard>
+      <Paper sx={{ p: 2 }}>
       <Typography variant="h5" fontWeight={700} mb={2}>Logs Monitoring</Typography>
       <Tabs value={tab} onChange={(_, v) => setTab(v)}>
         <Tab label="User Aktif" />
@@ -167,5 +169,6 @@ export default function LogsPage() {
         </Dialog>
       </TabPanel>
     </Paper>
+    </SuperAdminGuard>
   );
 } 
