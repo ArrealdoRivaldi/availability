@@ -53,11 +53,6 @@ const allMenuitems = [
       },
       {
         id: uniqueId(),
-        title: "Approval",
-        href: "/dashboard-admin/approval/cell-down",
-      },
-      {
-        id: uniqueId(),
         title: "Logs",
         href: "/dashboard-admin/logs/cell-down",
       },
