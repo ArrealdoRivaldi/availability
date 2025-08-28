@@ -88,29 +88,33 @@ export function getMenuItemsByRole(role: string) {
     return allMenuitems;
   }
   if (role === 'admin' || role === 'guest') {
-    // Hanya Worst Site Availability (tanpa submenu Logs), Cell Down, & Logout
+    // Hanya Worst Site Availability (hanya Dashboard & Data), Cell Down (hanya Dashboard & Data), & Logout
     return allMenuitems
       .filter(item => ["Worst Site Availability", "Cell Down", "Logout"].includes(item.title))
       .map(item => {
-        if (item.title === "Worst Site Availability") {
-          // Filter out "Logs" submenu for non-super_admin roles
+        if (item.title === "Worst Site Availability" || item.title === "Cell Down") {
+          // Filter hanya "Dashboard" dan "Data" submenu untuk admin dan guest
           return {
             ...item,
-            submenu: item.submenu?.filter(subItem => subItem.title !== "Logs")
+            submenu: item.submenu?.filter(subItem => 
+              ["Dashboard", "Data"].includes(subItem.title)
+            )
           };
         }
         return item;
       });
   }
-  // Default: hanya Worst Site Availability (tanpa submenu Logs), Cell Down, & Logout
+  // Default: hanya Worst Site Availability (hanya Dashboard & Data), Cell Down (hanya Dashboard & Data), & Logout
   return allMenuitems
     .filter(item => ["Worst Site Availability", "Cell Down", "Logout"].includes(item.title))
     .map(item => {
-      if (item.title === "Worst Site Availability") {
-        // Filter out "Logs" submenu for non-super_admin roles
+      if (item.title === "Worst Site Availability" || item.title === "Cell Down") {
+        // Filter hanya "Dashboard" dan "Data" submenu untuk non-super_admin roles
         return {
           ...item,
-          submenu: item.submenu?.filter(subItem => subItem.title !== "Logs")
+          submenu: item.submenu?.filter(subItem => 
+            ["Dashboard", "Data"].includes(subItem.title)
+          )
         };
       }
       return item;
