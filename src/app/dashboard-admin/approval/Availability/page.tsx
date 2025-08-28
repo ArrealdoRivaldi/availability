@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, TableContainer, TablePagination, InputAdornment, Chip } from '@mui/material';
+import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, TableContainer, TablePagination, InputAdornment, Chip, Tooltip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue, update } from 'firebase/database';
 import { SuperAdminGuard } from '@/components/SuperAdminGuard';
@@ -21,12 +22,57 @@ function toDisplayDate(dateString: string) {
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+// Helper untuk truncate text dan show detail button
+const TruncatedTextWithDetail = ({ text, fieldName, onShowDetail, row }: { text: string, fieldName: string, onShowDetail: (row: any, field: string) => void, row: any }) => {
+  if (!text) return '-';
+  
+  const isLongText = text.length > 30;
+  
+  if (isLongText) {
+    return (
+      <Box display="flex" alignItems="center" gap={1}>
+        <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text.substring(0, 30)}...
+        </Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<VisibilityIcon />}
+          onClick={() => onShowDetail(row, fieldName)}
+          sx={{ 
+            minWidth: 'auto', 
+            px: 1, 
+            py: 0.5, 
+            fontSize: 11,
+            height: 28,
+            borderColor: '#1976d2',
+            color: '#1976d2',
+            '&:hover': {
+              borderColor: '#1565c0',
+              backgroundColor: 'rgba(25, 118, 210, 0.04)'
+            }
+          }}
+        >
+          Detail
+        </Button>
+      </Box>
+    );
+  }
+  
+  return (
+    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+      {text}
+    </Typography>
+  );
+};
+
 const AvailabilityApprovalPage = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusEdit, setStatusEdit] = useState<{ [id: string]: string }>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState<any | null>(null);
+  const [detailField, setDetailField] = useState<string>('');
   const [remarkEdit, setRemarkEdit] = useState<{ [id: string]: string }>({});
   
   // Pagination states
@@ -125,6 +171,18 @@ const AvailabilityApprovalPage = () => {
     setRemarkEdit(prev => ({ ...prev, [row.id]: '' }));
   };
 
+  // Show detail for specific field
+  const handleShowFieldDetail = (row: any, fieldName: string) => {
+    setShowDetail(row);
+    setDetailField(fieldName);
+  };
+
+  // Show full row detail
+  const handleShowRowDetail = (row: any) => {
+    setShowDetail(row);
+    setDetailField('');
+  };
+
   // Daftar field detail
   const detailFields = [
     'Category', 'Site ID', 'Site Name', 'Site Class', 'NOP', 'Source Power', 'Progress', 'Root Cause', 'PIC Dept', 'Detail Problem', 'Plan Action', 'Need Support', 'Date Close', 'Status'
@@ -194,22 +252,22 @@ const AvailabilityApprovalPage = () => {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow sx={{ background: '#f7fafd' }}>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 40, maxWidth: 50, textAlign: 'center' }}>No</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Category</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site ID</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site Name</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Site Class</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>NOP</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Source Power</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Root Cause</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Detail Problem</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Plan Action</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Need Support</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>PIC Dept</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Progress</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Remark</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14 }}>Aksi</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 50, textAlign: 'center' }}>No</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Category</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Site ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Site Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Site Class</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>NOP</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Source Power</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Root Cause</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Detail Problem</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Plan Action</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Need Support</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>PIC Dept</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Progress</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Remark</TableCell>
+                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 200 }}>Aksi</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -226,26 +284,123 @@ const AvailabilityApprovalPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
-                  <TableRow key={row.id} hover sx={{ background: idx % 2 === 0 ? '#f9fbfd' : '#fff', transition: 'background 0.2s' }}>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center' }}>
+                  <TableRow 
+                    key={row.id} 
+                    hover 
+                    sx={{ 
+                      background: idx % 2 === 0 ? '#f9fbfd' : '#fff', 
+                      transition: 'background 0.2s',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        background: '#e3f2fd',
+                        '& .row-detail-button': {
+                          opacity: 1
+                        }
+                      }
+                    }}
+                    onClick={() => handleShowRowDetail(row)}
+                  >
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center', fontWeight: 600 }}>
                       {page * rowsPerPage + idx + 1}
                     </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Category']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site ID']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site Name']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Site Class']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['NOP']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Source Power']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Root Cause']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Detail Problem']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Plan Action']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Need Support']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['PIC Dept']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Progress']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Status']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>{row['Remark']}</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '0 2px', fontSize: 13, verticalAlign: 'middle', cursor: 'default' }}>
-                      <Box display="flex" gap={0.5}>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <Chip 
+                        label={row['Category']} 
+                        size="small" 
+                        color="warning" 
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle', fontWeight: 600, fontFamily: 'monospace' }}>
+                      {row['Site ID']}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <Tooltip title={row['Site Name']} placement="top">
+                        <Typography variant="body2" sx={{ 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          whiteSpace: 'nowrap',
+                          maxWidth: 150
+                        }}>
+                          {row['Site Name']}
+                        </Typography>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <Chip 
+                        label={row['Site Class']} 
+                        size="small" 
+                        color={row['Site Class'] === 'GOLD' ? 'success' : 'default'} 
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      {row['NOP']}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <Chip 
+                        label={row['Source Power']} 
+                        size="small" 
+                        color={row['Source Power'] === 'PLN' ? 'success' : row['Source Power'] === 'Corporate' ? 'info' : 'warning'} 
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      {row['Root Cause']}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <TruncatedTextWithDetail 
+                        text={row['Detail Problem']} 
+                        fieldName="Detail Problem"
+                        onShowDetail={handleShowFieldDetail}
+                        row={row}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <TruncatedTextWithDetail 
+                        text={row['Plan Action']} 
+                        fieldName="Plan Action"
+                        onShowDetail={handleShowFieldDetail}
+                        row={row}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <TruncatedTextWithDetail 
+                        text={row['Need Support']} 
+                        fieldName="Need Support"
+                        onShowDetail={handleShowFieldDetail}
+                        row={row}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      {row['PIC Dept']}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <Chip 
+                        label={row['Progress']} 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      <Chip 
+                        label={row['Status']} 
+                        size="small" 
+                        color="warning" 
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
+                      {row['Remark'] || '-'}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }} onClick={(e) => e.stopPropagation()}>
+                      <Box display="flex" gap={1} alignItems="center">
                         <TextField
                           select
                           size="small"
@@ -297,20 +452,43 @@ const AvailabilityApprovalPage = () => {
 
         {/* Detail Dialog */}
         {showDetail && (
-          <Dialog open={!!showDetail} onClose={() => setShowDetail(null)} maxWidth="md" fullWidth>
-            <DialogTitle>Detail Data</DialogTitle>
+          <Dialog open={!!showDetail} onClose={() => { setShowDetail(null); setDetailField(''); }} maxWidth="md" fullWidth>
+            <DialogTitle>
+              {detailField ? `Detail ${detailField}` : 'Detail Data'}
+            </DialogTitle>
             <DialogContent>
-              <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={2} mt={1}>
-                {detailFields.map(field => (
-                  <Box key={field}>
-                    <Typography variant="caption" color="text.secondary" display="block">{field}</Typography>
-                    <Typography variant="body2">{showDetail[field] || '-'}</Typography>
-                  </Box>
-                ))}
-              </Box>
+              {detailField ? (
+                // Show specific field detail
+                <Box mt={2}>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    {detailField}
+                  </Typography>
+                  <Paper sx={{ p: 2, background: '#f5f5f5' }}>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {showDetail[detailField] || '-'}
+                    </Typography>
+                  </Paper>
+                </Box>
+              ) : (
+                // Show full row detail
+                <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={3} mt={1}>
+                  {detailFields.map(field => (
+                    <Box key={field} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, background: '#fafafa' }}>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 600, textTransform: 'uppercase', mb: 1 }}>
+                        {field}
+                      </Typography>
+                      <Typography variant="body2" sx={{ wordBreak: 'break-word', minHeight: 20 }}>
+                        {showDetail[field] || '-'}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setShowDetail(null)}>Tutup</Button>
+              <Button onClick={() => { setShowDetail(null); setDetailField(''); }} variant="contained">
+                Tutup
+              </Button>
             </DialogActions>
           </Dialog>
         )}
