@@ -74,12 +74,6 @@ const allMenuitems = [
     icon: IconUsers,
     href: "/dashboard-admin/user-management",
   },
-  {
-    id: uniqueId(),
-    title: "Logout",
-    icon: IconLogout,
-    href: "/logout",
-  },
 ];
 
 export function getMenuItemsByRole(role: string) {
