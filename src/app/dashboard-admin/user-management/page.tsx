@@ -1,312 +1,209 @@
 'use client';
+import React from 'react';
+import { Box, Typography, Paper, Grid, Card, CardContent, Avatar, Chip } from '@mui/material';
+import { Person, AdminPanelSettings, Security } from '@mui/icons-material';
+import { SuperAdminGuard } from '@/app/components/RoleGuard';
 
-import React, { useState, useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  Alert,
-  Snackbar,
-  Grid,
-  Card,
-  CardContent,
-  Chip
-} from '@mui/material';
-import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material';
-import PageContainer from '../components/container/PageContainer';
-import DashboardCard from '../components/shared/DashboardCard';
-import UserTable from './components/UserTable';
-import SearchAndFilter from './components/SearchAndFilter';
-import UserFormModal from './components/UserFormModal';
-import UserDetailsModal from './components/UserDetailsModal';
-import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
-import { useUsers, User } from './hooks/useUsers';
-import { filterUsers, getFilterStats, getNopCounts, getRoleCounts } from './utils/userFilters';
+const UserManagementPage = () => {
+  const users = [
+    {
+      id: 1,
+      name: 'Super Admin',
+      email: 'superadmin@telkomsel.com',
+      role: 'super_admin',
+      status: 'active',
+      lastLogin: '2024-01-15 10:30:00'
+    },
+    {
+      id: 2,
+      name: 'Admin User',
+      email: 'admin@telkomsel.com',
+      role: 'admin',
+      status: 'active',
+      lastLogin: '2024-01-15 09:15:00'
+    },
+    {
+      id: 3,
+      name: 'Guest User',
+      email: 'guest@telkomsel.com',
+      role: 'guest',
+      status: 'inactive',
+      lastLogin: '2024-01-14 16:45:00'
+    }
+  ];
 
-export default function UserManagement() {
-  const { users, loading, error, deleteUser, refreshUsers } = useUsers();
-  
-  // State for modals
-  const [userFormModal, setUserFormModal] = useState<{
-    open: boolean;
-    mode: 'add' | 'edit';
-    user: User | null;
-  }>({
-    open: false,
-    mode: 'add',
-    user: null
-  });
-  
-  const [userDetailsModal, setUserDetailsModal] = useState<{
-    open: boolean;
-    user: User | null;
-  }>({
-    open: false,
-    user: null
-  });
-  
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean;
-    userId: string;
-    userName: string;
-  }>({
-    open: false,
-    userId: '',
-    userName: ''
-  });
-
-  // State for filters and search
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedNop, setSelectedNop] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
-
-  // State for notifications
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error' | 'info';
-  }>({
-    open: false,
-    message: '',
-    severity: 'info'
-  });
-
-  // Filtered users
-  const filteredUsers = useMemo(() => {
-    return filterUsers(users, searchTerm, selectedNop, selectedRole);
-  }, [users, searchTerm, selectedNop, selectedRole]);
-
-  // Filter stats
-  const filterStats = useMemo(() => {
-    return getFilterStats(users, filteredUsers);
-  }, [users, filteredUsers]);
-
-  // Counts for dashboard cards
-  const nopCounts = useMemo(() => getNopCounts(users), [users]);
-  const roleCounts = useMemo(() => getRoleCounts(users), [users]);
-
-  // Handlers
-  const handleAddUser = () => {
-    setUserFormModal({
-      open: true,
-      mode: 'add',
-      user: null
-    });
-  };
-
-  const handleEditUser = (user: User) => {
-    setUserFormModal({
-      open: true,
-      mode: 'edit',
-      user
-    });
-  };
-
-  const handleViewUser = (user: User) => {
-    setUserDetailsModal({
-      open: true,
-      user
-    });
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      setDeleteDialog({
-        open: true,
-        userId,
-        userName: user.displayName
-      });
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'super_admin':
+        return <Security sx={{ fontSize: 40, color: '#d32f2f' }} />;
+      case 'admin':
+        return <AdminPanelSettings sx={{ fontSize: 40, color: '#1976d2' }} />;
+      case 'guest':
+        return <Person sx={{ fontSize: 40, color: '#388e3c' }} />;
+      default:
+        return <Person sx={{ fontSize: 40, color: '#757575' }} />;
     }
   };
 
-  const handleConfirmDelete = async () => {
-    const success = await deleteUser(deleteDialog.userId);
-    if (success) {
-      setSnackbar({
-        open: true,
-        message: 'User deleted successfully',
-        severity: 'success'
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: 'Failed to delete user',
-        severity: 'error'
-      });
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'super_admin':
+        return '#d32f2f';
+      case 'admin':
+        return '#1976d2';
+      case 'guest':
+        return '#388e3c';
+      default:
+        return '#757575';
     }
-    setDeleteDialog({ open: false, userId: '', userName: '' });
   };
 
-  const handleCloseUserFormModal = () => {
-    setUserFormModal({ open: false, mode: 'add', user: null });
-    // Refresh users after form submission
-    refreshUsers();
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setSelectedNop('');
-    setSelectedRole('');
-  };
-
-  const showNotification = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
-    setSnackbar({
-      open: true,
-      message,
-      severity
-    });
+  const getStatusColor = (status: string) => {
+    return status === 'active' ? 'success' : 'default';
   };
 
   return (
-    <PageContainer title="User Management" description="Manage system users and permissions">
-      <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h3">
-            User Management
-          </Typography>
-          <Box display="flex" gap={2}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={refreshUsers}
-              disabled={loading}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddUser}
-            >
-              Add User
-            </Button>
+    <SuperAdminGuard>
+      <Box p={{ xs: 2, md: 4 }} sx={{ background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh' }}>
+        {/* Header Section */}
+        <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: 3, background: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)', color: 'white' }} elevation={3}>
+          <Box textAlign="center">
+            <Typography variant="h3" fontWeight={700} mb={2} sx={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+              User Management
+            </Typography>
+            <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 300 }}>
+              Manage user accounts, roles, and permissions
+            </Typography>
+            <Typography variant="body1" sx={{ opacity: 0.8, mt: 1 }}>
+              Super Admin exclusive access - Full control over user system
+            </Typography>
           </Box>
-        </Box>
+        </Paper>
 
-        {/* Dashboard Cards */}
-        <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Total Users
-                </Typography>
-                <Typography variant="h4">
-                  {filterStats.total}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Showing
-                </Typography>
-                <Typography variant="h4">
-                  {filterStats.showing}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Super Admins
-                </Typography>
-                <Typography variant="h4">
-                  {roleCounts.super_admin || 0}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Active NOPs
-                </Typography>
-                <Typography variant="h4">
-                  {Object.keys(nopCounts).length}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+        {/* User Cards Grid */}
+        <Grid container spacing={3}>
+          {users.map((user) => (
+            <Grid item xs={12} sm={6} md={4} key={user.id}>
+              <Card 
+                sx={{ 
+                  height: '100%', 
+                  borderRadius: 3, 
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  }
+                }}
+              >
+                <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  {/* User Info Header */}
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Avatar sx={{ bgcolor: `${getRoleColor(user.role)}15`, mr: 2, width: 60, height: 60 }}>
+                      {getRoleIcon(user.role)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" fontWeight={700} color="text.primary">
+                        {user.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {user.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Role and Status */}
+                  <Box display="flex" gap={1} mb={2}>
+                    <Chip 
+                      label={user.role.replace('_', ' ').toUpperCase()} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: getRoleColor(user.role), 
+                        color: 'white',
+                        fontWeight: 600
+                      }} 
+                    />
+                    <Chip 
+                      label={user.status} 
+                      size="small" 
+                      color={getStatusColor(user.status) as any}
+                      variant="outlined"
+                    />
+                  </Box>
+
+                  {/* Last Login */}
+                  <Box sx={{ mt: 'auto' }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Last Login:
+                    </Typography>
+                    <Typography variant="body2" color="text.primary" fontWeight={500}>
+                      {user.lastLogin}
+                    </Typography>
+                  </Box>
+
+                  {/* Action Buttons */}
+                  <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+                    <Grid container spacing={1}>
+                      <Grid item xs={6}>
+                        <Chip 
+                          label="Edit" 
+                          size="small" 
+                          variant="outlined"
+                          sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'primary.50' } }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Chip 
+                          label="Delete" 
+                          size="small" 
+                          variant="outlined"
+                          color="error"
+                          sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'error.50' } }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
 
-        {/* Search and Filters */}
-        <SearchAndFilter
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedNop={selectedNop}
-          onNopChange={setSelectedNop}
-          selectedRole={selectedRole}
-          onRoleChange={setSelectedRole}
-          onClearFilters={handleClearFilters}
-        />
-
-        {/* User Table */}
-        <DashboardCard title="Users">
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              <Typography variant="body1" gutterBottom>
-                <strong>Error Loading Users:</strong>
-              </Typography>
-              <Typography variant="body2">
-                {error}
-              </Typography>
-            </Alert>
-          )}
-          
-          <UserTable
-            users={filteredUsers}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            onView={handleViewUser}
-            loading={loading}
-          />
-        </DashboardCard>
-
-        {/* Modals */}
-        <UserFormModal
-          open={userFormModal.open}
-          onClose={handleCloseUserFormModal}
-          user={userFormModal.user}
-          mode={userFormModal.mode}
-        />
-
-        <UserDetailsModal
-          open={userDetailsModal.open}
-          onClose={() => setUserDetailsModal({ open: false, user: null })}
-          user={userDetailsModal.user}
-        />
-
-        <DeleteConfirmationDialog
-          open={deleteDialog.open}
-          onClose={() => setDeleteDialog({ open: false, userId: '', userName: '' })}
-          onConfirm={handleConfirmDelete}
-          userName={deleteDialog.userName}
-          loading={loading}
-        />
-
-        {/* Snackbar for notifications */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        {/* Quick Stats */}
+        <Paper sx={{ p: { xs: 2, md: 3 }, mt: 4, borderRadius: 3, background: 'rgba(255,255,255,0.9)' }} elevation={2}>
+          <Typography variant="h6" fontWeight={600} mb={2} textAlign="center">
+            User Statistics
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Box textAlign="center" p={2}>
+                <Typography variant="h4" fontWeight={700} color="#d32f2f">1</Typography>
+                <Typography variant="body2" color="text.secondary">Super Admin</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Box textAlign="center" p={2}>
+                <Typography variant="h4" fontWeight={700} color="#1976d2">1</Typography>
+                <Typography variant="body2" color="text.secondary">Admin</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Box textAlign="center" p={2}>
+                <Typography variant="h4" fontWeight={700} color="#388e3c">1</Typography>
+                <Typography variant="body2" color="text.secondary">Guest</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Box textAlign="center" p={2}>
+                <Typography variant="h4" fontWeight={700} color="#757575">3</Typography>
+                <Typography variant="body2" color="text.secondary">Total Users</Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
       </Box>
-    </PageContainer>
+    </SuperAdminGuard>
   );
-}
+};
+
+export default UserManagementPage;

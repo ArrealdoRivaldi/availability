@@ -74,11 +74,12 @@ const allMenuitems = [
     icon: IconUsers,
     href: "/dashboard-admin/user-management",
   },
+  // Logout tidak lagi menggunakan href, akan dihandle oleh komponen LogoutButton
   {
     id: uniqueId(),
     title: "Logout",
     icon: IconLogout,
-    href: "/logout",
+    isLogout: true, // Flag untuk menandai ini adalah menu logout
   },
 ];
 

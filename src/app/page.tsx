@@ -21,6 +21,9 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
+      // Dapatkan ID token untuk autentikasi
+      const idToken = await user.getIdToken();
+
       // 1. Cek dokumen dengan ID = user.uid
       const userDocRef = doc(db, "users", user.uid);
       let userDoc = await getDoc(userDocRef);
@@ -63,11 +66,23 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      if (userData.role === "super_admin") {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('userRole', 'super_admin');
+
+      // Set token autentikasi ke localStorage dan cookie
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('authToken', idToken);
+        localStorage.setItem('userRole', userData.role);
+        
+        // Set cookie untuk middleware
+        document.cookie = `authToken=${idToken}; path=/; max-age=3600; secure; samesite=strict`;
+        
+        if (userData.role === "admin") {
+          localStorage.setItem('hideApprovalMenu', 'true');
+        } else {
           localStorage.removeItem('hideApprovalMenu');
         }
+      }
+
+      if (userData.role === "super_admin") {
         // Logging user aktif ke Firestore
         await setDocFS(doc(db, "active_users", user.uid), {
           email: user.email,
@@ -77,10 +92,6 @@ export default function LoginPage() {
         });
         router.push("/dashboard-admin");
       } else if (userData.role === "admin") {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('userRole', 'admin');
-          localStorage.setItem('hideApprovalMenu', 'true');
-        }
         // Logging user aktif ke Firestore
         await setDocFS(doc(db, "active_users", user.uid), {
           email: user.email,
@@ -101,6 +112,19 @@ export default function LoginPage() {
       }
     }
     setLoading(false);
+  };
+
+  const handleGuestLogin = () => {
+    if (typeof window !== 'undefined') {
+      // Set token dummy untuk guest
+      const guestToken = 'guest_' + Date.now();
+      localStorage.setItem('authToken', guestToken);
+      localStorage.setItem('userRole', 'guest');
+      
+      // Set cookie untuk middleware
+      document.cookie = `authToken=${guestToken}; path=/; max-age=3600; secure; samesite=strict`;
+    }
+    router.push('/dashboard-admin');
   };
 
   return (
@@ -153,12 +177,7 @@ export default function LoginPage() {
           {loading ? <CircularProgress size={24} color="inherit" /> : "Login dengan Google"}
         </Button>
         <Button
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('userRole', 'guest');
-            }
-            router.push('/dashboard-admin');
-          }}
+          onClick={handleGuestLogin}
           variant="outlined"
           fullWidth
           sx={{
