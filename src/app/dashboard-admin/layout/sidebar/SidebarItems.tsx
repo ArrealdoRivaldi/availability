@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { IconLayoutDashboard, IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { database } from '@/app/firebaseConfig';
 import { ref, onValue } from 'firebase/database';
+import { useAuth } from '@/utils/useAuth';
 
 const SidebarItems = () => {
   const pathname = usePathname();
@@ -14,6 +15,7 @@ const SidebarItems = () => {
   const [approvalCount, setApprovalCount] = React.useState(0);
   const [expandedMenus, setExpandedMenus] = React.useState<{ [key: string]: boolean }>({});
   const router = useRouter();
+  const { logout } = useAuth();
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -74,11 +76,8 @@ const SidebarItems = () => {
               background: '#f5f5f5',
             },
           }}
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('userRole');
-              localStorage.removeItem('hideApprovalMenu');
-            }
+          onClick={async () => {
+            await logout();
             router.push('/');
           }}
         >

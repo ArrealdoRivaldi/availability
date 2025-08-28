@@ -10,8 +10,8 @@ import {
 } from "@mui/material";
 import { IconLogout } from "@tabler/icons-react";
 import { auth, db } from "@/app/firebaseConfig";
-import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from "@/utils/useAuth";
 
 const Profile = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -19,6 +19,7 @@ const Profile = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { logout } = useAuth();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
@@ -54,7 +55,7 @@ const Profile = () => {
   };
   const handleLogout = async () => {
     setLoggingOut(true);
-    await signOut(auth);
+    await logout();
     setAnchorEl(null);
     if (typeof window !== 'undefined') {
       window.location.href = "/";

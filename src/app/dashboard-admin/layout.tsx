@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebaseConfig";
 import { doc, deleteDoc } from "firebase/firestore";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { useAuth } from "@/utils/useAuth";
 
 
 const MainWrapper = styled("div")(() => ({
@@ -30,6 +31,7 @@ interface Props {
 
 function IdleLogout() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [showModal, setShowModal] = React.useState(false);
   const modalTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const idleTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -48,11 +50,6 @@ function IdleLogout() {
         // Timer untuk logout setelah 1 menit jika tetap idle
         modalTimeoutRef.current = setTimeout(async () => {
           setShowModal(false);
-          // Hapus localStorage
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userEmail');
-          }
           // Hapus user dari active_users jika login
           const user = auth.currentUser;
           if (user) {
@@ -60,8 +57,8 @@ function IdleLogout() {
               await deleteDoc(doc(db, 'active_users', user.uid));
             } catch {}
           }
-          // Logout firebase
-          try { await auth.signOut(); } catch {}
+          // Logout menggunakan useAuth hook
+          await logout();
           // Redirect ke login
           router.push('/');
         }, warningTime);
@@ -79,7 +76,7 @@ function IdleLogout() {
       cleanup();
       events.forEach(ev => window.removeEventListener(ev, handleActivity));
     };
-  }, [router, showModal]);
+  }, [router, showModal, logout]);
   return (
     <>
       <Dialog open={showModal}>
