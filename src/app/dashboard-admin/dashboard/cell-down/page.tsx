@@ -82,13 +82,13 @@ export default function CellDownDashboardPage() {
 
     if (weekFilter) {
       filtered = filtered.filter(item => 
-        item.week && item.week.toLowerCase().includes(weekFilter.toLowerCase())
+        item.week && typeof item.week === 'string' && item.week.toLowerCase().includes(weekFilter.toLowerCase())
       );
     }
 
     if (nopFilter) {
       filtered = filtered.filter(item => 
-        item.nop && item.nop.toLowerCase().includes(nopFilter.toLowerCase())
+        item.nop && typeof item.nop === 'string' && item.nop.toLowerCase().includes(nopFilter.toLowerCase())
       );
     }
 
@@ -104,7 +104,7 @@ export default function CellDownDashboardPage() {
   const getUniqueWeeks = () => {
     const weeks = cellDownData
       .map(item => item.week)
-      .filter(week => week && week.trim())
+      .filter(week => week && typeof week === 'string' && week.trim())
       .filter((week, index, arr) => arr.indexOf(week) === index)
       .sort();
     return weeks;
@@ -113,7 +113,7 @@ export default function CellDownDashboardPage() {
   const getUniqueNOPs = () => {
     const nops = cellDownData
       .map(item => item.nop)
-      .filter(nop => nop && nop.trim())
+      .filter(nop => nop && typeof nop === 'string' && nop.trim())
       .filter((nop, index, arr) => arr.indexOf(nop) === index)
       .sort();
     return nops;
@@ -125,19 +125,19 @@ export default function CellDownDashboardPage() {
 
     // Group by week
     const weeklyData = filteredData.reduce((acc, item) => {
-      if (!item.week) return acc;
+      if (!item.week || typeof item.week !== 'string') return acc;
       if (!acc[item.week]) {
         acc[item.week] = { total: 0, progress: 0, status: 0 };
       }
       acc[item.week].total++;
-      if (item.progress?.toLowerCase() === 'done') acc[item.week].progress++;
-      if (item.status?.toLowerCase() === 'close') acc[item.week].status++;
+      if (item.progress && typeof item.progress === 'string' && item.progress.toLowerCase() === 'done') acc[item.week].progress++;
+      if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') acc[item.week].status++;
       return acc;
     }, {} as Record<string, { total: number; progress: number; status: number }>);
 
     // Root cause data
     const rootCauseData = filteredData.reduce((acc, item) => {
-      if (item.rootCause && item.rootCause.trim()) {
+      if (item.rootCause && typeof item.rootCause === 'string' && item.rootCause.trim()) {
         acc[item.rootCause] = (acc[item.rootCause] || 0) + 1;
       }
       return acc;
@@ -145,7 +145,7 @@ export default function CellDownDashboardPage() {
 
     // PIC Dept data
     const picDeptData = filteredData.reduce((acc, item) => {
-      if (item.picDept && item.picDept.trim()) {
+      if (item.picDept && typeof item.picDept === 'string' && item.picDept.trim()) {
         acc[item.picDept] = (acc[item.picDept] || 0) + 1;
       }
       return acc;
@@ -153,7 +153,7 @@ export default function CellDownDashboardPage() {
 
     // Site Class data
     const siteClassData = filteredData.reduce((acc, item) => {
-      if (item.siteClass && item.siteClass.trim()) {
+      if (item.siteClass && typeof item.siteClass === 'string' && item.siteClass.trim()) {
         acc[item.siteClass] = (acc[item.siteClass] || 0) + 1;
       }
       return acc;
@@ -161,20 +161,20 @@ export default function CellDownDashboardPage() {
 
     // NOP data
     const nopData = filteredData.reduce((acc, item) => {
-      if (item.nop && item.nop.trim()) {
+      if (item.nop && typeof item.nop === 'string' && item.nop.trim()) {
         if (!acc[item.nop]) {
           acc[item.nop] = { total: 0, progress: 0, status: 0 };
         }
         acc[item.nop].total++;
-        if (item.progress?.toLowerCase() === 'done') acc[item.nop].progress++;
-        if (item.status?.toLowerCase() === 'close') acc[item.nop].status++;
+        if (item.progress && typeof item.progress === 'string' && item.progress.toLowerCase() === 'done') acc[item.nop].progress++;
+        if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') acc[item.nop].status++;
       }
       return acc;
     }, {} as Record<string, { total: number; progress: number; status: number }>);
 
     // Aging data
     const agingData = filteredData.reduce((acc, item) => {
-      if (item.nop && item.nop.trim() && item.agingDown !== undefined) {
+      if (item.nop && typeof item.nop === 'string' && item.nop.trim() && item.agingDown !== undefined) {
         if (!acc[item.nop]) {
           acc[item.nop] = { '8-30': 0, '30-60': 0, '>60': 0 };
         }
