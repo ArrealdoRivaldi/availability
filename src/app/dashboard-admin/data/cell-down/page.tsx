@@ -210,6 +210,16 @@ export default function CellDownDataPage() {
       setUniqueWeeks(weeks);
     } catch (error) {
       console.error('Error loading data:', error);
+      
+      // For guest users, show a message about limited access
+      if (userRole === 'guest') {
+        console.log('Guest user - showing limited data access message');
+        setAllData([]);
+        setFilteredData([]);
+      } else {
+        // For other users, show error message
+        alert('Error loading data. Please check your connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -735,10 +745,10 @@ export default function CellDownDataPage() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Records
+                Data Access
               </Typography>
-              <Typography variant="h4">
-                {allData.length}
+              <Typography variant="h4" color="info.main">
+                Limited
               </Typography>
             </CardContent>
           </Card>
@@ -747,10 +757,10 @@ export default function CellDownDataPage() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Open Status
+                Permission Level
               </Typography>
               <Typography variant="h4" color="warning.main">
-                {allData.filter(item => item.status === 'open').length}
+                Read Only
               </Typography>
             </CardContent>
           </Card>
@@ -759,10 +769,10 @@ export default function CellDownDataPage() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Closed Status
+                Data Source
               </Typography>
               <Typography variant="h4" color="success.main">
-                {allData.filter(item => item.status === 'close').length}
+                Summary
               </Typography>
             </CardContent>
           </Card>
@@ -771,84 +781,84 @@ export default function CellDownDataPage() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Active NOPs
+                User Role
               </Typography>
               <Typography variant="h4" color="primary.main">
-                {Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).length}
+                Guest
               </Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* Basic Table for Guest (Limited Columns) */}
-      <Card>
+      {/* Information Cards for Guest */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardHeader
+              title="What You Can See"
+              subheader="Information available to Guest users"
+            />
+            <CardContent>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" color="success.main">✅</Typography>
+                  <Typography variant="body2">Dashboard overview and summary</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" color="success.main">✅</Typography>
+                  <Typography variant="body2">Basic system information</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" color="success.main">✅</Typography>
+                  <Typography variant="body2">Read-only access to public data</Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardHeader
+              title="What You Cannot See"
+              subheader="Restricted information for Guest users"
+            />
+            <CardContent>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" color="error.main">❌</Typography>
+                  <Typography variant="body2">Detailed Cell Down data</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" color="error.main">❌</Typography>
+                  <Typography variant="body2">Root cause analysis</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="h6" color="error.main">❌</Typography>
+                  <Typography variant="body2">Edit or upload functionality</Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Contact Information */}
+      <Card sx={{ mt: 3 }}>
         <CardHeader
-          title="Cell Down Summary (Limited View)"
-          subheader="Only basic information is available for Guest users"
+          title="Need More Access?"
+          subheader="Contact your administrator for elevated privileges"
         />
         <CardContent>
-          {loading ? (
-            <Box sx={{ textAlign: 'center', py: 2 }}>
-              <LinearProgress />
-              <Typography variant="body2" sx={{ mt: 1 }}>Loading summary data...</Typography>
-            </Box>
-          ) : allData.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" color="textSecondary" gutterBottom>No data available</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Please check your Firestore collection.
-              </Typography>
-            </Box>
-          ) : (
-            <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Week</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Site ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>NOP</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Site Class</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {allData.slice(0, 20).map((row, index) => (
-                    <TableRow key={row.id || index} sx={{ '&:nth-of-type(even)': { backgroundColor: '#fafafa' } }}>
-                      <TableCell>{row.week}</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{row.siteId}</TableCell>
-                      <TableCell>{row.nop}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.siteClass} 
-                          color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.status} 
-                          color={row.status === 'close' ? 'success' : 'warning'}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {allData.length > 20 && (
-                    <TableRow>
-                      <TableCell colSpan={5} align="center" sx={{ py: 2 }}>
-                        <Typography variant="body2" color="textSecondary">
-                          ... and {allData.length - 20} more records
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Typography variant="body1" color="textSecondary" gutterBottom>
+              If you need access to detailed data or additional functionality,
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              please contact your system administrator to request Admin or Super Admin privileges.
+            </Typography>
+          </Box>
         </CardContent>
       </Card>
     </Box>

@@ -7,8 +7,14 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
     }
     
-    // Allow read access to all collections for authenticated users
-    // You can restrict this further based on user roles
+    // Allow read access to data collections for all authenticated users (including guest)
+    // Guest users can read data but cannot write
+    match /data_celldown/{document} {
+      allow read: if true; // Allow read for all users (guest, admin, super_admin)
+      allow write: if request.auth != null; // Only authenticated users can write
+    }
+    
+    // Allow read access to other collections for authenticated users
     match /{document=**} {
       allow read: if request.auth != null;
     }
