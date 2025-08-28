@@ -19,7 +19,13 @@ import {
   Chip,
   Button,
   IconButton,
-  Tooltip
+  Tooltip,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent
 } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { Chart } from 'react-google-charts';
@@ -27,11 +33,18 @@ import { CellDownData, mapFirestoreData, extractWeekFromTimestamp } from '../../
 
 export default function CellDownDashboardPage() {
   const [cellDownData, setCellDownData] = useState<CellDownData[]>([]);
+  const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [weekFilter, setWeekFilter] = useState<string>('');
+  const [nopFilter, setNopFilter] = useState<string>('');
 
   useEffect(() => {
     fetchCellDownData();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [cellDownData, weekFilter, nopFilter]);
 
   const fetchCellDownData = async () => {
     try {
@@ -64,12 +77,54 @@ export default function CellDownDashboardPage() {
     }
   };
 
-  // Process data for charts and tables
+  const applyFilters = () => {
+    let filtered = [...cellDownData];
+
+    if (weekFilter) {
+      filtered = filtered.filter(item => 
+        item.week && item.week.toLowerCase().includes(weekFilter.toLowerCase())
+      );
+    }
+
+    if (nopFilter) {
+      filtered = filtered.filter(item => 
+        item.nop && item.nop.toLowerCase().includes(nopFilter.toLowerCase())
+      );
+    }
+
+    setFilteredData(filtered);
+  };
+
+  const clearFilters = () => {
+    setWeekFilter('');
+    setNopFilter('');
+  };
+
+  // Get unique values for filter options
+  const getUniqueWeeks = () => {
+    const weeks = cellDownData
+      .map(item => item.week)
+      .filter(week => week && week.trim())
+      .filter((week, index, arr) => arr.indexOf(week) === index)
+      .sort();
+    return weeks;
+  };
+
+  const getUniqueNOPs = () => {
+    const nops = cellDownData
+      .map(item => item.nop)
+      .filter(nop => nop && nop.trim())
+      .filter((nop, index, arr) => arr.indexOf(nop) === index)
+      .sort();
+    return nops;
+  };
+
+  // Process data for charts and tables using filtered data
   const processData = () => {
-    if (!cellDownData.length) return {};
+    if (!filteredData.length) return {};
 
     // Group by week
-    const weeklyData = cellDownData.reduce((acc, item) => {
+    const weeklyData = filteredData.reduce((acc, item) => {
       if (!item.week) return acc;
       if (!acc[item.week]) {
         acc[item.week] = { total: 0, progress: 0, status: 0 };
@@ -81,7 +136,7 @@ export default function CellDownDashboardPage() {
     }, {} as Record<string, { total: number; progress: number; status: number }>);
 
     // Root cause data
-    const rootCauseData = cellDownData.reduce((acc, item) => {
+    const rootCauseData = filteredData.reduce((acc, item) => {
       if (item.rootCause && item.rootCause.trim()) {
         acc[item.rootCause] = (acc[item.rootCause] || 0) + 1;
       }
@@ -89,7 +144,7 @@ export default function CellDownDashboardPage() {
     }, {} as Record<string, number>);
 
     // PIC Dept data
-    const picDeptData = cellDownData.reduce((acc, item) => {
+    const picDeptData = filteredData.reduce((acc, item) => {
       if (item.picDept && item.picDept.trim()) {
         acc[item.picDept] = (acc[item.picDept] || 0) + 1;
       }
@@ -97,7 +152,7 @@ export default function CellDownDashboardPage() {
     }, {} as Record<string, number>);
 
     // Site Class data
-    const siteClassData = cellDownData.reduce((acc, item) => {
+    const siteClassData = filteredData.reduce((acc, item) => {
       if (item.siteClass && item.siteClass.trim()) {
         acc[item.siteClass] = (acc[item.siteClass] || 0) + 1;
       }
@@ -105,7 +160,7 @@ export default function CellDownDashboardPage() {
     }, {} as Record<string, number>);
 
     // NOP data
-    const nopData = cellDownData.reduce((acc, item) => {
+    const nopData = filteredData.reduce((acc, item) => {
       if (item.nop && item.nop.trim()) {
         if (!acc[item.nop]) {
           acc[item.nop] = { total: 0, progress: 0, status: 0 };
@@ -118,7 +173,7 @@ export default function CellDownDashboardPage() {
     }, {} as Record<string, { total: number; progress: number; status: number }>);
 
     // Aging data
-    const agingData = cellDownData.reduce((acc, item) => {
+    const agingData = filteredData.reduce((acc, item) => {
       if (item.nop && item.nop.trim() && item.agingDown !== undefined) {
         if (!acc[item.nop]) {
           acc[item.nop] = { '8-30': 0, '30-60': 0, '>60': 0 };
@@ -146,21 +201,21 @@ export default function CellDownDashboardPage() {
 
   const data = processData();
 
-        if (loading) {
-          return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-              <Typography>Loading dashboard...</Typography>
-            </Box>
-          );
-        }
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Typography>Loading dashboard...</Typography>
+      </Box>
+    );
+  }
 
-        if (!cellDownData.length) {
-          return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-              <Typography>No data available. Please check your Firestore collection.</Typography>
-            </Box>
-          );
-        }
+  if (!cellDownData.length) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Typography>No data available. Please check your Firestore collection.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -179,7 +234,63 @@ export default function CellDownDashboardPage() {
         {/* Filter */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 2 }}>
-            <Typography variant="h6" color="text.secondary">Filter: Week/NOP</Typography>
+            <Typography variant="h6" color="text.secondary" gutterBottom>Filter: Week/NOP</Typography>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Filter by Week</InputLabel>
+                  <Select
+                    value={weekFilter}
+                    label="Filter by Week"
+                    onChange={(e: SelectChangeEvent) => setWeekFilter(e.target.value)}
+                  >
+                    <MenuItem value="">
+                      <em>All Weeks</em>
+                    </MenuItem>
+                    {getUniqueWeeks().map((week) => (
+                      <MenuItem key={week} value={week}>
+                        {week}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Filter by NOP</InputLabel>
+                  <Select
+                    value={nopFilter}
+                    label="Filter by NOP"
+                    onChange={(e: SelectChangeEvent) => setNopFilter(e.target.value)}
+                  >
+                    <MenuItem value="">
+                      <em>All NOPs</em>
+                    </MenuItem>
+                    {getUniqueNOPs().map((nop) => (
+                      <MenuItem key={nop} value={nop}>
+                        {nop}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box display="flex" gap={1}>
+                  <Button 
+                    variant="outlined" 
+                    onClick={clearFilters}
+                    size="small"
+                  >
+                    Clear Filters
+                  </Button>
+                  <Chip 
+                    label={`Showing ${filteredData.length} of ${cellDownData.length} records`}
+                    color="primary"
+                    variant="outlined"
+                  />
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
 
