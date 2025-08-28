@@ -50,6 +50,7 @@ import ExportToExcel from './components/ExportToExcel';
 import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/app/firebaseConfig';
 import * as XLSX from 'exceljs';
+import { RoleGuard } from '@/components/RoleGuard';
 
 interface CellDownData {
   id?: string;
@@ -693,21 +694,187 @@ export default function CellDownDataPage() {
     return status === 'open' ? 'warning' : 'success';
   };
 
-  return (
+  // Guest view component
+  const GuestView = () => (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" gutterBottom>
-          Cell Down Data Management
+          Cell Down Data Summary
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body2" color="textSecondary">Role:</Typography>
           <Chip 
             label={userRole || 'Loading...'} 
-            color={isSuperAdmin ? 'success' : 'default'}
+            color="default"
             size="small"
           />
         </Box>
       </Box>
+
+      <Card sx={{ mb: 3 }}>
+        <CardHeader 
+          title="Access Restricted" 
+          avatar={<CloudUploadIcon />} 
+          subheader="Detailed data view is restricted to Admin and Super Admin users only" 
+        />
+        <CardContent>
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Typography variant="body1" color="textSecondary" gutterBottom>
+              You need Admin or Super Admin privileges to view detailed Cell Down data.
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Contact your administrator if you need access to this feature.
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Summary Cards for Guest */}
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Total Records
+              </Typography>
+              <Typography variant="h4">
+                {allData.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Open Status
+              </Typography>
+              <Typography variant="h4" color="warning.main">
+                {allData.filter(item => item.status === 'open').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Closed Status
+              </Typography>
+              <Typography variant="h4" color="success.main">
+                {allData.filter(item => item.status === 'close').length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Active NOPs
+              </Typography>
+              <Typography variant="h4" color="primary.main">
+                {Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Basic Table for Guest (Limited Columns) */}
+      <Card>
+        <CardHeader
+          title="Cell Down Summary (Limited View)"
+          subheader="Only basic information is available for Guest users"
+        />
+        <CardContent>
+          {loading ? (
+            <Box sx={{ textAlign: 'center', py: 2 }}>
+              <LinearProgress />
+              <Typography variant="body2" sx={{ mt: 1 }}>Loading summary data...</Typography>
+            </Box>
+          ) : allData.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="textSecondary" gutterBottom>No data available</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Please check your Firestore collection.
+              </Typography>
+            </Box>
+          ) : (
+            <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Week</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Site ID</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>NOP</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Site Class</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {allData.slice(0, 20).map((row, index) => (
+                    <TableRow key={row.id || index} sx={{ '&:nth-of-type(even)': { backgroundColor: '#fafafa' } }}>
+                      <TableCell>{row.week}</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{row.siteId}</TableCell>
+                      <TableCell>{row.nop}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={row.siteClass} 
+                          color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={row.status} 
+                          color={row.status === 'close' ? 'success' : 'warning'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {allData.length > 20 && (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 2 }}>
+                        <Typography variant="body2" color="textSecondary">
+                          ... and {allData.length - 20} more records
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  // Main component logic
+  if (userRole === 'guest') {
+    return <GuestView />;
+  }
+
+  return (
+    <RoleGuard allowedRoles={['admin', 'super_admin']}>
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h4" gutterBottom>
+            Cell Down Data Management
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2" color="textSecondary">Role:</Typography>
+            <Chip 
+              label={userRole || 'Loading...'} 
+              color={isSuperAdmin ? 'success' : 'default'}
+              size="small"
+            />
+          </Box>
+        </Box>
 
       {isSuperAdmin ? (
         <Card sx={{ mb: 3 }}>
@@ -1391,6 +1558,7 @@ export default function CellDownDataPage() {
       </Card>
 
       <CellDownDetailView open={detailModal} onClose={() => setDetailModal(false)} data={selectedData} />
-    </Box>
+      </Box>
+    </RoleGuard>
   );
 }
