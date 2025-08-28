@@ -12,7 +12,7 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({
   children, 
   fallback 
 }) => {
-  const { isSuperAdmin, isLoading, isAuthenticated } = useAuth();
+  const { isSuperAdmin, isLoading } = useAuth();
   const router = useRouter();
 
   // Loading state
@@ -22,12 +22,6 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({
         <CircularProgress />
       </Box>
     );
-  }
-
-  // Not authenticated - redirect to login
-  if (!isAuthenticated) {
-    router.push('/');
-    return null;
   }
 
   // Not super admin - show error message and redirect

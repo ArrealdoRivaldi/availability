@@ -16,42 +16,20 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   allowedRoles,
   redirectTo = '/dashboard-admin'
 }) => {
-  const { userRole, isLoading, isAuthenticated } = useAuth();
+  const { userRole, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/');
-      return;
-    }
-
-    if (!isLoading && isAuthenticated && userRole.role && !allowedRoles.includes(userRole.role)) {
+    if (!isLoading && userRole.role && !allowedRoles.includes(userRole.role)) {
       router.push(redirectTo);
     }
-  }, [isLoading, isAuthenticated, userRole.role, allowedRoles, redirectTo, router]);
+  }, [isLoading, userRole.role, allowedRoles, redirectTo, router]);
 
   // Loading state
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
-      </Box>
-    );
-  }
-
-  // Not authenticated - redirect to login
-  if (!isAuthenticated) {
-    if (fallback) {
-      return <>{fallback}</>;
-    }
-    
-    return (
-      <Box p={4}>
-        <Typography color="error" fontWeight={700} fontSize={20} textAlign="center">
-          Anda harus login terlebih dahulu.
-          <br />
-          Mengarahkan ke halaman login...
-        </Typography>
       </Box>
     );
   }
