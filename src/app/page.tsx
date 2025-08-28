@@ -153,11 +153,27 @@ export default function LoginPage() {
           {loading ? <CircularProgress size={24} color="inherit" /> : "Login dengan Google"}
         </Button>
         <Button
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('userRole', 'guest');
+          onClick={async () => {
+            try {
+              // Create a temporary guest user session
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('userRole', 'guest');
+                localStorage.setItem('hideApprovalMenu', 'true');
+              }
+              
+              // Logging guest user aktif ke Firestore
+              await setDocFS(doc(db, "active_users", `guest_${Date.now()}`), {
+                email: 'guest@example.com',
+                displayName: 'Guest User',
+                lastLogin: new Date().toISOString(),
+                role: 'guest',
+              });
+              
+              router.push('/dashboard-admin');
+            } catch (error) {
+              console.error('Guest login error:', error);
+              router.push('/dashboard-admin');
             }
-            router.push('/dashboard-admin');
           }}
           variant="outlined"
           fullWidth

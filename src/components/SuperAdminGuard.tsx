@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { useSuperAdmin } from '@/utils/useSuperAdmin';
+import { useAuth } from '@/utils/useAuth';
+import { useRouter } from 'next/navigation';
 
 interface SuperAdminGuardProps {
   children: React.ReactNode;
@@ -11,7 +12,8 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({
   children, 
   fallback 
 }) => {
-  const { isSuperAdmin, isLoading } = useSuperAdmin();
+  const { isSuperAdmin, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   // Loading state
   if (isLoading) {
@@ -22,11 +24,22 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({
     );
   }
 
-  // Not super admin - show error message
-  if (isSuperAdmin === false) {
+  // Not authenticated - redirect to login
+  if (!isAuthenticated) {
+    router.push('/');
+    return null;
+  }
+
+  // Not super admin - show error message and redirect
+  if (!isSuperAdmin) {
     if (fallback) {
       return <>{fallback}</>;
     }
+    
+    // Redirect to dashboard after showing message
+    setTimeout(() => {
+      router.push('/dashboard-admin');
+    }, 2000);
     
     return (
       <Box p={4}>
