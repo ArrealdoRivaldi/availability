@@ -6,7 +6,6 @@ import Sidebar from "@/app/dashboard-admin/layout/sidebar/Sidebar";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/app/firebaseConfig";
 import { doc, deleteDoc } from "firebase/firestore";
-import AuthGuard from "@/app/components/AuthGuard";
 
 
 const MainWrapper = styled("div")(() => ({
@@ -103,46 +102,43 @@ export default function RootLayout({
 }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  
   return (
-    <AuthGuard>
-      <MainWrapper className="mainwrapper">
-        <IdleLogout />
+    <MainWrapper className="mainwrapper">
+      <IdleLogout />
+      {/* ------------------------------------------- */}
+      {/* Sidebar */}
+      {/* ------------------------------------------- */}
+      <Sidebar
+        isSidebarOpen={isSidebarOpen}
+        isMobileSidebarOpen={isMobileSidebarOpen}
+        onSidebarClose={() => setMobileSidebarOpen(false)}
+      />
+      {/* ------------------------------------------- */}
+      {/* Main Wrapper */}
+      {/* ------------------------------------------- */}
+      <PageWrapper className="page-wrapper">
         {/* ------------------------------------------- */}
-        {/* Sidebar */}
+        {/* Header */}
         {/* ------------------------------------------- */}
-        <Sidebar
-          isSidebarOpen={isSidebarOpen}
-          isMobileSidebarOpen={isMobileSidebarOpen}
-          onSidebarClose={() => setMobileSidebarOpen(false)}
-        />
+        <Header toggleMobileSidebar={() => setMobileSidebarOpen(true)} />
         {/* ------------------------------------------- */}
-        {/* Main Wrapper */}
+        {/* PageContent */}
         {/* ------------------------------------------- */}
-        <PageWrapper className="page-wrapper">
+        <Container
+          sx={{
+            paddingTop: "20px",
+            maxWidth: "1200px",
+          }}
+        >
           {/* ------------------------------------------- */}
-          {/* Header */}
+          {/* Page Route */}
           {/* ------------------------------------------- */}
-          <Header toggleMobileSidebar={() => setMobileSidebarOpen(true)} />
+          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
           {/* ------------------------------------------- */}
-          {/* PageContent */}
+          {/* End Page */}
           {/* ------------------------------------------- */}
-          <Container
-            sx={{
-              paddingTop: "20px",
-              maxWidth: "1200px",
-            }}
-          >
-            {/* ------------------------------------------- */}
-            {/* Page Route */}
-            {/* ------------------------------------------- */}
-            <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
-            {/* ------------------------------------------- */}
-            {/* End Page */}
-            {/* ------------------------------------------- */}
-          </Container>
-        </PageWrapper>
-      </MainWrapper>
-    </AuthGuard>
+        </Container>
+      </PageWrapper>
+    </MainWrapper>
   );
 }
