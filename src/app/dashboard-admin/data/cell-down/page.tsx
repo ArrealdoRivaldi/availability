@@ -50,8 +50,6 @@ import ExportToExcel from './components/ExportToExcel';
 import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/app/firebaseConfig';
 import * as XLSX from 'exceljs';
-import { useUserRole } from '../../hooks/useUserRole';
-import WriteGuard from '../../components/WriteGuard';
 
 interface CellDownData {
   id?: string;
@@ -121,7 +119,6 @@ const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
 
 export default function CellDownDataPage() {
-  const { isGuest, canWrite, isSuperAdmin } = useUserRole();
   const [data, setData] = useState<CellDownData[]>([]);
   const [allData, setAllData] = useState<CellDownData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -141,6 +138,7 @@ export default function CellDownDataPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
+  const [userRole, setUserRole] = useState<string>('');
   const [filters, setFilters] = useState<FilterData>({
     week: '',
     nop: '',
@@ -164,6 +162,13 @@ export default function CellDownDataPage() {
   });
   const [chunkProgress, setChunkProgress] = useState({ current: 0, total: 0, percentage: 0 });
   const [uploadStatus, setUploadStatus] = useState<string>('');
+
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    setUserRole(role || '');
+  }, []);
+
+  const isSuperAdmin = userRole === 'super_admin';
 
   useEffect(() => {
     loadData();
@@ -723,11 +728,9 @@ export default function CellDownDataPage() {
                   disabled={uploading}
                 />
                 <label htmlFor="file-upload">
-                  <WriteGuard tooltipMessage="Guest mode: Tidak dapat upload file">
-                    <Button variant="contained" component="span" startIcon={<UploadIcon />} disabled={uploading}>
-                      Choose Excel File
-                    </Button>
-                  </WriteGuard>
+                  <Button variant="contained" component="span" startIcon={<UploadIcon />} disabled={uploading}>
+                    Choose Excel File
+                  </Button>
                 </label>
               </Grid>
 
@@ -1350,23 +1353,21 @@ export default function CellDownDataPage() {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <WriteGuard>
-                          <IconButton 
-                            size="small" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(row);
-                            }} 
-                            color="primary" 
-                            title="Edit Data"
-                            sx={{ 
-                              backgroundColor: '#e8f5e8',
-                              '&:hover': { backgroundColor: '#c8e6c9' }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </WriteGuard>
+                        <IconButton 
+                          size="small" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(row);
+                          }} 
+                          color="primary" 
+                          title="Edit Data"
+                          sx={{ 
+                            backgroundColor: '#e8f5e8',
+                            '&:hover': { backgroundColor: '#c8e6c9' }
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}

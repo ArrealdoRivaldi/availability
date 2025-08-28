@@ -155,19 +155,23 @@ export default function LoginPage() {
         <Button
           onClick={async () => {
             try {
-              // Create a temporary guest user session without Firebase authentication
+              // Create a temporary guest user session
               if (typeof window !== 'undefined') {
                 localStorage.setItem('userRole', 'guest');
                 localStorage.setItem('hideApprovalMenu', 'true');
-                localStorage.setItem('isGuest', 'true');
-                localStorage.setItem('guestLoginTime', new Date().toISOString());
               }
               
-              // Redirect directly without trying to write to Firestore
+              // Logging guest user aktif ke Firestore
+              await setDocFS(doc(db, "active_users", `guest_${Date.now()}`), {
+                email: 'guest@example.com',
+                displayName: 'Guest User',
+                lastLogin: new Date().toISOString(),
+                role: 'guest',
+              });
+              
               router.push('/dashboard-admin');
             } catch (error) {
               console.error('Guest login error:', error);
-              // Even if there's an error, still redirect to dashboard
               router.push('/dashboard-admin');
             }
           }}

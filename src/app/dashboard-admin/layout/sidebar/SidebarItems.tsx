@@ -1,6 +1,6 @@
 import React from "react";
 import { getMenuItemsByRole } from "./MenuItems";
-import { Box, Badge, Chip, Collapse, Typography } from "@mui/material";
+import { Box, Badge, Chip, Collapse } from "@mui/material";
 import Logo from "../shared/logo/Logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -49,9 +49,6 @@ const SidebarItems = () => {
     }));
   };
 
-  // Guest role indicator
-  const isGuest = role === 'guest';
-
   const renderMenuItem = (item: any) => {
     const Icon = item.icon ? item.icon : IconLayoutDashboard;
     const href = item.href || "#";
@@ -81,9 +78,6 @@ const SidebarItems = () => {
             if (typeof window !== 'undefined') {
               localStorage.removeItem('userRole');
               localStorage.removeItem('hideApprovalMenu');
-              localStorage.removeItem('isGuest');
-              localStorage.removeItem('guestLoginTime');
-              localStorage.removeItem('userEmail');
             }
             router.push('/');
           }}
@@ -214,32 +208,6 @@ const SidebarItems = () => {
   return (
     <Box sx={{ width: '100%', p: 2 }}>
       <Logo />
-      
-      {/* Guest Role Indicator */}
-      {isGuest && (
-        <Box
-          sx={{
-            mt: 2,
-            p: 2,
-            borderRadius: 2,
-            background: '#fff3cd',
-            border: '1px solid #ffeaa7',
-            textAlign: 'center',
-          }}
-        >
-          <Typography
-            variant="caption"
-            sx={{
-              color: '#856404',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-            }}
-          >
-            🔒 Guest Mode - Read Only
-          </Typography>
-        </Box>
-      )}
-      
       <Box mt={4}>
         {menuItems.map(renderMenuItem)}
       </Box>
