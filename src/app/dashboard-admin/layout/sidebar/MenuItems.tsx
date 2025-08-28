@@ -88,11 +88,33 @@ export function getMenuItemsByRole(role: string) {
     return allMenuitems;
   }
   if (role === 'admin' || role === 'guest') {
-    // Hanya Worst Site Availability, Cell Down, User Management & Logout
-    return allMenuitems.filter(item => ["Worst Site Availability", "Cell Down", "User Management", "Logout"].includes(item.title));
+    // Hanya Worst Site Availability (tanpa submenu Logs), Cell Down, & Logout
+    return allMenuitems
+      .filter(item => ["Worst Site Availability", "Cell Down", "Logout"].includes(item.title))
+      .map(item => {
+        if (item.title === "Worst Site Availability") {
+          // Filter out "Logs" submenu for non-super_admin roles
+          return {
+            ...item,
+            submenu: item.submenu?.filter(subItem => subItem.title !== "Logs")
+          };
+        }
+        return item;
+      });
   }
-  // Default: hanya Worst Site Availability, Cell Down, User Management & Logout
-  return allMenuitems.filter(item => ["Worst Site Availability", "Cell Down", "User Management", "Logout"].includes(item.title));
+  // Default: hanya Worst Site Availability (tanpa submenu Logs), Cell Down, & Logout
+  return allMenuitems
+    .filter(item => ["Worst Site Availability", "Cell Down", "Logout"].includes(item.title))
+    .map(item => {
+      if (item.title === "Worst Site Availability") {
+        // Filter out "Logs" submenu for non-super_admin roles
+        return {
+          ...item,
+          submenu: item.submenu?.filter(subItem => subItem.title !== "Logs")
+        };
+      }
+      return item;
+    });
 }
 
 export default allMenuitems;
