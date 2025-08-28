@@ -23,6 +23,7 @@ import UserDetailsModal from './components/UserDetailsModal';
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import { useUsers, User } from './hooks/useUsers';
 import { filterUsers, getFilterStats, getNopCounts, getRoleCounts } from './utils/userFilters';
+import { SuperAdminGuard } from '@/components/SuperAdminGuard';
 
 export default function UserManagement() {
   const { users, loading, error, deleteUser, refreshUsers } = useUsers();
