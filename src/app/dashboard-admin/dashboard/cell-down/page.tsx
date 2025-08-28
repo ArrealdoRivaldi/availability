@@ -25,9 +25,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Divider,
+  alpha
 } from '@mui/material';
-import { Refresh as RefreshIcon } from '@mui/icons-material';
+import { Refresh as RefreshIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { Chart } from 'react-google-charts';
 import { CellDownData, mapFirestoreData, extractWeekFromTimestamp } from '../../../../utils/cellDownDataMapper';
 
@@ -204,7 +206,7 @@ export default function CellDownDashboardPage() {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Typography>Loading dashboard...</Typography>
+        <Typography variant="h6" color="text.secondary">Loading dashboard...</Typography>
       </Box>
     );
   }
@@ -212,93 +214,132 @@ export default function CellDownDashboardPage() {
   if (!cellDownData.length) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Typography>No data available. Please check your Firestore collection.</Typography>
+        <Typography variant="h6" color="text.secondary">No data available. Please check your Firestore collection.</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Cell Down Dashboard
-        </Typography>
+    <Box sx={{ flexGrow: 1, p: 2, backgroundColor: '#fafafa', minHeight: '100vh' }}>
+      {/* Header */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 0.5 }}>
+            Cell Down Dashboard
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Monitor and analyze cell down incidents across network operations
+          </Typography>
+        </Box>
         <Tooltip title="Refresh Data">
-          <IconButton onClick={fetchCellDownData} color="primary">
+          <IconButton 
+            onClick={fetchCellDownData} 
+            sx={{ 
+              backgroundColor: '#1976d2', 
+              color: 'white',
+              '&:hover': { backgroundColor: '#1565c0' }
+            }}
+          >
             <RefreshIcon />
           </IconButton>
         </Tooltip>
       </Box>
 
-      <Grid container spacing={3}>
-        {/* Filter */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 2 }}>
-            <Typography variant="h6" color="text.secondary" gutterBottom>Filter: Week/NOP</Typography>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Filter by Week</InputLabel>
-                  <Select
-                    value={weekFilter}
-                    label="Filter by Week"
-                    onChange={(e: SelectChangeEvent) => setWeekFilter(e.target.value)}
-                  >
-                    <MenuItem value="">
-                      <em>All Weeks</em>
+      {/* Filter Section */}
+      <Card sx={{ mb: 3, borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <FilterIcon sx={{ mr: 1, color: '#1976d2' }} />
+            <Typography variant="h6" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+              Filters
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth size="small">
+                <InputLabel sx={{ color: '#666' }}>Filter by Week</InputLabel>
+                <Select
+                  value={weekFilter}
+                  label="Filter by Week"
+                  onChange={(e: SelectChangeEvent) => setWeekFilter(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' }
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>All Weeks</em>
+                  </MenuItem>
+                  {getUniqueWeeks().map((week) => (
+                    <MenuItem key={week} value={week}>
+                      {week}
                     </MenuItem>
-                    {getUniqueWeeks().map((week) => (
-                      <MenuItem key={week} value={week}>
-                        {week}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Filter by NOP</InputLabel>
-                  <Select
-                    value={nopFilter}
-                    label="Filter by NOP"
-                    onChange={(e: SelectChangeEvent) => setNopFilter(e.target.value)}
-                  >
-                    <MenuItem value="">
-                      <em>All NOPs</em>
-                    </MenuItem>
-                    {getUniqueNOPs().map((nop) => (
-                      <MenuItem key={nop} value={nop}>
-                        {nop}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box display="flex" gap={1}>
-                  <Button 
-                    variant="outlined" 
-                    onClick={clearFilters}
-                    size="small"
-                  >
-                    Clear Filters
-                  </Button>
-                  <Chip 
-                    label={`Showing ${filteredData.length} of ${cellDownData.length} records`}
-                    color="primary"
-                    variant="outlined"
-                  />
-                </Box>
-              </Grid>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
-          </Paper>
-        </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth size="small">
+                <InputLabel sx={{ color: '#666' }}>Filter by NOP</InputLabel>
+                <Select
+                  value={nopFilter}
+                  label="Filter by NOP"
+                  onChange={(e: SelectChangeEvent) => setNopFilter(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' }
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>All NOPs</em>
+                  </MenuItem>
+                  {getUniqueNOPs().map((nop) => (
+                    <MenuItem key={nop} value={nop}>
+                      {nop}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={clearFilters}
+                  size="small"
+                  sx={{ 
+                    borderColor: '#e0e0e0',
+                    color: '#666',
+                    '&:hover': { borderColor: '#1976d2', color: '#1976d2' }
+                  }}
+                >
+                  Clear Filters
+                </Button>
+                <Chip 
+                  label={`${filteredData.length} of ${cellDownData.length} records`}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ 
+                    backgroundColor: alpha('#1976d2', 0.1),
+                    borderColor: '#1976d2',
+                    color: '#1976d2'
+                  }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
+      <Grid container spacing={3}>
         {/* Trend Cell Down Chart */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Trend Cell Down</Typography>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Trend Cell Down
+              </Typography>
               <Chart
                 chartType="ColumnChart"
                 width="100%"
@@ -317,16 +358,28 @@ export default function CellDownDashboardPage() {
                     : [['Week', 'Cell Down', 'Progress', 'Status'], ['No Data', 0, 0, 0]]
                 }
                 options={{
-                  title: 'Weekly Trend',
-                  chartArea: { width: '60%', height: '70%' },
-                  hAxis: { title: 'Week', titleTextStyle: { fontSize: 14 } },
-                  vAxis: { title: 'Count', titleTextStyle: { fontSize: 14 } },
+                  title: '',
+                  chartArea: { width: '70%', height: '75%' },
+                  hAxis: { 
+                    title: 'Week', 
+                    titleTextStyle: { fontSize: 12, color: '#666' },
+                    textStyle: { fontSize: 11, color: '#666' }
+                  },
+                  vAxis: { 
+                    title: 'Count', 
+                    titleTextStyle: { fontSize: 12, color: '#666' },
+                    textStyle: { fontSize: 11, color: '#666' }
+                  },
                   seriesType: 'bars',
                   series: { 1: { type: 'bars' }, 2: { type: 'bars' } },
                   colors: ['#1976d2', '#ff9800', '#4caf50'],
-                  legend: { position: 'top' },
-                  fontSize: 12,
-                  backgroundColor: 'transparent'
+                  legend: { 
+                    position: 'top',
+                    textStyle: { fontSize: 12, color: '#666' }
+                  },
+                  fontSize: 11,
+                  backgroundColor: 'transparent',
+                  bar: { groupWidth: '70%' }
                 }}
               />
             </CardContent>
@@ -334,10 +387,12 @@ export default function CellDownDashboardPage() {
         </Grid>
 
         {/* Root Cause Chart */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Root Cause</Typography>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Root Cause Distribution
+              </Typography>
               <Chart
                 chartType="BarChart"
                 width="100%"
@@ -354,14 +409,26 @@ export default function CellDownDashboardPage() {
                     : [['Root Cause', 'Count'], ['No Data', 0]]
                 }
                 options={{
-                  title: 'Root Cause Distribution',
-                  chartArea: { width: '60%', height: '70%' },
-                  hAxis: { title: 'Count', titleTextStyle: { fontSize: 14 } },
-                  vAxis: { title: 'Root Cause', titleTextStyle: { fontSize: 14 } },
+                  title: '',
+                  chartArea: { width: '70%', height: '75%' },
+                  hAxis: { 
+                    title: 'Count', 
+                    titleTextStyle: { fontSize: 12, color: '#666' },
+                    textStyle: { fontSize: 11, color: '#666' }
+                  },
+                  vAxis: { 
+                    title: 'Root Cause', 
+                    titleTextStyle: { fontSize: 12, color: '#666' },
+                    textStyle: { fontSize: 11, color: '#666' }
+                  },
                   colors: ['#1976d2'],
-                  legend: { position: 'top' },
-                  fontSize: 12,
-                  backgroundColor: 'transparent'
+                  legend: { 
+                    position: 'top',
+                    textStyle: { fontSize: 12, color: '#666' }
+                  },
+                  fontSize: 11,
+                  backgroundColor: 'transparent',
+                  bar: { groupWidth: '70%' }
                 }}
               />
             </CardContent>
@@ -369,29 +436,31 @@ export default function CellDownDashboardPage() {
         </Grid>
 
         {/* PIC Dept and Site Class Tables */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>PIC Dept</Typography>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                PIC Department
+              </Typography>
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
                   <TableHead>
-                    <TableRow>
-                      <TableCell>PIC Dept</TableCell>
-                      <TableCell align="right">Count</TableCell>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Department</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Count</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {Object.entries(data.picDeptData || {}).map(([pic, count]) => (
-                      <TableRow key={pic}>
-                        <TableCell>{pic || '(blank)'}</TableCell>
-                        <TableCell align="right">{count}</TableCell>
+                      <TableRow key={pic} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                        <TableCell sx={{ fontSize: '0.875rem' }}>{pic || '(blank)'}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{count}</TableCell>
                       </TableRow>
                     ))}
-                    <TableRow>
-                      <TableCell><strong>Grand Total</strong></TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.picDeptData || {}).reduce((a, b) => a + b, 0)}</strong>
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.picDeptData || {}).reduce((a, b) => a + b, 0)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -401,29 +470,31 @@ export default function CellDownDashboardPage() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Site Class</Typography>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Site Classification
+              </Typography>
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
                   <TableHead>
-                    <TableRow>
-                      <TableCell>Site Class</TableCell>
-                      <TableCell align="right">Count</TableCell>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Site Class</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Count</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {Object.entries(data.siteClassData || {}).map(([siteClass, count]) => (
-                      <TableRow key={siteClass}>
-                        <TableCell>{siteClass}</TableCell>
-                        <TableCell align="right">{count}</TableCell>
+                      <TableRow key={siteClass} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                        <TableCell sx={{ fontSize: '0.875rem' }}>{siteClass}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{count}</TableCell>
                       </TableRow>
                     ))}
-                    <TableRow>
-                      <TableCell><strong>Grand Total</strong></TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.siteClassData || {}).reduce((a, b) => a + b, 0)}</strong>
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.siteClassData || {}).reduce((a, b) => a + b, 0)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -435,52 +506,52 @@ export default function CellDownDashboardPage() {
 
         {/* Cell Down Progress by ENOM Closed Alarm */}
         <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Cell Down Progress by ENOM Closed Alarm</Typography>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Cell Down Progress by ENOM Closed Alarm
+              </Typography>
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
                   <TableHead>
-                    <TableRow>
-                      <TableCell>NOP</TableCell>
-                      <TableCell align="right">Cell Down</TableCell>
-                      <TableCell align="right">Progress</TableCell>
-                      <TableCell align="right">ENOM Closed Alarm</TableCell>
-                      <TableCell align="right">%</TableCell>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>NOP</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Cell Down</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Progress</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>ENOM Closed</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>%</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {Object.entries(data.nopData || {}).map(([nop, counts]) => {
                       const percentage = counts.total > 0 ? ((counts.status / counts.total) * 100).toFixed(2) : '0.00';
                       return (
-                        <TableRow key={nop}>
-                          <TableCell>{nop}</TableCell>
-                          <TableCell align="right">{counts.total}</TableCell>
-                          <TableCell align="right">{counts.progress}</TableCell>
-                          <TableCell align="right">{counts.status}</TableCell>
-                          <TableCell align="right">{percentage}%</TableCell>
+                        <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{counts.total}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{counts.progress}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{counts.status}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500, color: '#1976d2' }}>{percentage}%</TableCell>
                         </TableRow>
                       );
                     })}
-                    <TableRow>
-                      <TableCell><strong>Grand Total</strong></TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.nopData || {}).reduce((a, b) => a + b.total, 0)}</strong>
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.nopData || {}).reduce((a, b) => a + b.total, 0)}
                       </TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.nopData || {}).reduce((a, b) => a + b.progress, 0)}</strong>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.nopData || {}).reduce((a, b) => a + b.progress, 0)}
                       </TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.nopData || {}).reduce((a, b) => a + b.status, 0)}</strong>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.nopData || {}).reduce((a, b) => a + b.status, 0)}
                       </TableCell>
-                      <TableCell align="right">
-                        <strong>
-                          {(() => {
-                            const total = Object.values(data.nopData || {}).reduce((a, b) => a + b.total, 0);
-                            const status = Object.values(data.nopData || {}).reduce((a, b) => a + b.status, 0);
-                            return total > 0 ? ((status / total) * 100).toFixed(2) : '0.00';
-                          })()}%
-                        </strong>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                        {(() => {
+                          const total = Object.values(data.nopData || {}).reduce((a, b) => a + b.total, 0);
+                          const status = Object.values(data.nopData || {}).reduce((a, b) => a + b.status, 0);
+                          return total > 0 ? ((status / total) * 100).toFixed(2) : '0.00';
+                        })()}%
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -492,38 +563,40 @@ export default function CellDownDashboardPage() {
 
         {/* Aging Table */}
         <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>NOP Aging</Typography>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                NOP Aging Analysis
+              </Typography>
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
                   <TableHead>
-                    <TableRow>
-                      <TableCell>NOP</TableCell>
-                      <TableCell align="right">8-30 Days</TableCell>
-                      <TableCell align="right">30-60 Days</TableCell>
-                      <TableCell align="right">&gt;60 Days</TableCell>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>NOP</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>8-30 Days</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>30-60 Days</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>&gt;60 Days</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {Object.entries(data.agingData || {}).map(([nop, aging]) => (
-                      <TableRow key={nop}>
-                        <TableCell>{nop}</TableCell>
-                        <TableCell align="right">{aging['8-30']}</TableCell>
-                        <TableCell align="right">{aging['30-60']}</TableCell>
-                        <TableCell align="right">{aging['>60']}</TableCell>
+                      <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                        <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{aging['8-30']}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{aging['30-60']}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{aging['>60']}</TableCell>
                       </TableRow>
                     ))}
-                    <TableRow>
-                      <TableCell><strong>Grand Total</strong></TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.agingData || {}).reduce((a, b) => a + b['8-30'], 0)}</strong>
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.agingData || {}).reduce((a, b) => a + b['8-30'], 0)}
                       </TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.agingData || {}).reduce((a, b) => a + b['30-60'], 0)}</strong>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.agingData || {}).reduce((a, b) => a + b['30-60'], 0)}
                       </TableCell>
-                      <TableCell align="right">
-                        <strong>{Object.values(data.agingData || {}).reduce((a, b) => a + b['>60'], 0)}</strong>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.agingData || {}).reduce((a, b) => a + b['>60'], 0)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
