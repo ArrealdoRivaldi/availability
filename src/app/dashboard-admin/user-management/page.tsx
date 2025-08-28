@@ -161,153 +161,155 @@ export default function UserManagement() {
   };
 
   return (
-    <PageContainer title="User Management" description="Manage system users and permissions">
-      <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h3">
-            User Management
-          </Typography>
-          <Box display="flex" gap={2}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={refreshUsers}
-              disabled={loading}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddUser}
-            >
-              Add User
-            </Button>
+    <SuperAdminGuard>
+      <PageContainer title="User Management" description="Manage system users and permissions">
+        <Box>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h3">
+              User Management
+            </Typography>
+            <Box display="flex" gap={2}>
+              <Button
+                variant="outlined"
+                startIcon={<RefreshIcon />}
+                onClick={refreshUsers}
+                disabled={loading}
+              >
+                Refresh
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddUser}
+              >
+                Add User
+              </Button>
+            </Box>
           </Box>
-        </Box>
 
-        {/* Dashboard Cards */}
-        <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Total Users
-                </Typography>
-                <Typography variant="h4">
-                  {filterStats.total}
-                </Typography>
-              </CardContent>
-            </Card>
+          {/* Dashboard Cards */}
+          <Grid container spacing={3} mb={3}>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Total Users
+                  </Typography>
+                  <Typography variant="h4">
+                    {filterStats.total}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Showing
+                  </Typography>
+                  <Typography variant="h4">
+                    {filterStats.showing}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Super Admins
+                  </Typography>
+                  <Typography variant="h4">
+                    {roleCounts.super_admin || 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Active NOPs
+                  </Typography>
+                  <Typography variant="h4">
+                    {Object.keys(nopCounts).length}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Showing
-                </Typography>
-                <Typography variant="h4">
-                  {filterStats.showing}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Super Admins
-                </Typography>
-                <Typography variant="h4">
-                  {roleCounts.super_admin || 0}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Active NOPs
-                </Typography>
-                <Typography variant="h4">
-                  {Object.keys(nopCounts).length}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
 
-        {/* Search and Filters */}
-        <SearchAndFilter
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedNop={selectedNop}
-          onNopChange={setSelectedNop}
-          selectedRole={selectedRole}
-          onRoleChange={setSelectedRole}
-          onClearFilters={handleClearFilters}
-        />
+          {/* Search and Filters */}
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedNop={selectedNop}
+            onNopChange={setSelectedNop}
+            selectedRole={selectedRole}
+            onRoleChange={setSelectedRole}
+            onClearFilters={handleClearFilters}
+          />
 
-        {/* User Table */}
-        <DashboardCard title="Users">
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              <Typography variant="body1" gutterBottom>
-                <strong>Error Loading Users:</strong>
-              </Typography>
-              <Typography variant="body2">
-                {error}
-              </Typography>
-            </Alert>
-          )}
-          
-          <UserTable
-            users={filteredUsers}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            onView={handleViewUser}
+          {/* User Table */}
+          <DashboardCard title="Users">
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                <Typography variant="body1" gutterBottom>
+                  <strong>Error Loading Users:</strong>
+                </Typography>
+                <Typography variant="body2">
+                  {error}
+                </Typography>
+              </Alert>
+            )}
+            
+            <UserTable
+              users={filteredUsers}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              onView={handleViewUser}
+              loading={loading}
+            />
+          </DashboardCard>
+
+          {/* Modals */}
+          <UserFormModal
+            open={userFormModal.open}
+            onClose={handleCloseUserFormModal}
+            user={userFormModal.user}
+            mode={userFormModal.mode}
+          />
+
+          <UserDetailsModal
+            open={userDetailsModal.open}
+            onClose={() => setUserDetailsModal({ open: false, user: null })}
+            user={userDetailsModal.user}
+          />
+
+          <DeleteConfirmationDialog
+            open={deleteDialog.open}
+            onClose={() => setDeleteDialog({ open: false, userId: '', userName: '' })}
+            onConfirm={handleConfirmDelete}
+            userName={deleteDialog.userName}
             loading={loading}
           />
-        </DashboardCard>
 
-        {/* Modals */}
-        <UserFormModal
-          open={userFormModal.open}
-          onClose={handleCloseUserFormModal}
-          user={userFormModal.user}
-          mode={userFormModal.mode}
-        />
-
-        <UserDetailsModal
-          open={userDetailsModal.open}
-          onClose={() => setUserDetailsModal({ open: false, user: null })}
-          user={userDetailsModal.user}
-        />
-
-        <DeleteConfirmationDialog
-          open={deleteDialog.open}
-          onClose={() => setDeleteDialog({ open: false, userId: '', userName: '' })}
-          onConfirm={handleConfirmDelete}
-          userName={deleteDialog.userName}
-          loading={loading}
-        />
-
-        {/* Snackbar for notifications */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          <Alert
+          {/* Snackbar for notifications */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
             onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Box>
-    </PageContainer>
+            <Alert
+              onClose={() => setSnackbar({ ...snackbar, open: false })}
+              severity={snackbar.severity}
+              sx={{ width: '100%' }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Box>
+      </PageContainer>
+    </SuperAdminGuard>
   );
 }
