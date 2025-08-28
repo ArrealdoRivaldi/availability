@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, TableContainer, TablePagination, InputAdornment, Chip, Tooltip } from '@mui/material';
+import { Box, Typography, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, CircularProgress, TableContainer, TablePagination, InputAdornment, Chip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -24,46 +24,54 @@ function toDisplayDate(dateString: string) {
 
 // Helper untuk truncate text dan show detail button
 const TruncatedTextWithDetail = ({ text, fieldName, onShowDetail, row }: { text: string, fieldName: string, onShowDetail: (row: any, field: string) => void, row: any }) => {
-  if (!text) return '-';
+  if (!text) return <span></span>;
   
-  const isLongText = text.length > 30;
-  
-  if (isLongText) {
+  const str = String(text);
+  if (str.length > 3) {
     return (
-      <Box display="flex" alignItems="center" gap={1}>
-        <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {text.substring(0, 30)}...
-        </Typography>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<VisibilityIcon />}
-          onClick={() => onShowDetail(row, fieldName)}
-          sx={{ 
-            minWidth: 'auto', 
-            px: 1, 
-            py: 0.5, 
-            fontSize: 11,
-            height: 28,
-            borderColor: '#1976d2',
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ flex: 1 }}>{str.slice(0, 3)}...</span>
+        <button 
+          style={{
             color: '#1976d2',
-            '&:hover': {
-              borderColor: '#1565c0',
-              backgroundColor: 'rgba(25, 118, 210, 0.04)'
-            }
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '2px 6px',
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            fontSize: 11,
+            fontWeight: 500,
+            transition: 'all 0.2s',
+            minWidth: 'auto'
           }}
+          onMouseOver={e => {
+            e.currentTarget.style.background = '#e3f2fd';
+            e.currentTarget.style.color = '#1565c0';
+          }}
+          onMouseOut={e => {
+            e.currentTarget.style.background = 'none';
+            e.currentTarget.style.color = '#1976d2';
+          }}
+          onClick={e => {
+            e.stopPropagation(); 
+            onShowDetail(row, fieldName);
+          }}
+          title={`Lihat detail ${fieldName}`}
         >
+          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
           Detail
-        </Button>
-      </Box>
+        </button>
+      </span>
     );
   }
   
-  return (
-    <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-      {text}
-    </Typography>
-  );
+  return <span>{str}</span>;
 };
 
 const AvailabilityApprovalPage = () => {
@@ -247,196 +255,158 @@ const AvailabilityApprovalPage = () => {
         </Paper>
 
         {/* Table */}
-        <Paper sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)' }}>
-          <TableContainer sx={{ maxHeight: 520 }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow sx={{ background: '#f7fafd' }}>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 50, textAlign: 'center' }}>No</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Category</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Site ID</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Site Name</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Site Class</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>NOP</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Source Power</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Root Cause</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Detail Problem</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Plan Action</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 150 }}>Need Support</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>PIC Dept</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Progress</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Remark</TableCell>
-                  <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 200 }}>Aksi</TableCell>
+        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 1px 8px rgba(30,58,138,0.06)', maxHeight: 520 }}>
+          <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+            <TableHead>
+              <TableRow sx={{ background: '#f7fafd' }}>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, width: 50, textAlign: 'center' }}>No</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Category</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Site ID</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Site Name</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Site Class</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>NOP</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Source Power</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Root Cause</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 120 }}>Detail Problem</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 120 }}>Plan Action</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 120 }}>Need Support</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>PIC Dept</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Progress</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 80 }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 100 }}>Remark</TableCell>
+                <TableCell sx={{ fontWeight: 700, background: '#f7fafd', borderBottom: '2px solid #e0e0e0', fontSize: 14, minWidth: 200 }}>Aksi</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
+                    <CircularProgress />
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
-                      <CircularProgress />
-                    </TableCell>
-                  </TableRow>
-                ) : filteredRows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
-                      Tidak ada data yang menunggu approval.
-                    </TableCell>
-                  </TableRow>
-                ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
-                  <TableRow 
-                    key={row.id} 
-                    hover 
-                    sx={{ 
-                      background: idx % 2 === 0 ? '#f9fbfd' : '#fff', 
-                      transition: 'background 0.2s',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        background: '#e3f2fd',
-                        '& .row-detail-button': {
-                          opacity: 1
-                        }
-                      }
-                    }}
-                    onClick={() => handleShowRowDetail(row)}
-                  >
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle', textAlign: 'center', fontWeight: 600 }}>
-                      {page * rowsPerPage + idx + 1}
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <Chip 
-                        label={row['Category']} 
-                        size="small" 
-                        color="warning" 
-                        variant="outlined"
-                        sx={{ fontWeight: 600 }}
+              ) : filteredRows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
+                    Tidak ada data yang menunggu approval.
+                  </TableCell>
+                </TableRow>
+              ) : filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
+                <TableRow 
+                  key={row.id} 
+                  hover 
+                  sx={{ 
+                    '&:hover': { bgcolor: '#f5f5f5' }
+                  }}
+                  onClick={() => handleShowRowDetail(row)}
+                >
+                  <TableCell align="center" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {page * rowsPerPage + idx + 1}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Category']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Site ID']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Site Name']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Site Class']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['NOP']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Source Power']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Root Cause']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    <TruncatedTextWithDetail 
+                      text={row['Detail Problem']} 
+                      fieldName="Detail Problem"
+                      onShowDetail={handleShowFieldDetail}
+                      row={row}
+                    />
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    <TruncatedTextWithDetail 
+                      text={row['Plan Action']} 
+                      fieldName="Plan Action"
+                      onShowDetail={handleShowFieldDetail}
+                      row={row}
+                    />
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    <TruncatedTextWithDetail 
+                      text={row['Need Support']} 
+                      fieldName="Need Support"
+                      onShowDetail={handleShowFieldDetail}
+                      row={row}
+                    />
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['PIC Dept']}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Progress']}
+                  </TableCell>
+                  <TableCell align="center" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Status'] === 'Waiting approval' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9800" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span style={{ fontWeight: 600, color: '#ff9800', letterSpacing: 0.2 }}>Waiting approval</span>
+                      </span>
+                    ) : (
+                      row['Status'] || ''
+                    )}
+                  </TableCell>
+                  <TableCell align="left" sx={{ border: '1px solid #e0e0e0', padding: '2px 6px', fontSize: 13, verticalAlign: 'middle' }}>
+                    {row['Remark'] || ''}
+                  </TableCell>
+                  <TableCell align="center" sx={{ border: '1px solid #e0e0e0', padding: '0 2px', fontSize: 13, verticalAlign: 'middle', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
+                    <Box display="flex" gap={1} alignItems="center" justifyContent="center">
+                      <TextField
+                        select
+                        size="small"
+                        value={statusEdit[row.id] || ''}
+                        onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                        sx={{ minWidth: 100, '& .MuiSelect-select': { py: 0.5, px: 1, fontSize: 12 } }}
+                        SelectProps={{ native: true }}
+                      >
+                        <option value="">Pilih Status</option>
+                        {STATUS_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </TextField>
+                      <TextField
+                        size="small"
+                        placeholder="Remark"
+                        value={remarkEdit[row.id] || ''}
+                        onChange={(e) => setRemarkEdit(prev => ({ ...prev, [row.id]: e.target.value }))}
+                        sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 0.5, px: 1, fontSize: 12 } }}
                       />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle', fontWeight: 600, fontFamily: 'monospace' }}>
-                      {row['Site ID']}
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <Tooltip title={row['Site Name']} placement="top">
-                        <Typography variant="body2" sx={{ 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis', 
-                          whiteSpace: 'nowrap',
-                          maxWidth: 150
-                        }}>
-                          {row['Site Name']}
-                        </Typography>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <Chip 
-                        label={row['Site Class']} 
-                        size="small" 
-                        color={row['Site Class'] === 'GOLD' ? 'success' : 'default'} 
-                        variant="outlined"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      {row['NOP']}
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <Chip 
-                        label={row['Source Power']} 
-                        size="small" 
-                        color={row['Source Power'] === 'PLN' ? 'success' : row['Source Power'] === 'Corporate' ? 'info' : 'warning'} 
-                        variant="outlined"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      {row['Root Cause']}
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <TruncatedTextWithDetail 
-                        text={row['Detail Problem']} 
-                        fieldName="Detail Problem"
-                        onShowDetail={handleShowFieldDetail}
-                        row={row}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <TruncatedTextWithDetail 
-                        text={row['Plan Action']} 
-                        fieldName="Plan Action"
-                        onShowDetail={handleShowFieldDetail}
-                        row={row}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <TruncatedTextWithDetail 
-                        text={row['Need Support']} 
-                        fieldName="Need Support"
-                        onShowDetail={handleShowFieldDetail}
-                        row={row}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      {row['PIC Dept']}
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <Chip 
-                        label={row['Progress']} 
-                        size="small" 
-                        color="primary" 
-                        variant="outlined"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      <Chip 
-                        label={row['Status']} 
-                        size="small" 
-                        color="warning" 
-                        variant="outlined"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }}>
-                      {row['Remark'] || '-'}
-                    </TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 12px', fontSize: 13, verticalAlign: 'middle' }} onClick={(e) => e.stopPropagation()}>
-                      <Box display="flex" gap={1} alignItems="center">
-                        <TextField
-                          select
-                          size="small"
-                          value={statusEdit[row.id] || ''}
-                          onChange={(e) => handleStatusChange(row.id, e.target.value)}
-                          sx={{ minWidth: 100, '& .MuiSelect-select': { py: 0.5, px: 1, fontSize: 12 } }}
-                          SelectProps={{ native: true }}
-                        >
-                          <option value="">Pilih Status</option>
-                          {STATUS_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </TextField>
-                        <TextField
-                          size="small"
-                          placeholder="Remark"
-                          value={remarkEdit[row.id] || ''}
-                          onChange={(e) => setRemarkEdit(prev => ({ ...prev, [row.id]: e.target.value }))}
-                          sx={{ minWidth: 120, '& .MuiInputBase-input': { py: 0.5, px: 1, fontSize: 12 } }}
-                        />
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => handleSave(row)}
-                          disabled={!statusEdit[row.id] || saving === row.id}
-                          sx={{ minWidth: 60, py: 0.5, px: 1, fontSize: 12 }}
-                        >
-                          {saving === row.id ? <CircularProgress size={16} /> : 'Save'}
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => handleSave(row)}
+                        disabled={!statusEdit[row.id] || saving === row.id}
+                        sx={{ minWidth: 60, py: 0.5, px: 1, fontSize: 12 }}
+                      >
+                        {saving === row.id ? <CircularProgress size={16} /> : 'Save'}
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        
+        {/* Pagination */}
+        <Box display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
           <TablePagination
             component="div"
             count={filteredRows.length}
@@ -448,49 +418,43 @@ const AvailabilityApprovalPage = () => {
             labelRowsPerPage="Show"
             sx={{ '.MuiTablePagination-toolbar': { minHeight: 40 }, '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: 13 } }}
           />
-        </Paper>
+        </Box>
 
         {/* Detail Dialog */}
         {showDetail && (
-          <Dialog open={!!showDetail} onClose={() => { setShowDetail(null); setDetailField(''); }} maxWidth="md" fullWidth>
-            <DialogTitle>
-              {detailField ? `Detail ${detailField}` : 'Detail Data'}
-            </DialogTitle>
-            <DialogContent>
+          <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setShowDetail(null); setDetailField(''); }}>
+            <div style={{ background: '#fff', borderRadius: 8, minWidth: 320, maxWidth: '95vw', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 24 }} onClick={e => e.stopPropagation()}>
+              <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>
+                {detailField ? `Detail ${detailField}` : 'Detail Data'}
+              </h3>
               {detailField ? (
                 // Show specific field detail
-                <Box mt={2}>
-                  <Typography variant="h6" color="primary" gutterBottom>
-                    {detailField}
-                  </Typography>
-                  <Paper sx={{ p: 2, background: '#f5f5f5' }}>
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                <div style={{ marginTop: 16 }}>
+                  <h4 style={{ fontWeight: 600, fontSize: 16, marginBottom: 12, color: '#1976d2' }}>{detailField}</h4>
+                  <div style={{ padding: 16, background: '#f5f5f5', borderRadius: 4, border: '1px solid #e0e0e0' }}>
+                    <p style={{ margin: 0, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
                       {showDetail[detailField] || '-'}
-                    </Typography>
-                  </Paper>
-                </Box>
+                    </p>
+                  </div>
+                </div>
               ) : (
                 // Show full row detail
-                <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={3} mt={1}>
-                  {detailFields.map(field => (
-                    <Box key={field} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, background: '#fafafa' }}>
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 600, textTransform: 'uppercase', mb: 1 }}>
-                        {field}
-                      </Typography>
-                      <Typography variant="body2" sx={{ wordBreak: 'break-word', minHeight: 20 }}>
-                        {showDetail[field] || '-'}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    {detailFields.map(field => (
+                      <tr key={field}>
+                        <th style={{ width: 140, border: '1px solid #e0e0e0', padding: 8, textAlign: 'left' }}>{field}</th>
+                        <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{Array.isArray(showDetail[field]) ? showDetail[field].join(', ') : (showDetail[field] ?? '')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => { setShowDetail(null); setDetailField(''); }} variant="contained">
-                Tutup
-              </Button>
-            </DialogActions>
-          </Dialog>
+              <div style={{ textAlign: 'right', marginTop: 18 }}>
+                <button onClick={() => { setShowDetail(null); setDetailField(''); }} style={{ padding: '6px 18px', borderRadius: 4, border: 'none', background: '#1976d2', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Tutup</button>
+              </div>
+            </div>
+          </div>
         )}
       </Box>
     </SuperAdminGuard>
