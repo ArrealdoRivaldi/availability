@@ -18,6 +18,23 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check localStorage first for guest/admin/super_admin roles
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('userRole') as 'super_admin' | 'admin' | 'guest' | null;
+      
+      if (role) {
+        // User has role from localStorage (guest, admin, or super_admin)
+        setUserRole({
+          role,
+          email: role === 'guest' ? 'guest@example.com' : null,
+          displayName: role === 'guest' ? 'Guest User' : null
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // If no role in localStorage, check Firebase auth
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
@@ -47,11 +64,17 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      await auth.signOut();
+      // Only signOut from Firebase if user is not guest
+      if (user && userRole.role !== 'guest') {
+        await auth.signOut();
+      }
+      
+      // Clear localStorage for all users
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userRole');
         localStorage.removeItem('hideApprovalMenu');
       }
+      
       setUser(null);
       setUserRole({
         role: null,
@@ -63,7 +86,8 @@ export const useAuth = () => {
     }
   };
 
-  const isAuthenticated = !!user && !!userRole.role;
+  // Guest, admin, dan super_admin dianggap authenticated
+  const isAuthenticated = !!userRole.role;
   const isSuperAdmin = userRole.role === 'super_admin';
   const isAdmin = userRole.role === 'admin';
   const isGuest = userRole.role === 'guest';
