@@ -31,12 +31,23 @@ interface Props {
 function IdleLogout() {
   const router = useRouter();
   const [showModal, setShowModal] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string>('');
   const modalTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const idleTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const idleTime = 15 * 60 * 1000; // 15 menit
   const warningTime = 1 * 60 * 1000; // 1 menit sebelum logout
 
   React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('userRole') || '');
+    }
+  }, []);
+
+  React.useEffect(() => {
+    // Skip idle timeout for guest users
+    if (userRole === 'guest') {
+      return;
+    }
     const cleanup = () => {
       if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
       if (modalTimeoutRef.current) clearTimeout(modalTimeoutRef.current);
@@ -79,7 +90,7 @@ function IdleLogout() {
       cleanup();
       events.forEach(ev => window.removeEventListener(ev, handleActivity));
     };
-  }, [router, showModal]);
+  }, [router, showModal, userRole]);
   return (
     <>
       <Dialog open={showModal}>

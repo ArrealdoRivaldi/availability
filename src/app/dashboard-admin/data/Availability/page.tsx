@@ -10,6 +10,8 @@ import { ref, onValue, update } from "firebase/database";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from '@/app/firebaseConfig';
 import { auth } from '@/app/firebaseConfig';
+import { useUserRole } from '../../hooks/useUserRole';
+import WriteGuard from '../../components/WriteGuard';
 
 const ROOT_CAUSE_OPTIONS = [
   'Power - Regular',
@@ -82,19 +84,10 @@ const isSameDay = (dateA: string | null, dateB: string | null) => {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 };
 
-// Helper untuk deteksi guest
-function isGuest() {
-  // Jangan gunakan localStorage di SSR, gunakan state di komponen utama
-  return false;
-}
 
-// Helper untuk cek admin
-function isAdmin() {
-  // Jangan gunakan localStorage di SSR, gunakan state di komponen utama
-  return false;
-}
 
 const DataPage = () => {
+  const { isGuest, canWrite } = useUserRole();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -1018,15 +1011,17 @@ const RowItem = memo(function RowItem({ row, columns, onEditOpen, onDiscussOpen,
       <TableCell key="Action" align="center" sx={{ border: '1px solid #e0e0e0', padding: '0 2px', fontSize: 13, verticalAlign: 'middle', cursor: 'default' }}>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           {onEditOpen && (
-            <IconButton
-              onClick={() => onEditOpen(row)}
-              sx={{ color: '#1976d2' }}
-              title="Edit"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 20, height: 20 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4 12.362-12.303z" />
-              </svg>
-            </IconButton>
+            <WriteGuard>
+              <IconButton
+                onClick={() => onEditOpen(row)}
+                sx={{ color: '#1976d2' }}
+                title="Edit"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 20, height: 20 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4 12.362-12.303z" />
+                </svg>
+              </IconButton>
+            </WriteGuard>
           )}
           {onShowDateCloseLog && (
             <IconButton
