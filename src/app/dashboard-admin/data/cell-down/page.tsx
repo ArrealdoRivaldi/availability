@@ -329,24 +329,24 @@ export default function CellDownDataPage() {
         if (rowNumber === 1) return;
 
         const rowData: CellDownData = {
-          week: parseInt(row.getCell(1)?.value?.toString() || '0'),
+          week: parseInt(row.getCell(2)?.value?.toString() || '0'), // Kolom B: Week
           regional: '',
-          siteId: row.getCell(2)?.value?.toString() || '',
+          siteId: row.getCell(3)?.value?.toString() || '', // Kolom C: Site ID
           alarmSource: '',
-          nop: row.getCell(3)?.value?.toString() || '',
+          nop: row.getCell(5)?.value?.toString() || '', // Kolom E: NOP
           districtOperation: '',
           firstOccurredOn: '',
-          agingDown: parseInt(row.getCell(4)?.value?.toString() || '0'),
-          rangeAgingDown: row.getCell(5)?.value?.toString() || '',
+          agingDown: parseInt(row.getCell(6)?.value?.toString() || '0'), // Kolom F: AGING DOWN
+          rangeAgingDown: row.getCell(7)?.value?.toString() || '', // Kolom G: RANGE AGING DOWN
           ticketId: '',
           alarmName: '',
-          siteClass: row.getCell(6)?.value?.toString() || '',
-          subDomain: row.getCell(7)?.value?.toString() || '',
+          siteClass: row.getCell(8)?.value?.toString() || '', // Kolom H: SITE CLASS
+          subDomain: row.getCell(9)?.value?.toString() || '', // Kolom I: Sub Domain
           alarmSeverity: '',
           alarmLocationInfo: '',
           remarkRedsector: '',
           remarkSite: '',
-          cellDownName: row.getCell(8)?.value?.toString() || '',
+          cellDownName: row.getCell(4)?.value?.toString() || '', // Kolom D: Cell Down Name
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -386,12 +386,13 @@ export default function CellDownDataPage() {
     let willBeOpen = 0;
     let willBeClose = 0;
 
-    // Get all unique Cell Down Names from upload data
+    // Create sets for efficient lookup
+    const uploadWeekCellDownPairs = new Set(
+      uploadData.map(item => `${item.week}-${item.cellDownName}`)
+    );
     const uploadCellDownNames = new Set(uploadData.map(item => item.cellDownName));
-    
-    // Get all unique Cell Down Names from existing data
-    const existingCellDownNames = new Set(allData.map(item => item.cellDownName));
 
+    // Analyze upload data
     for (const item of uploadData) {
       // Check if data exists based on Week and Cell Down Name
       const existingData = allData.find(existing => 
@@ -401,44 +402,35 @@ export default function CellDownDataPage() {
 
       if (existingData) {
         updatedData++;
-        // Updated data will have status 'close'
+        // Updated data will have status 'close' (data yang sudah ada dan diupdate)
         willBeClose++;
       } else {
         newData++;
-        // Check if this Cell Down Name exists in existing data (regardless of week)
-        const existingWithSameName = allData.find(existing => 
-          existing.cellDownName === item.cellDownName
-        );
-        
-        if (existingWithSameName) {
-          // New data with existing Cell Down Name will have status 'open' (copies existing fields but keeps open status)
-          willBeOpen++;
-        } else {
-          // New data with new Cell Down Name will have status 'open'
-          willBeOpen++;
-        }
+        // New data will have status 'open' (data baru)
+        willBeOpen++;
       }
     }
 
-    // Check existing data that won't be in upload data and will become 'close'
-    // ONLY if their Cell Down Name doesn't appear in upload data at all
+    // Analyze existing data that will be affected
     for (const existingItem of allData) {
-      const willBeInUpload = uploadData.some(uploadItem => 
-        uploadItem.week === existingItem.week && 
-        uploadItem.cellDownName === existingItem.cellDownName
-      );
+      const weekCellDownPair = `${existingItem.week}-${existingItem.cellDownName}`;
+      const willBeInUpload = uploadWeekCellDownPairs.has(weekCellDownPair);
       
       // Check if this Cell Down Name appears in upload data (regardless of week)
-      const cellDownNameInUpload = uploadData.some(uploadItem => 
-        uploadItem.cellDownName === existingItem.cellDownName
-      );
+      const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
       
-      // Only close if: not in upload AND Cell Down Name not in upload
-      if (!willBeInUpload && !cellDownNameInUpload) {
-        willBeClose++;
-      } else if (!willBeInUpload && cellDownNameInUpload) {
-        // Existing data with Cell Down Name that appears in upload stays OPEN
+      if (willBeInUpload) {
+        // Jika (Week + Cell Down Name) ada di upload → Status: OPEN (karena akan diupdate)
         willBeOpen++;
+      } else {
+        // Jika (Week + Cell Down Name) TIDAK ada di upload
+        if (!cellDownNameInUpload) {
+          // Jika Cell Down Name TIDAK ada di upload sama sekali → Status: CLOSE
+          willBeClose++;
+        } else {
+          // Jika Cell Down Name ada di upload (week berbeda) → Status: OPEN
+          willBeOpen++;
+        }
       }
     }
     
@@ -448,7 +440,8 @@ export default function CellDownDataPage() {
       updatedData,
       willBeOpen,
       willBeClose,
-      totalData: uploadData.length
+      totalData: uploadData.length,
+      existingDataCount: allData.length
     });
 
     return {
@@ -522,7 +515,7 @@ export default function CellDownDataPage() {
               ...item,
               id: existingData.id,
               updatedAt: new Date(),
-              status: 'close' // Update status to close for existing data
+              status: 'open' // Update status to open for existing data (karena akan diupdate)
             };
             
             await updateDoc(docRef, updateData);
@@ -559,8 +552,7 @@ export default function CellDownDataPage() {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // Update status of existing data that wasn't in upload to 'close'
-      // ONLY if their Cell Down Name doesn't appear in upload data at all
+      // Update status of existing data that wasn't in upload
       const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
       const uploadWeekCellDownPairs = new Set(
         previewData.map(item => `${item.week}-${item.cellDownName}`)
@@ -573,16 +565,31 @@ export default function CellDownDataPage() {
         // Check if this Cell Down Name appears in upload data (regardless of week)
         const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
         
-        // Only close if: not in upload AND Cell Down Name not in upload
-        if (!willBeInUpload && !cellDownNameInUpload) {
-          // Update status to 'close' for existing data not in upload AND Cell Down Name not in upload
+        if (willBeInUpload) {
+          // Jika (Week + Cell Down Name) ada di upload → Status: OPEN (karena akan diupdate)
           const docRef = doc(db, 'data_celldown', existingItem.id!);
           await updateDoc(docRef, {
-            status: 'close',
+            status: 'open',
             updatedAt: new Date()
           });
+        } else {
+          // Jika (Week + Cell Down Name) TIDAK ada di upload
+          if (!cellDownNameInUpload) {
+            // Jika Cell Down Name TIDAK ada di upload sama sekali → Status: CLOSE
+            const docRef = doc(db, 'data_celldown', existingItem.id!);
+            await updateDoc(docRef, {
+              status: 'close',
+              updatedAt: new Date()
+            });
+          } else {
+            // Jika Cell Down Name ada di upload (week berbeda) → Status: OPEN
+            const docRef = doc(db, 'data_celldown', existingItem.id!);
+            await updateDoc(docRef, {
+              status: 'open',
+              updatedAt: new Date()
+            });
+          }
         }
-        // If !willBeInUpload && cellDownNameInUpload, keep existing status (OPEN)
       }
 
       // Show success message with detailed information
