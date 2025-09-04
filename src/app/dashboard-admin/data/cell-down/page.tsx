@@ -360,11 +360,19 @@ export default function CellDownDataPage() {
   };
 
   // Enhanced function to analyze upload data with status prediction
+  // Logika baru berdasarkan Week dan Cell Down Name:
+  // 1. Data di Week sebelumnya: jika ada di upload → OPEN, jika tidak ada → CLOSE
+  // 2. Data di Week sekarang: jika ada di upload → OPEN, jika tidak ada → CLOSE  
+  // 3. Data di week lain: jika Cell Down Name ada di upload → OPEN, jika tidak → CLOSE
   const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
     let newData = 0;
     let updatedData = 0;
     let willBeOpen = 0;
     let willBeClose = 0;
+
+    // Get current week from upload data (assuming all upload data has same week)
+    const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0;
+    const previousWeek = currentWeek - 1;
 
     // Create sets for efficient lookup
     const uploadWeekCellDownPairs = new Set(
@@ -382,13 +390,11 @@ export default function CellDownDataPage() {
 
       if (existingData) {
         updatedData++;
-        // Updated data will have status 'close' (data yang sudah ada dan diupdate)
-        willBeClose++;
       } else {
         newData++;
-        // New data will have status 'open' (data baru)
-        willBeOpen++;
       }
+      // All upload data will have status 'open' (data baru atau diupdate)
+      willBeOpen++;
     }
 
     // Analyze existing data that will be affected
@@ -399,23 +405,40 @@ export default function CellDownDataPage() {
       // Check if this Cell Down Name appears in upload data (regardless of week)
       const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
       
-      if (willBeInUpload) {
-        // Jika (Week + Cell Down Name) ada di upload → Status: OPEN (karena akan diupdate)
-        willBeOpen++;
-      } else {
-        // Jika (Week + Cell Down Name) TIDAK ada di upload
-        if (!cellDownNameInUpload) {
-          // Jika Cell Down Name TIDAK ada di upload sama sekali → Status: CLOSE
-          willBeClose++;
-        } else {
-          // Jika Cell Down Name ada di upload (week berbeda) → Status: OPEN
+      if (existingItem.week === previousWeek) {
+        // Data di Week sebelumnya
+        if (willBeInUpload) {
+          // Jika data existing (Week sebelumnya + Cell Down Name) ada di file upload → Status: OPEN
           willBeOpen++;
+        } else {
+          // Jika data existing (Week sebelumnya + Cell Down Name) TIDAK ada di file upload → Status: CLOSE
+          willBeClose++;
+        }
+      } else if (existingItem.week === currentWeek) {
+        // Data di Week sekarang
+        if (willBeInUpload) {
+          // Jika data existing (Week sekarang + Cell Down Name) ada di file upload → Status: OPEN
+          willBeOpen++;
+        } else {
+          // Jika data existing (Week sekarang + Cell Down Name) TIDAK ada di file upload → Status: CLOSE
+          willBeClose++;
+        }
+      } else {
+        // Data di week lain (bukan previous atau current)
+        if (cellDownNameInUpload) {
+          // Jika Cell Down Name ada di upload → Status: OPEN
+          willBeOpen++;
+        } else {
+          // Jika Cell Down Name TIDAK ada di upload → Status: CLOSE
+          willBeClose++;
         }
       }
     }
     
     // Log untuk debugging
     console.log('Upload Analysis:', {
+      currentWeek,
+      previousWeek,
       newData,
       updatedData,
       willBeOpen,
@@ -532,11 +555,15 @@ export default function CellDownDataPage() {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // Update status of existing data that wasn't in upload
+      // Update status of existing data based on new logic
       const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
       const uploadWeekCellDownPairs = new Set(
         previewData.map(item => `${item.week}-${item.cellDownName}`)
       );
+      
+      // Get current week from upload data
+      const currentWeek = previewData.length > 0 ? previewData[0].week : 0;
+      const previousWeek = currentWeek - 1;
       
       for (const existingItem of allData) {
         const weekCellDownPair = `${existingItem.week}-${existingItem.cellDownName}`;
@@ -545,30 +572,44 @@ export default function CellDownDataPage() {
         // Check if this Cell Down Name appears in upload data (regardless of week)
         const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
         
-        if (willBeInUpload) {
-          // Jika (Week + Cell Down Name) ada di upload → Status: OPEN (karena akan diupdate)
+        let newStatus = existingItem.status; // Default to current status
+        
+        if (existingItem.week === previousWeek) {
+          // Data di Week sebelumnya
+          if (willBeInUpload) {
+            // Jika data existing (Week sebelumnya + Cell Down Name) ada di file upload → Status: OPEN
+            newStatus = 'open';
+          } else {
+            // Jika data existing (Week sebelumnya + Cell Down Name) TIDAK ada di file upload → Status: CLOSE
+            newStatus = 'close';
+          }
+        } else if (existingItem.week === currentWeek) {
+          // Data di Week sekarang
+          if (willBeInUpload) {
+            // Jika data existing (Week sekarang + Cell Down Name) ada di file upload → Status: OPEN
+            newStatus = 'open';
+          } else {
+            // Jika data existing (Week sekarang + Cell Down Name) TIDAK ada di file upload → Status: CLOSE
+            newStatus = 'close';
+          }
+        } else {
+          // Data di week lain (bukan previous atau current)
+          if (cellDownNameInUpload) {
+            // Jika Cell Down Name ada di upload → Status: OPEN
+            newStatus = 'open';
+          } else {
+            // Jika Cell Down Name TIDAK ada di upload → Status: CLOSE
+            newStatus = 'close';
+          }
+        }
+        
+        // Update status if it changed
+        if (newStatus !== existingItem.status) {
           const docRef = doc(db, 'data_celldown', existingItem.id!);
           await updateDoc(docRef, {
-            status: 'open',
+            status: newStatus,
             updatedAt: new Date()
           });
-        } else {
-          // Jika (Week + Cell Down Name) TIDAK ada di upload
-          if (!cellDownNameInUpload) {
-            // Jika Cell Down Name TIDAK ada di upload sama sekali → Status: CLOSE
-            const docRef = doc(db, 'data_celldown', existingItem.id!);
-            await updateDoc(docRef, {
-              status: 'close',
-              updatedAt: new Date()
-            });
-          } else {
-            // Jika Cell Down Name ada di upload (week berbeda) → Status: OPEN
-            const docRef = doc(db, 'data_celldown', existingItem.id!);
-            await updateDoc(docRef, {
-              status: 'open',
-              updatedAt: new Date()
-            });
-          }
         }
       }
 
