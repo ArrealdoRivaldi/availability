@@ -54,23 +54,13 @@ import * as XLSX from 'exceljs';
 interface CellDownData {
   id?: string;
   week: number;
-  regional: string;
   siteId: string;
-  alarmSource: string;
+  cellDownName: string;
   nop: string;
-  districtOperation: string;
-  firstOccurredOn: string;
   agingDown: number;
   rangeAgingDown: string;
-  ticketId: string;
-  alarmName: string;
   siteClass: string;
   subDomain: string;
-  alarmSeverity: string;
-  alarmLocationInfo: string;
-  remarkRedsector: string;
-  remarkSite: string;
-  cellDownName: string;
   rootCause: string;
   detailProblem: string;
   planAction: string;
@@ -330,23 +320,13 @@ export default function CellDownDataPage() {
 
         const rowData: CellDownData = {
           week: parseInt(row.getCell(2)?.value?.toString() || '0'), // Kolom B: Week
-          regional: '',
           siteId: row.getCell(3)?.value?.toString() || '', // Kolom C: Site ID
-          alarmSource: '',
+          cellDownName: row.getCell(4)?.value?.toString() || '', // Kolom D: Cell Down Name
           nop: row.getCell(5)?.value?.toString() || '', // Kolom E: NOP
-          districtOperation: '',
-          firstOccurredOn: '',
           agingDown: parseInt(row.getCell(6)?.value?.toString() || '0'), // Kolom F: AGING DOWN
           rangeAgingDown: row.getCell(7)?.value?.toString() || '', // Kolom G: RANGE AGING DOWN
-          ticketId: '',
-          alarmName: '',
           siteClass: row.getCell(8)?.value?.toString() || '', // Kolom H: SITE CLASS
           subDomain: row.getCell(9)?.value?.toString() || '', // Kolom I: Sub Domain
-          alarmSeverity: '',
-          alarmLocationInfo: '',
-          remarkRedsector: '',
-          remarkSite: '',
-          cellDownName: row.getCell(4)?.value?.toString() || '', // Kolom D: Cell Down Name
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -826,7 +806,6 @@ export default function CellDownDataPage() {
                   <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
                   <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
                   <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
-                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -858,20 +837,12 @@ export default function CellDownDataPage() {
                         />
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Chip 
-                          label={isNewData ? 'New Data' : 'Update'} 
-                          color={isNewData ? 'success' : 'warning'}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
                     </TableRow>
                   );
                 })}
                 {previewData.length > 20 && (
                   <TableRow>
-                    <TableCell colSpan={10} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
+                    <TableCell colSpan={9} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
                       <Typography variant="body2" color="textSecondary">... and {previewData.length - 20} more records</Typography>
                     </TableCell>
                   </TableRow>
