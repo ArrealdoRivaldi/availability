@@ -6,23 +6,13 @@ import * as XLSX from 'exceljs';
 interface CellDownData {
   id?: string;
   week: number;
-  regional: string;
   siteId: string;
-  alarmSource: string;
+  cellDownName: string;
   nop: string;
-  districtOperation: string;
-  firstOccurredOn: string;
   agingDown: number;
   rangeAgingDown: string;
-  ticketId: string;
-  alarmName: string;
   siteClass: string;
   subDomain: string;
-  alarmSeverity: string;
-  alarmLocationInfo: string;
-  remarkRedsector: string;
-  remarkSite: string;
-  cellDownName: string;
   rootCause: string;
   detailProblem: string;
   planAction: string;
@@ -76,7 +66,7 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
       const workbook = new XLSX.Workbook();
       const worksheet = workbook.addWorksheet('Cell Down Data');
 
-             // Define headers (8 upload columns + 7 editable columns + 2 system columns)
+             // Define headers (9 upload columns + 7 editable columns + 2 system columns)
        const headers = [
          'Week',
          'Site ID',
@@ -225,7 +215,7 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
                   <strong>Export will include:</strong>
                 </Typography>
                                  <Typography variant="body2" color="textSecondary">
-                   • All 17 columns (8 upload + 7 editable + 2 system)
+                   • All 18 columns (9 upload + 7 editable + 2 system)
                  </Typography>
                 <Typography variant="body2" color="textSecondary">
                   • Formatted headers with proper column names

@@ -14,23 +14,13 @@ import {
 interface CellDownData {
   id?: string;
   week: number;
-  regional: string;
   siteId: string;
-  alarmSource: string;
+  cellDownName: string;
   nop: string;
-  districtOperation: string;
-  firstOccurredOn: string;
   agingDown: number;
   rangeAgingDown: string;
-  ticketId: string;
-  alarmName: string;
   siteClass: string;
   subDomain: string;
-  alarmSeverity: string;
-  alarmLocationInfo: string;
-  remarkRedsector: string;
-  remarkSite: string;
-  cellDownName: string;
   rootCause: string;
   detailProblem: string;
   planAction: string;
