@@ -855,7 +855,9 @@ export default function CellDownDataPage() {
         resetUploadState();
       }} maxWidth="xl" fullWidth>
         <DialogTitle>
-          Preview Upload Data ({uploadStats.totalUploadedData} records)
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Preview Upload Data
+          </Typography>
           <Box sx={{ mt: 1 }}>
             <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
               Total Data Sekarang: {uploadStats.totalExistingData}
@@ -873,45 +875,41 @@ export default function CellDownDataPage() {
               Week current: {uploadStats.currentWeek}
             </Typography>
             
-            <Box sx={{ mt: 1, p: 1, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-              <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
-                Status Existing (Sebelum Upload):
+            <Box sx={{ mt: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 2 }}>
+              <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Status Existing (Sebelum Upload)
               </Typography>
-              <Typography variant="body2" color="success.main">
+              <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
                 • Status Close existing: {uploadStats.existingCloseBeforeUpload}
               </Typography>
-              <Typography variant="body2" color="warning.main">
+              <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
                 • Status Open existing: {uploadStats.existingOpenBeforeUpload}
               </Typography>
             </Box>
             
-            <Box sx={{ mt: 1, p: 1, backgroundColor: '#e8f5e8', borderRadius: 1 }}>
-              <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
-                Status Data Baru (Dari Upload):
+            <Box sx={{ mt: 2, p: 2, backgroundColor: '#e8f5e8', borderRadius: 2 }}>
+              <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Status Data Baru (Dari Upload)
               </Typography>
-              <Typography variant="body2" color="success.main">
+              <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
                 • Status Close New Data: {uploadStats.newlyAddedClose}
               </Typography>
-              <Typography variant="body2" color="warning.main">
+              <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
                 • Status Open New Data: {uploadStats.newlyAddedOpen}
               </Typography>
             </Box>
             
-            <Box sx={{ mt: 1, p: 1, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
-              <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
-                Status Setelah Upload (Total):
+            <Box sx={{ mt: 2, p: 2, backgroundColor: '#e3f2fd', borderRadius: 2 }}>
+              <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Status Setelah Upload (Total)
               </Typography>
-              <Typography variant="body2" color="success.main">
+              <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
                 • Data dengan status Open: {uploadStats.totalWillBeOpen}
               </Typography>
-              <Typography variant="body2" color="warning.main">
+              <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
                 • Data dengan status Close: {uploadStats.totalWillBeClose}
               </Typography>
             </Box>
-            
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 1, fontSize: '0.875rem' }}>
-              (Data baru yang akan ditambahkan: {uploadStats.newDataCount}, Data yang akan diupdate: {uploadStats.updatedDataCount})
-            </Typography>
           </Box>
         </DialogTitle>
         <DialogContent>
