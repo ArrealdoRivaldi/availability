@@ -429,7 +429,10 @@ export default function CellDownDataPage() {
     // --- Terapkan logika baru untuk menentukan status akhir di simulatedDataMap ---
     const finalSimulatedData: CellDownData[] = [];
 
-    for (const [key, dataItem] of simulatedDataMap.entries()) {
+    // Convert Map to Array to avoid TypeScript iteration issues
+    const simulatedDataArray = Array.from(simulatedDataMap.entries());
+
+    for (const [key, dataItem] of simulatedDataArray) {
       let finalStatus = dataItem.status; // Mulai dengan status saat ini/awal
 
       if (dataItem.week === previousWeek) {
