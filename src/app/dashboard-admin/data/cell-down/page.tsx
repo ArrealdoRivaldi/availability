@@ -171,6 +171,8 @@ export default function CellDownDataPage() {
   });
   const [chunkProgress, setChunkProgress] = useState({ current: 0, total: 0, percentage: 0 });
   const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [showUploadAnimation, setShowUploadAnimation] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -543,6 +545,9 @@ export default function CellDownDataPage() {
 
     if (previewData.length === 0) return;
 
+    // Close preview and show upload animation
+    setShowPreview(false);
+    setShowUploadAnimation(true);
     setUploading(true);
     setUploadProgress(0);
     setUploadStatus('Starting upload process...');
@@ -649,23 +654,22 @@ export default function CellDownDataPage() {
         }
       }
 
-      // Show success message with detailed information
-      const successMessage = `Upload berhasil! 
-        - Data baru yang ditambahkan: ${newDataCount}
-        - Data yang diupdate: ${updatedDataCount}
-        - Total data yang diproses: ${previewData.length}
-        - Data dengan status Open setelah upload: ${uploadStats.totalWillBeOpen}
-        - Data dengan status Close setelah upload: ${uploadStats.totalWillBeClose}`;
+      // Show success message with clean UI
+      setShowUploadAnimation(false);
+      setShowSuccessMessage(true);
       
-      alert(successMessage);
+      // Auto hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000);
       
-      setShowPreview(false);
       resetUploadState();
       
       // Reload data to show updated information
       loadData();
     } catch (error) {
       console.error('Error uploading data:', error);
+      setShowUploadAnimation(false);
       alert('Error uploading data. Please try again.');
     } finally {
       setUploading(false);
@@ -1475,6 +1479,184 @@ export default function CellDownDataPage() {
       </Card>
 
       <CellDownDetailView open={detailModal} onClose={() => setDetailModal(false)} data={selectedData} />
+
+      {/* Upload Animation Dialog */}
+      <Dialog 
+        open={showUploadAnimation} 
+        onClose={() => {}} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '300px'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(4px)'
+          }
+        }}
+      >
+        <Box sx={{ 
+          textAlign: 'center', 
+          p: 4,
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          minWidth: '400px'
+        }}>
+          {/* Animated Upload Icon */}
+          <Box sx={{ 
+            position: 'relative',
+            display: 'inline-block',
+            mb: 3
+          }}>
+            <CloudUploadIcon 
+              sx={{ 
+                fontSize: 80, 
+                color: 'primary.main',
+                animation: 'pulse 2s infinite',
+                '@keyframes pulse': {
+                  '0%': { transform: 'scale(1)', opacity: 1 },
+                  '50%': { transform: 'scale(1.1)', opacity: 0.7 },
+                  '100%': { transform: 'scale(1)', opacity: 1 }
+                }
+              }} 
+            />
+            <CircularProgress
+              size={90}
+              thickness={2}
+              sx={{
+                position: 'absolute',
+                top: -5,
+                left: -5,
+                color: 'primary.main',
+                animation: 'spin 2s linear infinite',
+                '@keyframes spin': {
+                  '0%': { transform: 'rotate(0deg)' },
+                  '100%': { transform: 'rotate(360deg)' }
+                }
+              }}
+            />
+          </Box>
+
+          {/* Upload Status */}
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+            Uploading Data...
+          </Typography>
+          
+          <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
+            {uploadStatus || 'Processing your data...'}
+          </Typography>
+
+          {/* Progress Bar */}
+          <Box sx={{ width: '100%', mb: 2 }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={uploadProgress} 
+              sx={{ 
+                height: 8, 
+                borderRadius: 4,
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 4,
+                  background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)'
+                }
+              }} 
+            />
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+              {Math.round(uploadProgress)}% Complete
+            </Typography>
+          </Box>
+
+          {/* Chunk Progress */}
+          {chunkProgress.total > 0 && (
+            <Typography variant="body2" color="textSecondary">
+              Chunk {chunkProgress.current} of {chunkProgress.total} ({chunkProgress.percentage}%)
+            </Typography>
+          )}
+        </Box>
+      </Dialog>
+
+      {/* Success Message Dialog */}
+      <Dialog 
+        open={showSuccessMessage} 
+        onClose={() => setShowSuccessMessage(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '250px'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)'
+          }
+        }}
+      >
+        <Box sx={{ 
+          textAlign: 'center', 
+          p: 4,
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          minWidth: '350px',
+          animation: 'slideIn 0.5s ease-out',
+          '@keyframes slideIn': {
+            '0%': { transform: 'translateY(-50px)', opacity: 0 },
+            '100%': { transform: 'translateY(0)', opacity: 1 }
+          }
+        }}>
+          {/* Success Icon with Animation */}
+          <Box sx={{ 
+            position: 'relative',
+            display: 'inline-block',
+            mb: 3
+          }}>
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              backgroundColor: 'success.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'bounce 0.6s ease-out',
+              '@keyframes bounce': {
+                '0%': { transform: 'scale(0.3)', opacity: 0 },
+                '50%': { transform: 'scale(1.1)', opacity: 1 },
+                '100%': { transform: 'scale(1)', opacity: 1 }
+              }
+            }}>
+              <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                ✓
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Success Message */}
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'success.main' }}>
+            Upload Berhasil!
+          </Typography>
+          
+          <Typography variant="body1" color="textSecondary">
+            Data berhasil diupload ke sistem
+          </Typography>
+        </Box>
+      </Dialog>
     </Box>
   );
 }
