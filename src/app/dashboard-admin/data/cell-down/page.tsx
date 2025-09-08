@@ -33,10 +33,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  CircularProgress,
-  Fade,
-  Slide,
-  Backdrop
+  CircularProgress
 } from '@mui/material';
 import {
   Upload as UploadIcon,
@@ -122,31 +119,6 @@ const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
 
 export default function CellDownDataPage() {
-  // Add CSS keyframes for pulse animation
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(1.1);
-          opacity: 0.7;
-        }
-        100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
   const [data, setData] = useState<CellDownData[]>([]);
   const [allData, setAllData] = useState<CellDownData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -199,7 +171,6 @@ export default function CellDownDataPage() {
   });
   const [chunkProgress, setChunkProgress] = useState({ current: 0, total: 0, percentage: 0 });
   const [uploadStatus, setUploadStatus] = useState<string>('');
-  const [showUploadAnimation, setShowUploadAnimation] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -562,7 +533,6 @@ export default function CellDownDataPage() {
     setUploadStatus('');
     setUploadProgress(0);
     setUploading(false);
-    setShowUploadAnimation(false);
   };
 
   const confirmUpload = async () => {
@@ -574,7 +544,6 @@ export default function CellDownDataPage() {
     if (previewData.length === 0) return;
 
     setUploading(true);
-    setShowUploadAnimation(true);
     setUploadProgress(0);
     setUploadStatus('Starting upload process...');
     
@@ -688,9 +657,6 @@ export default function CellDownDataPage() {
         - Data dengan status Open setelah upload: ${uploadStats.totalWillBeOpen}
         - Data dengan status Close setelah upload: ${uploadStats.totalWillBeClose}`;
       
-      // Add a small delay to show completion animation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       alert(successMessage);
       
       setShowPreview(false);
@@ -703,7 +669,6 @@ export default function CellDownDataPage() {
       alert('Error uploading data. Please try again.');
     } finally {
       setUploading(false);
-      setShowUploadAnimation(false);
       setUploadProgress(0);
       setChunkProgress({ current: 0, total: 0, percentage: 0 });
       setUploadStatus('');
@@ -851,70 +816,6 @@ export default function CellDownDataPage() {
               </Grid>
             </Grid>
             
-            {uploading && (
-              <Fade in={uploading} timeout={300}>
-                <Box sx={{ mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <CircularProgress 
-                      size={24} 
-                      thickness={4}
-                      sx={{ 
-                        color: 'primary.main',
-                        animation: 'pulse 2s infinite'
-                      }}
-                    />
-                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                      {uploadStatus || `Processing: ${Math.round(uploadProgress)}%`}
-                    </Typography>
-                  </Box>
-                  
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={uploadProgress} 
-                    sx={{ 
-                      height: 8, 
-                      borderRadius: 4,
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                      '& .MuiLinearProgress-bar': {
-                        borderRadius: 4,
-                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-                      }
-                    }}
-                  />
-                  
-                  <Typography variant="body2" sx={{ mt: 1, textAlign: 'center', color: 'text.secondary' }}>
-                    {Math.round(uploadProgress)}% Complete
-                  </Typography>
-                  
-                  {/* Chunk Progress Display */}
-                  {chunkProgress.total > 0 && (
-                    <Slide direction="up" in={chunkProgress.total > 0} timeout={500}>
-                      <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(33, 150, 243, 0.1)', borderRadius: 2 }}>
-                        <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mb: 1 }}>
-                          Upload Progress: {chunkProgress.current}/{chunkProgress.total} chunks
-                        </Typography>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={chunkProgress.percentage} 
-                          sx={{ 
-                            height: 6, 
-                            borderRadius: 3,
-                            backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                            '& .MuiLinearProgress-bar': {
-                              borderRadius: 3,
-                              background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)'
-                            }
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
-                          {chunkProgress.percentage}% of chunks processed
-                        </Typography>
-                      </Box>
-                    </Slide>
-                  )}
-                </Box>
-              </Fade>
-            )}
           </CardContent>
         </Card>
       ) : (
@@ -1574,59 +1475,6 @@ export default function CellDownDataPage() {
       </Card>
 
       <CellDownDetailView open={detailModal} onClose={() => setDetailModal(false)} data={selectedData} />
-      
-      {/* Full-screen loading backdrop during upload */}
-      <Backdrop
-        sx={{ 
-          color: '#fff', 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)'
-        }}
-        open={showUploadAnimation}
-      >
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          gap: 3,
-          textAlign: 'center'
-        }}>
-          <CircularProgress 
-            size={60} 
-            thickness={4}
-            sx={{ 
-              color: 'white',
-              animation: 'pulse 2s infinite'
-            }}
-          />
-          <Typography variant="h6" sx={{ color: 'white', fontWeight: 'medium' }}>
-            {uploadStatus || 'Processing your file...'}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            Please wait while we process your Excel file
-          </Typography>
-          {uploadProgress > 0 && (
-            <Box sx={{ width: '300px', mt: 2 }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={uploadProgress} 
-                sx={{ 
-                  height: 8, 
-                  borderRadius: 4,
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 4,
-                    background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)'
-                  }
-                }}
-              />
-              <Typography variant="body2" sx={{ mt: 1, color: 'rgba(255, 255, 255, 0.9)' }}>
-                {Math.round(uploadProgress)}% Complete
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </Backdrop>
     </Box>
   );
 }
