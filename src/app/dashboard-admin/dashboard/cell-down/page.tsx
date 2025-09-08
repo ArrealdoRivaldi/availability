@@ -28,7 +28,6 @@ import {
   SelectChangeEvent,
   Divider,
   alpha,
-  Slider,
   Stack
 } from '@mui/material';
 import { Refresh as RefreshIcon, FilterList as FilterIcon } from '@mui/icons-material';
@@ -42,6 +41,7 @@ export default function CellDownDashboardPage() {
   const [weekFilter, setWeekFilter] = useState<string>('');
   const [nopFilter, setNopFilter] = useState<string>('');
   const [agingRangeFilter, setAgingRangeFilter] = useState<[number, number]>([0, 100]);
+  const [selectedAgingCategory, setSelectedAgingCategory] = useState<string>('');
 
   useEffect(() => {
     fetchCellDownData();
@@ -49,7 +49,7 @@ export default function CellDownDashboardPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [cellDownData, weekFilter, nopFilter, agingRangeFilter]);
+  }, [cellDownData, weekFilter, nopFilter, agingRangeFilter, selectedAgingCategory]);
 
   const fetchCellDownData = async () => {
     try {
@@ -97,16 +97,21 @@ export default function CellDownDashboardPage() {
       );
     }
 
-    // Filter by aging down range
-    if (agingRangeFilter[0] > 0 || agingRangeFilter[1] < 100) {
-      filtered = filtered.filter(item => {
-        if (item.agingDown === undefined || item.agingDown === null) return false;
-        
-        const aging = Number(item.agingDown);
-        if (isNaN(aging)) return false;
-        
-        return aging >= agingRangeFilter[0] && aging <= agingRangeFilter[1];
-      });
+    // Filter by aging down category
+    if (selectedAgingCategory) {
+      const agingCategories = getAgingCategories();
+      const selectedCategory = agingCategories.find(cat => cat.label === selectedAgingCategory);
+      
+      if (selectedCategory) {
+        filtered = filtered.filter(item => {
+          if (item.agingDown === undefined || item.agingDown === null) return false;
+          
+          const aging = Number(item.agingDown);
+          if (isNaN(aging)) return false;
+          
+          return aging >= selectedCategory.min && (selectedCategory.max === Infinity || aging <= selectedCategory.max);
+        });
+      }
     }
 
     setFilteredData(filtered);
@@ -116,6 +121,7 @@ export default function CellDownDashboardPage() {
     setWeekFilter('');
     setNopFilter('');
     setAgingRangeFilter([0, 100]);
+    setSelectedAgingCategory('');
   };
 
   // Get unique values for filter options
@@ -439,68 +445,44 @@ export default function CellDownDashboardPage() {
             </Grid>
             
             <Grid item xs={12} md={4}>
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: alpha('#1976d2', 0.05),
-                border: `1px solid ${alpha('#1976d2', 0.2)}`
-              }}>
-                <Typography variant="subtitle1" sx={{ 
-                  fontWeight: 600, 
-                  color: '#1976d2', 
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center'
+              <FormControl fullWidth size="medium">
+                <InputLabel sx={{ 
+                  color: '#666',
+                  fontWeight: 500,
+                  '&.Mui-focused': { color: '#1976d2' }
                 }}>
                   RANGE AGING DOWN
-                </Typography>
-                <Box sx={{ px: 1 }}>
-                  <Slider
-                    value={agingRangeFilter}
-                    onChange={(_, newValue) => setAgingRangeFilter(newValue as [number, number])}
-                    valueLabelDisplay="auto"
-                    min={0}
-                    max={100}
-                    step={1}
-                    sx={{
-                      color: '#1976d2',
-                      '& .MuiSlider-thumb': {
-                        width: 20,
-                        height: 20,
-                        backgroundColor: '#1976d2',
-                        border: '3px solid white',
-                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
-                        '&:hover': {
-                          boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)'
-                        }
-                      },
-                      '& .MuiSlider-track': {
-                        height: 6,
-                        borderRadius: 3
-                      },
-                      '& .MuiSlider-rail': {
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: alpha('#1976d2', 0.2)
-                      },
-                      '& .MuiSlider-valueLabel': {
-                        backgroundColor: '#1976d2',
-                        borderRadius: 2,
-                        fontSize: '0.75rem',
-                        fontWeight: 600
-                      }
-                    }}
-                  />
-                </Box>
-                <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                    {agingRangeFilter[0]} days
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                    {agingRangeFilter[1]} days
-                  </Typography>
-                </Stack>
-              </Box>
+                </InputLabel>
+                <Select
+                  value={selectedAgingCategory}
+                  label="RANGE AGING DOWN"
+                  onChange={(e: SelectChangeEvent) => setSelectedAgingCategory(e.target.value)}
+                  sx={{
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#e0e0e0',
+                      borderWidth: 2
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    }
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>All Categories</em>
+                  </MenuItem>
+                  {getAgingCategories().map((category) => (
+                    <MenuItem key={category.label} value={category.label}>
+                      {category.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             
             <Grid item xs={12} md={2}>
