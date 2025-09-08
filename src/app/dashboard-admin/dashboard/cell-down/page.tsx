@@ -39,6 +39,8 @@ export default function CellDownDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [weekFilter, setWeekFilter] = useState<string>('');
   const [nopFilter, setNopFilter] = useState<string>('');
+  const [agingMinFilter, setAgingMinFilter] = useState<number | ''>('');
+  const [agingMaxFilter, setAgingMaxFilter] = useState<number | ''>('');
 
   useEffect(() => {
     fetchCellDownData();
@@ -46,7 +48,7 @@ export default function CellDownDashboardPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [cellDownData, weekFilter, nopFilter]);
+  }, [cellDownData, weekFilter, nopFilter, agingMinFilter, agingMaxFilter]);
 
   const fetchCellDownData = async () => {
     try {
@@ -94,12 +96,29 @@ export default function CellDownDashboardPage() {
       );
     }
 
+    // Filter by aging down range
+    if (agingMinFilter !== '' || agingMaxFilter !== '') {
+      filtered = filtered.filter(item => {
+        if (item.agingDown === undefined || item.agingDown === null) return false;
+        
+        const aging = Number(item.agingDown);
+        if (isNaN(aging)) return false;
+        
+        const minCheck = agingMinFilter === '' || aging >= agingMinFilter;
+        const maxCheck = agingMaxFilter === '' || aging <= agingMaxFilter;
+        
+        return minCheck && maxCheck;
+      });
+    }
+
     setFilteredData(filtered);
   };
 
   const clearFilters = () => {
     setWeekFilter('');
     setNopFilter('');
+    setAgingMinFilter('');
+    setAgingMaxFilter('');
   };
 
   // Get unique values for filter options
@@ -119,6 +138,50 @@ export default function CellDownDashboardPage() {
       .filter((nop, index, arr) => arr.indexOf(nop) === index)
       .sort();
     return nops;
+  };
+
+  // Generate dynamic aging categories based on filter range
+  const getAgingCategories = () => {
+    const minAging = agingMinFilter !== '' ? agingMinFilter : 0;
+    const maxAging = agingMaxFilter !== '' ? agingMaxFilter : 100;
+    
+    // If no range is set, use default categories
+    if (agingMinFilter === '' && agingMaxFilter === '') {
+      return [
+        { label: '8-30 Days', min: 8, max: 30 },
+        { label: '30-60 Days', min: 30, max: 60 },
+        { label: '>60 Days', min: 60, max: Infinity }
+      ];
+    }
+    
+    // Create dynamic categories based on the range
+    const range = maxAging - minAging;
+    const categories = [];
+    
+    if (range <= 30) {
+      // Small range: create 3 equal parts
+      const step = Math.ceil(range / 3);
+      categories.push({ label: `${minAging}-${minAging + step} Days`, min: minAging, max: minAging + step });
+      categories.push({ label: `${minAging + step + 1}-${minAging + step * 2} Days`, min: minAging + step + 1, max: minAging + step * 2 });
+      categories.push({ label: `>${minAging + step * 2} Days`, min: minAging + step * 2 + 1, max: Infinity });
+    } else if (range <= 60) {
+      // Medium range: create 4 equal parts
+      const step = Math.ceil(range / 4);
+      categories.push({ label: `${minAging}-${minAging + step} Days`, min: minAging, max: minAging + step });
+      categories.push({ label: `${minAging + step + 1}-${minAging + step * 2} Days`, min: minAging + step + 1, max: minAging + step * 2 });
+      categories.push({ label: `${minAging + step * 2 + 1}-${minAging + step * 3} Days`, min: minAging + step * 2 + 1, max: minAging + step * 3 });
+      categories.push({ label: `>${minAging + step * 3} Days`, min: minAging + step * 3 + 1, max: Infinity });
+    } else {
+      // Large range: create 5 equal parts
+      const step = Math.ceil(range / 5);
+      categories.push({ label: `${minAging}-${minAging + step} Days`, min: minAging, max: minAging + step });
+      categories.push({ label: `${minAging + step + 1}-${minAging + step * 2} Days`, min: minAging + step + 1, max: minAging + step * 2 });
+      categories.push({ label: `${minAging + step * 2 + 1}-${minAging + step * 3} Days`, min: minAging + step * 2 + 1, max: minAging + step * 3 });
+      categories.push({ label: `${minAging + step * 3 + 1}-${minAging + step * 4} Days`, min: minAging + step * 3 + 1, max: minAging + step * 4 });
+      categories.push({ label: `>${minAging + step * 4} Days`, min: minAging + step * 4 + 1, max: Infinity });
+    }
+    
+    return categories;
   };
 
   // Process data for charts and tables using filtered data
@@ -174,22 +237,29 @@ export default function CellDownDashboardPage() {
       return acc;
     }, {} as Record<string, { total: number; progress: number; status: number }>);
 
-    // Aging data
+    // Aging data with dynamic categories
+    const agingCategories = getAgingCategories();
     const agingData = filteredData.reduce((acc, item) => {
       if (item.nop && typeof item.nop === 'string' && item.nop.trim() && item.agingDown !== undefined) {
         if (!acc[item.nop]) {
-          acc[item.nop] = { '8-30': 0, '30-60': 0, '>60': 0 };
+          acc[item.nop] = agingCategories.reduce((catAcc, category) => {
+            catAcc[category.label] = 0;
+            return catAcc;
+          }, {} as Record<string, number>);
         }
-        if (item.agingDown >= 8 && item.agingDown <= 30) {
-          acc[item.nop]['8-30']++;
-        } else if (item.agingDown > 30 && item.agingDown <= 60) {
-          acc[item.nop]['30-60']++;
-        } else if (item.agingDown > 60) {
-          acc[item.nop]['>60']++;
+        
+        const aging = Number(item.agingDown);
+        if (!isNaN(aging)) {
+          for (const category of agingCategories) {
+            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
+              acc[item.nop][category.label]++;
+              break;
+            }
+          }
         }
       }
       return acc;
-    }, {} as Record<string, { '8-30': number; '30-60': number; '>60': number }>);
+    }, {} as Record<string, Record<string, number>>);
 
     return {
       weeklyData,
@@ -197,7 +267,8 @@ export default function CellDownDashboardPage() {
       picDeptData,
       siteClassData,
       nopData,
-      agingData
+      agingData,
+      agingCategories
     };
   };
 
@@ -256,7 +327,7 @@ export default function CellDownDashboardPage() {
           </Box>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel sx={{ color: '#666' }}>Filter by Week</InputLabel>
                 <Select
@@ -279,7 +350,7 @@ export default function CellDownDashboardPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel sx={{ color: '#666' }}>Filter by NOP</InputLabel>
                 <Select
@@ -302,7 +373,39 @@ export default function CellDownDashboardPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Min Aging (Days)"
+                type="number"
+                value={agingMinFilter}
+                onChange={(e) => setAgingMinFilter(e.target.value === '' ? '' : Number(e.target.value))}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' },
+                  '& .MuiInputLabel-root': { color: '#666' }
+                }}
+                inputProps={{ min: 0 }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Max Aging (Days)"
+                type="number"
+                value={agingMaxFilter}
+                onChange={(e) => setAgingMaxFilter(e.target.value === '' ? '' : Number(e.target.value))}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' },
+                  '& .MuiInputLabel-root': { color: '#666' }
+                }}
+                inputProps={{ min: 0 }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 <Button 
                   variant="outlined" 
@@ -334,7 +437,7 @@ export default function CellDownDashboardPage() {
 
       <Grid container spacing={3}>
         {/* Trend Cell Down Chart */}
-        <Grid item xs={12} lg={6}>
+        <Grid item xs={12}>
           <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
@@ -343,7 +446,7 @@ export default function CellDownDashboardPage() {
               <Chart
                 chartType="ColumnChart"
                 width="100%"
-                height="300px"
+                height="400px"
                 data={
                   Object.keys(data.weeklyData || {}).length > 0 
                     ? [
@@ -387,7 +490,7 @@ export default function CellDownDashboardPage() {
         </Grid>
 
         {/* Root Cause Chart */}
-        <Grid item xs={12} lg={6}>
+        <Grid item xs={12}>
           <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
@@ -396,7 +499,7 @@ export default function CellDownDashboardPage() {
               <Chart
                 chartType="BarChart"
                 width="100%"
-                height="300px"
+                height="400px"
                 data={
                   Object.keys(data.rootCauseData || {}).length > 0
                     ? [
@@ -573,31 +676,31 @@ export default function CellDownDashboardPage() {
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#fafafa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>NOP</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>8-30 Days</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>30-60 Days</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>&gt;60 Days</TableCell>
+                      {data.agingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>
+                          {category.label}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {Object.entries(data.agingData || {}).map(([nop, aging]) => (
                       <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                         <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{aging['8-30']}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{aging['30-60']}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{aging['>60']}</TableCell>
+                        {data.agingCategories?.map((category) => (
+                          <TableCell key={category.label} align="right" sx={{ fontSize: '0.875rem' }}>
+                            {aging[category.label] || 0}
+                          </TableCell>
+                        ))}
                       </TableRow>
                     ))}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {Object.values(data.agingData || {}).reduce((a, b) => a + b['8-30'], 0)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {Object.values(data.agingData || {}).reduce((a, b) => a + b['30-60'], 0)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {Object.values(data.agingData || {}).reduce((a, b) => a + b['>60'], 0)}
-                      </TableCell>
+                      {data.agingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {Object.values(data.agingData || {}).reduce((a, b) => a + (b[category.label] || 0), 0)}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   </TableBody>
                 </Table>
