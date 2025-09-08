@@ -27,7 +27,9 @@ import {
   MenuItem,
   SelectChangeEvent,
   Divider,
-  alpha
+  alpha,
+  Slider,
+  Stack
 } from '@mui/material';
 import { Refresh as RefreshIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { Chart } from 'react-google-charts';
@@ -39,8 +41,7 @@ export default function CellDownDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [weekFilter, setWeekFilter] = useState<string>('');
   const [nopFilter, setNopFilter] = useState<string>('');
-  const [agingMinFilter, setAgingMinFilter] = useState<number | ''>('');
-  const [agingMaxFilter, setAgingMaxFilter] = useState<number | ''>('');
+  const [agingRangeFilter, setAgingRangeFilter] = useState<[number, number]>([0, 100]);
 
   useEffect(() => {
     fetchCellDownData();
@@ -48,7 +49,7 @@ export default function CellDownDashboardPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [cellDownData, weekFilter, nopFilter, agingMinFilter, agingMaxFilter]);
+  }, [cellDownData, weekFilter, nopFilter, agingRangeFilter]);
 
   const fetchCellDownData = async () => {
     try {
@@ -97,17 +98,14 @@ export default function CellDownDashboardPage() {
     }
 
     // Filter by aging down range
-    if (agingMinFilter !== '' || agingMaxFilter !== '') {
+    if (agingRangeFilter[0] > 0 || agingRangeFilter[1] < 100) {
       filtered = filtered.filter(item => {
         if (item.agingDown === undefined || item.agingDown === null) return false;
         
         const aging = Number(item.agingDown);
         if (isNaN(aging)) return false;
         
-        const minCheck = agingMinFilter === '' || aging >= agingMinFilter;
-        const maxCheck = agingMaxFilter === '' || aging <= agingMaxFilter;
-        
-        return minCheck && maxCheck;
+        return aging >= agingRangeFilter[0] && aging <= agingRangeFilter[1];
       });
     }
 
@@ -117,8 +115,7 @@ export default function CellDownDashboardPage() {
   const clearFilters = () => {
     setWeekFilter('');
     setNopFilter('');
-    setAgingMinFilter('');
-    setAgingMaxFilter('');
+    setAgingRangeFilter([0, 100]);
   };
 
   // Get unique values for filter options
@@ -142,11 +139,11 @@ export default function CellDownDashboardPage() {
 
   // Generate dynamic aging categories based on filter range
   const getAgingCategories = () => {
-    const minAging = agingMinFilter !== '' ? agingMinFilter : 0;
-    const maxAging = agingMaxFilter !== '' ? agingMaxFilter : 100;
+    const minAging = agingRangeFilter[0];
+    const maxAging = agingRangeFilter[1];
     
     // If no range is set, use default categories
-    if (agingMinFilter === '' && agingMaxFilter === '') {
+    if (minAging === 0 && maxAging === 100) {
       return [
         { label: '8-30 Days', min: 8, max: 30 },
         { label: '30-60 Days', min: 30, max: 60 },
@@ -317,26 +314,75 @@ export default function CellDownDashboardPage() {
       </Box>
 
       {/* Filter Section */}
-      <Card sx={{ mb: 3, borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <FilterIcon sx={{ mr: 1, color: '#1976d2' }} />
-            <Typography variant="h6" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+      <Card sx={{ 
+        mb: 3, 
+        borderRadius: 3, 
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+        border: '1px solid rgba(25, 118, 210, 0.1)'
+      }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              width: 40, 
+              height: 40, 
+              borderRadius: '50%', 
+              backgroundColor: alpha('#1976d2', 0.1),
+              mr: 2
+            }}>
+              <FilterIcon sx={{ color: '#1976d2', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h5" sx={{ 
+              fontWeight: 600, 
+              color: '#1a1a1a',
+              background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
               Filters
             </Typography>
           </Box>
-          <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={3} alignItems="center">
+          
+          <Divider sx={{ 
+            mb: 3, 
+            borderColor: alpha('#1976d2', 0.2),
+            '&::before, &::after': {
+              borderColor: alpha('#1976d2', 0.2)
+            }
+          }} />
+          
+          <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel sx={{ color: '#666' }}>Filter by Week</InputLabel>
+              <FormControl fullWidth size="medium">
+                <InputLabel sx={{ 
+                  color: '#666',
+                  fontWeight: 500,
+                  '&.Mui-focused': { color: '#1976d2' }
+                }}>
+                  Filter by Week
+                </InputLabel>
                 <Select
                   value={weekFilter}
                   label="Filter by Week"
                   onChange={(e: SelectChangeEvent) => setWeekFilter(e.target.value)}
                   sx={{
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' }
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#e0e0e0',
+                      borderWidth: 2
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    }
                   }}
                 >
                   <MenuItem value="">
@@ -350,16 +396,34 @@ export default function CellDownDashboardPage() {
                 </Select>
               </FormControl>
             </Grid>
+            
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel sx={{ color: '#666' }}>Filter by NOP</InputLabel>
+              <FormControl fullWidth size="medium">
+                <InputLabel sx={{ 
+                  color: '#666',
+                  fontWeight: 500,
+                  '&.Mui-focused': { color: '#1976d2' }
+                }}>
+                  Filter by NOP
+                </InputLabel>
                 <Select
                   value={nopFilter}
                   label="Filter by NOP"
                   onChange={(e: SelectChangeEvent) => setNopFilter(e.target.value)}
                   sx={{
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' }
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#e0e0e0',
+                      borderWidth: 2
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    }
                   }}
                 >
                   <MenuItem value="">
@@ -373,48 +437,91 @@ export default function CellDownDashboardPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Min Aging (Days)"
-                type="number"
-                value={agingMinFilter}
-                onChange={(e) => setAgingMinFilter(e.target.value === '' ? '' : Number(e.target.value))}
-                sx={{
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' },
-                  '& .MuiInputLabel-root': { color: '#666' }
-                }}
-                inputProps={{ min: 0 }}
-              />
+            
+            <Grid item xs={12} md={4}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: alpha('#1976d2', 0.05),
+                border: `1px solid ${alpha('#1976d2', 0.2)}`
+              }}>
+                <Typography variant="subtitle1" sx={{ 
+                  fontWeight: 600, 
+                  color: '#1976d2', 
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  RANGE AGING DOWN
+                </Typography>
+                <Box sx={{ px: 1 }}>
+                  <Slider
+                    value={agingRangeFilter}
+                    onChange={(_, newValue) => setAgingRangeFilter(newValue as [number, number])}
+                    valueLabelDisplay="auto"
+                    min={0}
+                    max={100}
+                    step={1}
+                    sx={{
+                      color: '#1976d2',
+                      '& .MuiSlider-thumb': {
+                        width: 20,
+                        height: 20,
+                        backgroundColor: '#1976d2',
+                        border: '3px solid white',
+                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
+                        '&:hover': {
+                          boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)'
+                        }
+                      },
+                      '& .MuiSlider-track': {
+                        height: 6,
+                        borderRadius: 3
+                      },
+                      '& .MuiSlider-rail': {
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: alpha('#1976d2', 0.2)
+                      },
+                      '& .MuiSlider-valueLabel': {
+                        backgroundColor: '#1976d2',
+                        borderRadius: 2,
+                        fontSize: '0.75rem',
+                        fontWeight: 600
+                      }
+                    }}
+                  />
+                </Box>
+                <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    {agingRangeFilter[0]} days
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    {agingRangeFilter[1]} days
+                  </Typography>
+                </Stack>
+              </Box>
             </Grid>
+            
             <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Max Aging (Days)"
-                type="number"
-                value={agingMaxFilter}
-                onChange={(e) => setAgingMaxFilter(e.target.value === '' ? '' : Number(e.target.value))}
-                sx={{
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' },
-                  '& .MuiInputLabel-root': { color: '#666' }
-                }}
-                inputProps={{ min: 0 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Stack spacing={2} alignItems="center">
                 <Button 
                   variant="outlined" 
                   onClick={clearFilters}
-                  size="small"
+                  size="medium"
                   sx={{ 
+                    borderRadius: 2,
+                    px: 3,
+                    py: 1.5,
                     borderColor: '#e0e0e0',
                     color: '#666',
-                    '&:hover': { borderColor: '#1976d2', color: '#1976d2' }
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    '&:hover': { 
+                      borderColor: '#1976d2', 
+                      color: '#1976d2',
+                      backgroundColor: alpha('#1976d2', 0.05)
+                    }
                   }}
                 >
                   Clear Filters
@@ -426,10 +533,13 @@ export default function CellDownDashboardPage() {
                   sx={{ 
                     backgroundColor: alpha('#1976d2', 0.1),
                     borderColor: '#1976d2',
-                    color: '#1976d2'
+                    color: '#1976d2',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    height: 32
                   }}
                 />
-              </Box>
+              </Stack>
             </Grid>
           </Grid>
         </CardContent>
