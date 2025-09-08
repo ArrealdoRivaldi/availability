@@ -93,6 +93,7 @@ interface FilterData {
   picDept: string;
   progress: string;
   status: string;
+  rangeAgingDown: string;
 }
 
 interface UploadStats {
@@ -146,11 +147,13 @@ export default function CellDownDataPage() {
     siteClass: '',
     picDept: '',
     progress: '',
-    status: ''
+    status: '',
+    rangeAgingDown: ''
   });
   const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
   const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
+  const [uniqueRangeAgingDown, setUniqueRangeAgingDown] = useState<string[]>([]);
   
   // New state for enhanced upload functionality
   const [uploadStats, setUploadStats] = useState<UploadStats>({ 
@@ -218,6 +221,10 @@ export default function CellDownDataPage() {
       // Extract unique weeks for filter dropdown
       const weeks = Array.from(new Set(allData.map(item => item.week).filter(Boolean))).sort((a, b) => a - b);
       setUniqueWeeks(weeks);
+      
+      // Extract unique range aging down for filter dropdown
+      const rangeAgingDown = Array.from(new Set(allData.map(item => item.rangeAgingDown).filter(Boolean))).sort();
+      setUniqueRangeAgingDown(rangeAgingDown);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -268,6 +275,9 @@ export default function CellDownDataPage() {
     if (filters.status) {
       filtered = filtered.filter(item => item.status === filters.status);
     }
+    if (filters.rangeAgingDown) {
+      filtered = filtered.filter(item => item.rangeAgingDown === filters.rangeAgingDown);
+    }
 
     setFilteredData(filtered);
     setPage(0); // Reset to first page when filters change
@@ -281,7 +291,8 @@ export default function CellDownDataPage() {
       siteClass: '',
       picDept: '',
       progress: '',
-      status: ''
+      status: '',
+      rangeAgingDown: ''
     });
     setSearchTerm('');
     setSearchField('all');
@@ -1230,6 +1241,21 @@ export default function CellDownDataPage() {
                     </Select>
                   </FormControl>
                 </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Range Aging Down</InputLabel>
+                    <Select 
+                      value={filters.rangeAgingDown} 
+                      onChange={(e) => handleFilterChange('rangeAgingDown', e.target.value)} 
+                      label="Range Aging Down"
+                    >
+                      <MenuItem value="">All Range Aging Down</MenuItem>
+                      {uniqueRangeAgingDown.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
                 </Grid>
               )}
             </AccordionDetails>
@@ -1328,6 +1354,14 @@ export default function CellDownDataPage() {
                     }
                     size="small" 
                     onDelete={() => handleFilterChange('status', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
+                {filters.rangeAgingDown && (
+                  <Chip 
+                    label={`Range Aging Down: ${filters.rangeAgingDown}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('rangeAgingDown', '')}
                     deleteIcon={<ClearIcon />}
                   />
                 )}
