@@ -450,6 +450,7 @@ export default function CellDownDataPage() {
   // - Jika data tidak cocok data di kolom status isinya Close
   const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
     const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0; // Week yang diupload
+    const maxExistingWeek = allData.length > 0 ? Math.max(...allData.map(d => d.week)) : 0; // Week terbesar yang ada di database
     const targetWeek = currentWeek - 1; // Week yang akan diupdate (1 tingkat di bawah week upload)
 
     // 1. Hitungan awal dari data yang sudah ada (existing)
@@ -945,24 +946,13 @@ export default function CellDownDataPage() {
               const weeks = Array.from(new Set(allData.map(d => d.week))).sort((a, b) => a - b);
               const currentWeek = uploadStats.currentWeek;
               const targetWeek = uploadStats.previousWeek;
-              const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
               
               return weeks.map(week => {
                 const weekData = allData.filter(d => d.week === week);
+                const openCount = weekData.filter(d => d.status === 'open').length;
+                const closeCount = weekData.filter(d => d.status === 'close').length;
                 const isTargetWeek = week === targetWeek;
                 const isCurrentWeek = week === currentWeek;
-                
-                let openCount, closeCount;
-                
-                if (isTargetWeek) {
-                  // Untuk target week, hitung berdasarkan prediksi setelah upload
-                  openCount = weekData.filter(d => uploadCellDownNames.has(d.cellDownName)).length;
-                  closeCount = weekData.filter(d => !uploadCellDownNames.has(d.cellDownName)).length;
-                } else {
-                  // Untuk week lain, gunakan status saat ini
-                  openCount = weekData.filter(d => d.status === 'open').length;
-                  closeCount = weekData.filter(d => d.status === 'close').length;
-                }
                 
                 return (
                   <Box key={week} sx={{ 
