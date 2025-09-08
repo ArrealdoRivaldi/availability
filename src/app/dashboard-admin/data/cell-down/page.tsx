@@ -444,26 +444,22 @@ export default function CellDownDataPage() {
 
   // Enhanced function to analyze upload data with status prediction
   // Logika baru berdasarkan Week dan Cell Down Name:
-  // - Jika data existing (Week sebelumnya + Cell Down Name) tidak ada di file upload -> status close
-  // - Jika data existing (Week sebelumnya + Cell Down Name) sudah ada di file upload -> status open
-  // - Jika data diupload (Week sekarang + Cell Down Name) belum ada di database -> status open
+  // - Cek data existing di kolom week (yaitu angka terbesar)
+  // - Cocokan data yang upload dan data existing yaitu kolom Cell Down Name
+  // - Jika data cocok data di kolom status isinya Open
+  // - Jika data tidak cocok data di kolom status isinya Close
   const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
-    const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0; // Asumsi semua data upload untuk week yang sama
-    const previousWeek = currentWeek > 0 ? currentWeek - 1 : 0;
+    const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0; // Week yang diupload
+    const maxExistingWeek = allData.length > 0 ? Math.max(...allData.map(d => d.week)) : 0; // Week terbesar yang ada di database
+    const targetWeek = currentWeek - 1; // Week yang akan diupdate (1 tingkat di bawah week upload)
 
     // 1. Hitungan awal dari data yang sudah ada (existing)
     const totalExistingData = allData.length;
     const existingOpenBeforeUpload = allData.filter(d => d.status === 'open').length;
     const existingCloseBeforeUpload = allData.filter(d => d.status === 'close').length;
 
-    // Buat map untuk pencarian efisien data existing berdasarkan (week, cellDownName)
-    const existingDataMap = new Map<string, CellDownData>();
-    allData.forEach(d => existingDataMap.set(`${d.week}-${d.cellDownName}`, d));
-
-    // Buat set untuk pencarian efisien data yang diupload berdasarkan (week, cellDownName)
-    const uploadWeekCellDownPairs = new Set(
-      uploadData.map(item => `${item.week}-${item.cellDownName}`)
-    );
+    // Buat set untuk pencarian efisien data yang diupload berdasarkan Cell Down Name
+    const uploadCellDownNames = new Set(uploadData.map(item => item.cellDownName));
 
     // Buat salinan sementara dari semua data untuk mensimulasikan perubahan
     const simulatedDataMap = new Map<string, CellDownData>();
@@ -472,61 +468,47 @@ export default function CellDownDataPage() {
     let newDataCount = 0;
     let updatedDataCount = 0;
     let newlyAddedOpen = 0;
-    let newlyAddedClose = 0; // Berdasarkan aturan, data baru selalu 'Open'
+    let newlyAddedClose = 0;
 
-    // --- Proses data yang diupload untuk mengidentifikasi data baru/diperbarui dan menambahkannya ke map simulasi ---
+    // --- Proses data yang diupload untuk mengidentifikasi data baru/diperbarui ---
     for (const uploadedItem of uploadData) {
       const key = `${uploadedItem.week}-${uploadedItem.cellDownName}`;
-      if (existingDataMap.has(key)) {
+      const existingData = allData.find(existing => 
+        existing.week === uploadedItem.week && 
+        existing.cellDownName === uploadedItem.cellDownName
+      );
+
+      if (existingData) {
         // Data sudah ada di database dengan week dan cellDownName yang sama
         updatedDataCount++;
-        // Perbarui data simulasi dengan detail item yang diupload (misal: NOP, dll.)
-        // Pertahankan ID asli dan status untuk saat ini, status akan ditentukan oleh aturan nanti
-        simulatedDataMap.set(key, { ...existingDataMap.get(key), ...uploadedItem });
+        simulatedDataMap.set(key, { ...existingData, ...uploadedItem, status: 'open' });
       } else {
         // Ini adalah record yang benar-benar baru
         newDataCount++;
-        newlyAddedOpen++; // Aturan: "jika data diupload week + Cell Down Name belum ada -> status open"
-        simulatedDataMap.set(key, { ...uploadedItem, status: 'open' }); // Tambahkan ke data simulasi dengan status awal 'Open'
+        newlyAddedOpen++; // Data baru selalu 'Open'
+        simulatedDataMap.set(key, { ...uploadedItem, status: 'open' });
       }
     }
 
-    // --- Terapkan logika baru untuk menentukan status akhir di simulatedDataMap ---
+    // --- Terapkan logika baru untuk menentukan status berdasarkan Cell Down Name ---
     const finalSimulatedData: CellDownData[] = [];
-
-    // Convert Map to Array to avoid TypeScript iteration issues
     const simulatedDataArray = Array.from(simulatedDataMap.entries());
 
     for (const [key, dataItem] of simulatedDataArray) {
       let finalStatus = dataItem.status; // Mulai dengan status saat ini/awal
 
-      if (dataItem.week === previousWeek) {
-        // Aturan: Untuk data existing dari 'previousWeek'
-        // Periksa apakah (previousWeek + Cell Down Name) ini ada di *file yang diupload*
-        const previousWeekItemInUpload = uploadWeekCellDownPairs.has(key);
-
-        if (previousWeekItemInUpload) {
+      // Hanya update status untuk week yang 1 tingkat di bawah week upload
+      if (dataItem.week === targetWeek) {
+        // Periksa apakah Cell Down Name ini ada di data yang diupload
+        const cellDownNameInUpload = uploadCellDownNames.has(dataItem.cellDownName);
+        
+        if (cellDownNameInUpload) {
           finalStatus = 'open'; // Jika ada di upload -> status open
         } else {
           finalStatus = 'close'; // Jika tidak ada di upload -> status close
         }
-      } else if (dataItem.week === currentWeek) {
-        // Aturan: Untuk data existing dari 'currentWeek'
-        // Periksa apakah (currentWeek + Cell Down Name) ini ada di *file yang diupload*
-        const currentWeekItemInUpload = uploadWeekCellDownPairs.has(key);
-
-        if (currentWeekItemInUpload) {
-          finalStatus = 'open'; // Jika ada di upload -> status open
-        } else {
-          // Asumsi: Jika data existing dari current week TIDAK ada di upload, maka statusnya Close.
-          // Ini memerlukan klarifikasi pengguna jika ada perilaku yang berbeda.
-          finalStatus = 'close';
-        }
-      } else {
-        // Untuk data di week lain (bukan current atau previous)
-        // Asumsi: Mereka mempertahankan status aslinya kecuali secara eksplisit terpengaruh oleh aturan.
-        finalStatus = dataItem.status;
       }
+      
       finalSimulatedData.push({ ...dataItem, status: finalStatus });
     }
 
@@ -539,7 +521,7 @@ export default function CellDownDataPage() {
       totalUploadedData: uploadData.length,
       totalDataAfterUpload,
       currentWeek,
-      previousWeek,
+      previousWeek: targetWeek,
       existingOpenBeforeUpload,
       existingCloseBeforeUpload,
       newlyAddedOpen,
@@ -670,49 +652,23 @@ export default function CellDownDataPage() {
 
       // Update status of existing data based on new logic
       const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
-      const uploadWeekCellDownPairs = new Set(
-        previewData.map(item => `${item.week}-${item.cellDownName}`)
-      );
       
       // Get current week from upload data
       const currentWeek = previewData.length > 0 ? previewData[0].week : 0;
-      const previousWeek = currentWeek - 1;
+      const targetWeek = currentWeek - 1; // Week yang akan diupdate (1 tingkat di bawah week upload)
       
       for (const existingItem of allData) {
-        const weekCellDownPair = `${existingItem.week}-${existingItem.cellDownName}`;
-        const willBeInUpload = uploadWeekCellDownPairs.has(weekCellDownPair);
-        
-        // Check if this Cell Down Name appears in upload data (regardless of week)
-        const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
-        
         let newStatus = existingItem.status; // Default to current status
         
-        if (existingItem.week === previousWeek) {
-          // Data di Week sebelumnya
-          if (willBeInUpload) {
-            // Jika data existing (Week sebelumnya + Cell Down Name) ada di file upload → Status: OPEN
-            newStatus = 'open';
-          } else {
-            // Jika data existing (Week sebelumnya + Cell Down Name) TIDAK ada di file upload → Status: CLOSE
-            newStatus = 'close';
-          }
-        } else if (existingItem.week === currentWeek) {
-          // Data di Week sekarang
-          if (willBeInUpload) {
-            // Jika data existing (Week sekarang + Cell Down Name) ada di file upload → Status: OPEN
-            newStatus = 'open';
-          } else {
-            // Jika data existing (Week sekarang + Cell Down Name) TIDAK ada di file upload → Status: CLOSE
-            newStatus = 'close';
-          }
-        } else {
-          // Data di week lain (bukan previous atau current)
+        // Hanya update status untuk week yang 1 tingkat di bawah week upload
+        if (existingItem.week === targetWeek) {
+          // Periksa apakah Cell Down Name ini ada di data yang diupload
+          const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
+          
           if (cellDownNameInUpload) {
-            // Jika Cell Down Name ada di upload → Status: OPEN
-            newStatus = 'open';
+            newStatus = 'open'; // Jika ada di upload -> status open
           } else {
-            // Jika Cell Down Name TIDAK ada di upload → Status: CLOSE
-            newStatus = 'close';
+            newStatus = 'close'; // Jika tidak ada di upload -> status close
           }
         }
         
@@ -981,55 +937,62 @@ export default function CellDownDataPage() {
             Preview Upload Data
           </Typography>
           <Box sx={{ mt: 1 }}>
-            <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
-              Total Data Sekarang: {uploadStats.totalExistingData}
-            </Typography>
-            <Typography variant="body2" color="secondary" sx={{ fontWeight: 'bold' }}>
-              Total Data yang Di upload: {uploadStats.totalUploadedData}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              Total Data Setelah Di upload: {uploadStats.totalDataAfterUpload}
-            </Typography>
-            <Typography variant="body2" color="info.main" sx={{ fontWeight: 'bold' }}>
-              Week existing: {uploadStats.previousWeek}
-            </Typography>
-            <Typography variant="body2" color="info.main" sx={{ fontWeight: 'bold' }}>
-              Week current: {uploadStats.currentWeek}
+            <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Total Data yang di upload: {uploadStats.totalUploadedData}
             </Typography>
             
-            <Box sx={{ mt: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 2 }}>
-              <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Status Existing (Sebelum Upload)
-              </Typography>
-              <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
-                • Status Close existing: {uploadStats.existingCloseBeforeUpload}
-              </Typography>
-              <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
-                • Status Open existing: {uploadStats.existingOpenBeforeUpload}
-              </Typography>
-            </Box>
-            
-            <Box sx={{ mt: 2, p: 2, backgroundColor: '#e8f5e8', borderRadius: 2 }}>
-              <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Status Data Baru (Dari Upload)
-              </Typography>
-              <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
-                • Status Close New Data: {uploadStats.newlyAddedClose}
-              </Typography>
-              <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
-                • Status Open New Data: {uploadStats.newlyAddedOpen}
-              </Typography>
-            </Box>
+            {/* Week-by-week breakdown */}
+            {(() => {
+              const weeks = Array.from(new Set(allData.map(d => d.week))).sort((a, b) => a - b);
+              const currentWeek = uploadStats.currentWeek;
+              const targetWeek = uploadStats.previousWeek;
+              
+              return weeks.map(week => {
+                const weekData = allData.filter(d => d.week === week);
+                const openCount = weekData.filter(d => d.status === 'open').length;
+                const closeCount = weekData.filter(d => d.status === 'close').length;
+                const isTargetWeek = week === targetWeek;
+                const isCurrentWeek = week === currentWeek;
+                
+                return (
+                  <Box key={week} sx={{ 
+                    mt: 1, 
+                    p: 2, 
+                    backgroundColor: isTargetWeek ? '#fff3e0' : isCurrentWeek ? '#e8f5e8' : '#f5f5f5', 
+                    borderRadius: 2,
+                    border: isTargetWeek ? '2px solid #ff9800' : isCurrentWeek ? '2px solid #4caf50' : '1px solid #e0e0e0'
+                  }}>
+                    <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Week {week} {isTargetWeek ? '(Akan Diupdate)' : isCurrentWeek ? '(Data Upload)' : ''}
+                    </Typography>
+                    <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
+                      • Total Data Week {week} Open: {openCount}
+                    </Typography>
+                    <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
+                      • Total Data Week {week} Close: {closeCount}
+                    </Typography>
+                    {isTargetWeek && (
+                      <Typography variant="body2" color="info.main" sx={{ ml: 2, mt: 1, fontStyle: 'italic' }}>
+                        * Status data di week ini akan diupdate berdasarkan Cell Down Name yang ada di upload
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              });
+            })()}
             
             <Box sx={{ mt: 2, p: 2, backgroundColor: '#e3f2fd', borderRadius: 2 }}>
               <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Status Setelah Upload (Total)
+                Ringkasan Upload
               </Typography>
-              <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
-                • Data dengan status Open: {uploadStats.totalWillBeOpen}
+              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
+                • Data baru yang akan ditambahkan: {uploadStats.newDataCount}
               </Typography>
-              <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
-                • Data dengan status Close: {uploadStats.totalWillBeClose}
+              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
+                • Data yang akan diupdate: {uploadStats.updatedDataCount}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
+                • Total data setelah upload: {uploadStats.totalDataAfterUpload}
               </Typography>
             </Box>
           </Box>
