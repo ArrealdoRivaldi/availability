@@ -361,7 +361,6 @@ export default function CellDownDataPage() {
 
     try {
       setUploading(true);
-      setShowUploadAnimation(true);
       setUploadProgress(0);
       setUploadStatus('Processing Excel file...');
       
@@ -417,9 +416,6 @@ export default function CellDownDataPage() {
       setUploadStats(stats);
       setPreviewData(previewRows);
       
-      // Add a small delay to show processing completion
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       setShowPreview(true);
       setUploadStatus('');
     } catch (error) {
@@ -441,7 +437,6 @@ export default function CellDownDataPage() {
       alert(errorMessage);
     } finally {
       setUploading(false);
-      setShowUploadAnimation(false);
       setUploadProgress(0);
     }
   };
