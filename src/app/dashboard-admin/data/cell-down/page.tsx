@@ -416,6 +416,10 @@ export default function CellDownDataPage() {
       const stats = await analyzeUploadData(previewRows);
       setUploadStats(stats);
       setPreviewData(previewRows);
+      
+      // Add a small delay to show processing completion
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setShowPreview(true);
       setUploadStatus('');
     } catch (error) {
@@ -689,6 +693,9 @@ export default function CellDownDataPage() {
         - Data dengan status Open setelah upload: ${uploadStats.totalWillBeOpen}
         - Data dengan status Close setelah upload: ${uploadStats.totalWillBeClose}`;
       
+      // Add a small delay to show completion animation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       alert(successMessage);
       
       setShowPreview(false);
@@ -936,6 +943,9 @@ export default function CellDownDataPage() {
             Preview Upload Data
           </Typography>
           <Box sx={{ mt: 1 }}>
+            <Typography variant="body2" color="info.main" sx={{ fontWeight: 'bold', mb: 1 }}>
+              Week: {uploadStats.currentWeek}
+            </Typography>
             <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold', mb: 2 }}>
               Total Data yang di upload: {uploadStats.totalUploadedData}
             </Typography>
@@ -990,21 +1000,6 @@ export default function CellDownDataPage() {
                 );
               });
             })()}
-            
-            <Box sx={{ mt: 2, p: 2, backgroundColor: '#e3f2fd', borderRadius: 2 }}>
-              <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Ringkasan Upload
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-                • Data baru yang akan ditambahkan: {uploadStats.newDataCount}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-                • Data yang akan diupdate: {uploadStats.updatedDataCount}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-                • Total data setelah upload: {uploadStats.totalDataAfterUpload}
-              </Typography>
-            </Box>
           </Box>
         </DialogTitle>
         <DialogContent>
