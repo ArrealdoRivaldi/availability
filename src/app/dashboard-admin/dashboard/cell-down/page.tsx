@@ -65,7 +65,7 @@ export default function CellDownDashboardPage() {
         const docData = doc.data();
         console.log('Document data:', docData);
         const mappedData = mapFirestoreData(docData, doc.id);
-        
+         
         // Extract week from createdAt timestamp if not already present
         if (!mappedData.week && mappedData.createdAt) {
           mappedData.week = extractWeekFromTimestamp(mappedData.createdAt);

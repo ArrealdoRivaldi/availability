@@ -10,7 +10,7 @@ interface CellDownData {
   progress?: string;
   status?: string;
   rootCause?: string;
-  picDept?: string;
+  picDept?: string; 
   siteClass?: string;
   nop?: string;
   agingDown?: number;
