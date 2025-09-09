@@ -59,7 +59,12 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
         })
         .map(([week, counts]) => {
           const progress = counts.total > 0 ? (counts.close / counts.total) * 100 : 0;
-          return [week, counts.total, counts.close, progress];
+          return [
+            week, 
+            Number(counts.total), 
+            Number(counts.close), 
+            Number(Math.round(progress * 100) / 100)
+          ]; // Ensure all values are numbers
         })
     ];
 
@@ -71,6 +76,9 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
   // Debug logging
   console.log('TrendCellDownKalimantanChart - Raw data:', data);
   console.log('TrendCellDownKalimantanChart - Processed chart data:', chartData);
+  console.log('TrendCellDownKalimantanChart - Chart data types:', chartData.map((row, index) => 
+    index === 0 ? 'header' : row.map(cell => typeof cell)
+  ));
 
   return (
     <Card sx={{ 
