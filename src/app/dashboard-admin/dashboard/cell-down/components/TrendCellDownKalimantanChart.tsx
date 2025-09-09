@@ -24,52 +24,57 @@ interface TrendCellDownKalimantanChartProps {
 const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> = ({ data }) => {
   // Process data for the chart - this should show ALL weeks regardless of filters
   const processChartData = () => {
-    if (!data || data.length === 0) {
-      return [['Week', 'Total', 'Close', 'Progress'], ['No Data', 0, 0, 0]];
+    try {
+      if (!data || data.length === 0) {
+        return [['Week', 'Total', 'Close', 'Progress'], ['No Data', 0, 0, 0]];
+      }
+
+      // Group data by week
+      const weeklyData = data.reduce((acc, item) => {
+        if (!item || !item.week) return acc;
+        
+        // Convert week to string, handling both number and string types
+        const week = typeof item.week === 'number' ? item.week.toString() : item.week.toString().trim();
+        if (!week) return acc;
+        
+        if (!acc[week]) {
+          acc[week] = { total: 0, close: 0 };
+        }
+        
+        acc[week].total++;
+        if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') {
+          acc[week].close++;
+        }
+        
+        return acc;
+      }, {} as Record<string, { total: number; close: number }>);
+
+      // Convert to chart data format
+      const chartData = [
+        ['Week', 'Total', 'Close', 'Progress'],
+        ...Object.entries(weeklyData)
+          .sort(([a], [b]) => {
+            // Sort by week number, handling both "W1", "W2" format and numeric format
+            const aNum = a.startsWith('W') ? parseInt(a.substring(1)) : parseInt(a);
+            const bNum = b.startsWith('W') ? parseInt(b.substring(1)) : parseInt(b);
+            return aNum - bNum;
+          })
+          .map(([week, counts]) => {
+            const progress = counts.total > 0 ? (counts.close / counts.total) * 100 : 0;
+            return [
+              week, 
+              Number(counts.total), 
+              Number(counts.close), 
+              Number(Math.round(progress * 100) / 100)
+            ]; // Ensure all values are numbers
+          })
+      ];
+
+      return chartData;
+    } catch (error) {
+      console.error('Error processing chart data:', error);
+      return [['Week', 'Total', 'Close', 'Progress'], ['Error', 0, 0, 0]];
     }
-
-    // Group data by week
-    const weeklyData = data.reduce((acc, item) => {
-      if (!item.week) return acc;
-      
-      // Convert week to string, handling both number and string types
-      const week = typeof item.week === 'number' ? item.week.toString() : item.week.toString().trim();
-      if (!week) return acc;
-      
-      if (!acc[week]) {
-        acc[week] = { total: 0, close: 0 };
-      }
-      
-      acc[week].total++;
-      if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') {
-        acc[week].close++;
-      }
-      
-      return acc;
-    }, {} as Record<string, { total: number; close: number }>);
-
-    // Convert to chart data format
-    const chartData = [
-      ['Week', 'Total', 'Close', 'Progress'],
-      ...Object.entries(weeklyData)
-        .sort(([a], [b]) => {
-          // Sort by week number, handling both "W1", "W2" format and numeric format
-          const aNum = a.startsWith('W') ? parseInt(a.substring(1)) : parseInt(a);
-          const bNum = b.startsWith('W') ? parseInt(b.substring(1)) : parseInt(b);
-          return aNum - bNum;
-        })
-        .map(([week, counts]) => {
-          const progress = counts.total > 0 ? (counts.close / counts.total) * 100 : 0;
-          return [
-            week, 
-            Number(counts.total), 
-            Number(counts.close), 
-            Number(Math.round(progress * 100) / 100)
-          ]; // Ensure all values are numbers
-        })
-    ];
-
-    return chartData;
   };
 
   const chartData = processChartData();
@@ -105,81 +110,46 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
           </Typography>
         </Box>
         
-        <Chart
-          chartType="ColumnChart"
-          width="100%"
-          height="400px"
-          data={chartData}
-          options={{
-            title: '',
-            chartArea: { 
-              width: '75%', 
-              height: '75%',
-              left: 60,
-              top: 20,
-              right: 20,
-              bottom: 60
-            },
-            hAxis: { 
-              title: 'Week', 
-              titleTextStyle: { 
-                fontSize: 14, 
-                color: '#333',
-                bold: true
+        {chartData && chartData.length > 1 ? (
+          <Chart
+            chartType="ColumnChart"
+            width="100%"
+            height="400px"
+            data={chartData}
+            options={{
+              title: '',
+              chartArea: { 
+                width: '70%', 
+                height: '75%'
               },
-              textStyle: { 
-                fontSize: 12, 
-                color: '#666' 
+              hAxis: { 
+                title: 'Week'
               },
-              gridlines: { color: '#f0f0f0' }
-            },
-            vAxis: { 
-              title: 'Count', 
-              titleTextStyle: { 
-                fontSize: 14, 
-                color: '#333',
-                bold: true
+              vAxis: { 
+                title: 'Count',
+                minValue: 0
               },
-              textStyle: { 
-                fontSize: 12, 
-                color: '#666' 
+              colors: ['#1976d2', '#ff9800', '#4caf50'],
+              legend: { 
+                position: 'top'
               },
-              gridlines: { color: '#f0f0f0' },
-              minValue: 0
-            },
-            seriesType: 'bars',
-            series: { 
-              0: { type: 'bars', color: '#1976d2' }, // Blue for Total
-              1: { type: 'bars', color: '#ff9800' }, // Orange for Close
-              2: { type: 'bars', color: '#4caf50' }  // Green for Progress
-            },
-            colors: ['#1976d2', '#ff9800', '#4caf50'],
-            legend: { 
-              position: 'top',
-              textStyle: { 
-                fontSize: 13, 
-                color: '#333',
-                bold: true
-              },
-              alignment: 'center'
-            },
-            fontSize: 12,
-            backgroundColor: 'transparent',
-            bar: { 
-              groupWidth: '60%',
-              gapWidth: 0.2
-            },
-            tooltip: {
-              textStyle: { fontSize: 12 },
-              trigger: 'selection'
-            },
-            animation: {
-              startup: true,
-              duration: 1000,
-              easing: 'out'
-            }
-          }}
-        />
+              backgroundColor: 'transparent'
+            }}
+          />
+        ) : (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: 400,
+            backgroundColor: '#f5f5f5',
+            borderRadius: 1
+          }}>
+            <Typography variant="h6" color="text.secondary">
+              {chartData && chartData.length === 1 ? 'No Data Available' : 'Loading Chart...'}
+            </Typography>
+          </Box>
+        )}
         
         {/* Legend Explanation */}
         <Box sx={{ mt: 2, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
