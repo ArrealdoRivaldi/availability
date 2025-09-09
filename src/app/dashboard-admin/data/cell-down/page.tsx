@@ -789,8 +789,8 @@ export default function CellDownDataPage() {
       const docRef = doc(db, 'data_celldown', editData.id);
       const updateData = {
         ...editData,
-        updatedAt: new Date(),
-        status: editData.progress === 'DONE' ? 'close' : 'open'
+        updatedAt: new Date()
+        // Status tidak dipengaruhi oleh Progress - hapus logika ini
       };
       
       await updateDoc(docRef, updateData);
