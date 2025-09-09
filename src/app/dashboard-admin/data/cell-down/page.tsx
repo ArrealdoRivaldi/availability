@@ -68,7 +68,6 @@ interface CellDownData {
   needSupport: string;
   picDept: string;
   progress: string;
-  closedDate: string;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -82,7 +81,6 @@ interface EditModalData {
   needSupport: string;
   picDept: string;
   progress: string;
-  closedDate: string;
 }
 
 interface FilterData {
@@ -190,8 +188,7 @@ export default function CellDownDataPage() {
     planAction: '', 
     needSupport: '', 
     picDept: '', 
-    progress: 'OPEN', 
-    closedDate: ''
+    progress: 'OPEN'
   });
   
   // User role state
@@ -388,7 +385,6 @@ export default function CellDownDataPage() {
           needSupport: '',
           picDept: '',
           progress: 'OPEN',
-          closedDate: '',
           status: 'open',
           createdAt: new Date(),
           updatedAt: new Date()
@@ -730,8 +726,7 @@ export default function CellDownDataPage() {
       planAction: row.planAction || '',
       needSupport: row.needSupport || '',
       picDept: row.picDept || '',
-      progress: row.progress || 'OPEN',
-      closedDate: row.closedDate || ''
+      progress: row.progress || 'OPEN'
     });
     setEditModal(true);
   };
@@ -783,7 +778,6 @@ export default function CellDownDataPage() {
         'Need Support': item.needSupport || '',
         'PIC Dept': item.picDept || '',
         Progress: item.progress || 'OPEN',
-        'Closed Date': item.closedDate || '',
         Status: item.status
       }));
 
@@ -1012,9 +1006,6 @@ export default function CellDownDataPage() {
                   {progressOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Closed Date" type="date" value={editData.closedDate} onChange={(e) => setEditData({ ...editData, closedDate: e.target.value })} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid item xs={12}>
               <TextField fullWidth multiline rows={3} label="Detail Problem" value={editData.detailProblem} onChange={(e) => setEditData({ ...editData, detailProblem: e.target.value })} />
@@ -1392,7 +1383,6 @@ export default function CellDownDataPage() {
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Need Support</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>PIC Dept</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Progress</TableCell>
-                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Closed Date</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Status</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Actions</TableCell>
                   </TableRow>
@@ -1463,9 +1453,6 @@ export default function CellDownDataPage() {
                             {row.progress || 'OPEN'}
                           </Typography>
                         </Box>
-                      </TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Typography variant="body2">{row.closedDate || ''}</Typography>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
