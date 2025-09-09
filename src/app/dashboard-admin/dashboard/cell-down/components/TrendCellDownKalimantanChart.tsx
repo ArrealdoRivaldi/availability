@@ -42,10 +42,10 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
 
   const maxValue = Math.max(...chartData.map(d => Math.max(d.total, d.close, d.progress)));
   const chartHeight = 300;
-  const chartWidth = 600;
-  const barWidth = 40;
-  const groupSpacing = 20;
-  const weekSpacing = 80;
+  const chartWidth = 800;
+  const barWidth = 35;
+  const groupSpacing = 15;
+  const weekSpacing = 120;
 
   return (
     <Box sx={{ width: '100%', height: '100%', overflow: 'auto' }}>
@@ -54,17 +54,17 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
         {[0, 0.2, 0.4, 0.6, 0.8, 1].map((ratio, index) => (
           <g key={index}>
             <line
-              x1={60}
+              x1={80}
               y1={chartHeight - (chartHeight * ratio) + 20}
-              x2={chartWidth - 20}
+              x2={chartWidth - 40}
               y2={chartHeight - (chartHeight * ratio) + 20}
-              stroke="#f0f0f0"
+              stroke="#e0e0e0"
               strokeWidth={1}
             />
             <text
-              x={50}
+              x={70}
               y={chartHeight - (chartHeight * ratio) + 25}
-              fontSize="12"
+              fontSize="11"
               fill="#666"
               textAnchor="end"
             >
@@ -75,10 +75,10 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
 
         {/* Bars */}
         {chartData.map((weekData, weekIndex) => {
-          const x = 80 + (weekIndex * weekSpacing);
+          const x = 100 + (weekIndex * weekSpacing);
           const totalHeight = (weekData.total / maxValue) * chartHeight;
           const closeHeight = (weekData.close / maxValue) * chartHeight;
-          const progressHeight = (weekData.progress / maxValue) * chartHeight;
+          const progressHeight = Math.max((weekData.progress / maxValue) * chartHeight, 5); // Minimum height for visibility
 
           return (
             <g key={weekData.week}>
@@ -89,12 +89,12 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
                 width={barWidth}
                 height={totalHeight}
                 fill="#1976d2"
-                rx={2}
+                rx={3}
               />
               <text
                 x={x + barWidth / 2}
-                y={chartHeight - totalHeight + 15}
-                fontSize="11"
+                y={chartHeight - totalHeight + 10}
+                fontSize="12"
                 fontWeight="bold"
                 fill="#333"
                 textAnchor="middle"
@@ -104,17 +104,17 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
 
               {/* Close bar (orange) */}
               <rect
-                x={x + barWidth + 5}
+                x={x + barWidth + groupSpacing}
                 y={chartHeight - closeHeight + 20}
                 width={barWidth}
                 height={closeHeight}
                 fill="#ff9800"
-                rx={2}
+                rx={3}
               />
               <text
-                x={x + barWidth + 5 + barWidth / 2}
-                y={chartHeight - closeHeight + 15}
-                fontSize="11"
+                x={x + barWidth + groupSpacing + barWidth / 2}
+                y={chartHeight - closeHeight + 10}
+                fontSize="12"
                 fontWeight="bold"
                 fill="#333"
                 textAnchor="middle"
@@ -124,17 +124,17 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
 
               {/* Progress bar (green) */}
               <rect
-                x={x + (barWidth + 5) * 2}
+                x={x + (barWidth + groupSpacing) * 2}
                 y={chartHeight - progressHeight + 20}
                 width={barWidth}
                 height={progressHeight}
                 fill="#4caf50"
-                rx={2}
+                rx={3}
               />
               <text
-                x={x + (barWidth + 5) * 2 + barWidth / 2}
-                y={chartHeight - progressHeight + 15}
-                fontSize="11"
+                x={x + (barWidth + groupSpacing) * 2 + barWidth / 2}
+                y={chartHeight - progressHeight + 10}
+                fontSize="12"
                 fontWeight="bold"
                 fill="#333"
                 textAnchor="middle"
@@ -144,14 +144,14 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
 
               {/* Week label */}
               <text
-                x={x + (barWidth + 5) * 1.5}
-                y={chartHeight + 40}
-                fontSize="12"
+                x={x + (barWidth + groupSpacing) * 1.5}
+                y={chartHeight + 45}
+                fontSize="14"
                 fontWeight="bold"
                 fill="#333"
                 textAnchor="middle"
               >
-                {weekData.week}
+                Week {weekData.week}
               </text>
             </g>
           );
