@@ -111,6 +111,7 @@ interface UploadStats {
   newDataCount: number;
   updatedDataCount: number;
   totalProcessed: number;
+  newDataWithCopy: number;
 }
 
 const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN'];
@@ -170,7 +171,8 @@ export default function CellDownDataPage() {
     totalWillBeClose: 0,
     newDataCount: 0,
     updatedDataCount: 0,
-    totalProcessed: 0
+    totalProcessed: 0,
+    newDataWithCopy: 0
   });
   const [chunkProgress, setChunkProgress] = useState({ current: 0, total: 0, percentage: 0 });
   const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -466,9 +468,30 @@ export default function CellDownDataPage() {
         simulatedDataMap.set(key, { ...existingData, ...uploadedItem, status: 'open' });
       } else {
         // Ini adalah record yang benar-benar baru
+        // Cari data existing dengan Cell Down Name yang sama di week sebelumnya untuk copy field
+        const currentWeek = uploadedItem.week;
+        const previousWeek = currentWeek - 1;
+        const existingWithSameName = allData.find(existing => 
+          existing.cellDownName === uploadedItem.cellDownName && 
+          existing.week === previousWeek
+        );
+        
         newDataCount++;
         newlyAddedOpen++; // Data baru selalu 'Open'
-        simulatedDataMap.set(key, { ...uploadedItem, status: 'open' });
+        
+        // Simulasi data baru dengan field yang dicopy dari data existing di week sebelumnya
+        const simulatedNewItem = {
+          ...uploadedItem,
+          rootCause: existingWithSameName?.rootCause || '',
+          detailProblem: existingWithSameName?.detailProblem || '',
+          planAction: existingWithSameName?.planAction || '',
+          needSupport: existingWithSameName?.needSupport || '',
+          picDept: existingWithSameName?.picDept || '',
+          progress: existingWithSameName?.progress || 'OPEN',
+          status: 'open'
+        };
+        
+        simulatedDataMap.set(key, simulatedNewItem);
       }
     }
 
@@ -498,6 +521,21 @@ export default function CellDownDataPage() {
     const totalWillBeOpen = finalSimulatedData.filter(d => d.status === 'open').length;
     const totalWillBeClose = finalSimulatedData.filter(d => d.status === 'close').length;
 
+    // Hitung berapa banyak data baru yang akan copy data lama dari week sebelumnya
+    const newDataWithCopy = uploadData.filter(item => {
+      const isNewData = !allData.find(existing => 
+        existing.week === item.week && 
+        existing.cellDownName === item.cellDownName
+      );
+      const currentWeek = item.week;
+      const previousWeek = currentWeek - 1;
+      const hasExistingWithSameNameInPreviousWeek = allData.find(existing => 
+        existing.cellDownName === item.cellDownName && 
+        existing.week === previousWeek
+      );
+      return isNewData && hasExistingWithSameNameInPreviousWeek;
+    }).length;
+
     return {
       totalExistingData,
       totalUploadedData: uploadData.length,
@@ -513,6 +551,7 @@ export default function CellDownDataPage() {
       newDataCount,
       updatedDataCount,
       totalProcessed: uploadData.length,
+      newDataWithCopy, // Tambahkan field baru
     };
   };
 
@@ -540,7 +579,8 @@ export default function CellDownDataPage() {
       totalWillBeClose: 0,
       newDataCount: 0,
       updatedDataCount: 0,
-      totalProcessed: 0
+      totalProcessed: 0,
+      newDataWithCopy: 0
     });
     setChunkProgress({ current: 0, total: 0, percentage: 0 });
     setUploadStatus('');
@@ -602,21 +642,25 @@ export default function CellDownDataPage() {
             await updateDoc(docRef, updateData);
             updatedDataCount++;
           } else {
-            // Check if there's existing data with the same Cell Down Name (regardless of week)
+            // Check if there's existing data with the same Cell Down Name in the previous week
+            const currentWeek = item.week;
+            const previousWeek = currentWeek - 1;
             const existingWithSameName = allData.find(existing => 
-              existing.cellDownName === item.cellDownName
+              existing.cellDownName === item.cellDownName && 
+              existing.week === previousWeek
             );
             
-            // Add new data
+            // Add new data with copied fields from existing data with same Cell Down Name in previous week
             const newItem = {
               ...item,
-              // Copy existing data fields if Cell Down Name exists
-              rootCause: existingWithSameName?.rootCause || item.rootCause || '',
-              detailProblem: existingWithSameName?.detailProblem || item.detailProblem || '',
-              planAction: existingWithSameName?.planAction || item.planAction || '',
-              needSupport: existingWithSameName?.needSupport || item.needSupport || '',
-              picDept: existingWithSameName?.picDept || item.picDept || '',
-              status: 'open', // New data always starts with 'open' status (copies existing fields but keeps open status)
+              // Copy existing data fields if Cell Down Name exists in previous week
+              rootCause: existingWithSameName?.rootCause || '',
+              detailProblem: existingWithSameName?.detailProblem || '',
+              planAction: existingWithSameName?.planAction || '',
+              needSupport: existingWithSameName?.needSupport || '',
+              picDept: existingWithSameName?.picDept || '',
+              progress: existingWithSameName?.progress || 'OPEN', // Copy progress from existing data
+              status: 'open', // New data always starts with 'open' status
               createdAt: new Date(),
               updatedAt: new Date()
             };
@@ -861,6 +905,56 @@ export default function CellDownDataPage() {
               Total Data yang di upload: {uploadStats.totalUploadedData}
             </Typography>
             
+            {/* Statistik detail */}
+            <Box sx={{ mb: 2, p: 2, backgroundColor: '#e8f5e8', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                📊 Statistik Upload:
+              </Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">
+                    • Data Baru: {uploadStats.newDataCount}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">
+                    • Data Update: {uploadStats.updatedDataCount}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="info.main" sx={{ fontWeight: 'bold' }}>
+                    • Akan Copy dari Week Sebelumnya: {uploadStats.newDataWithCopy}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">
+                    • Data Baru Murni: {uploadStats.newDataCount - uploadStats.newDataWithCopy}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+            
+            {/* Legend untuk warna baris */}
+            <Box sx={{ mb: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Keterangan Warna Baris:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 20, height: 20, backgroundColor: '#e8f5e8', border: '1px solid #4caf50' }}></Box>
+                  <Typography variant="body2">Data Baru (tanpa copy data lama)</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 20, height: 20, backgroundColor: '#e3f2fd', border: '1px solid #2196f3' }}></Box>
+                  <Typography variant="body2">Data Baru (akan copy data dari week sebelumnya)</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 20, height: 20, backgroundColor: '#fff3e0', border: '1px solid #ff9800' }}></Box>
+                  <Typography variant="body2">Data Existing (akan diupdate)</Typography>
+                </Box>
+              </Box>
+            </Box>
+            
             {/* Week-by-week breakdown */}
             {(() => {
               const weeks = Array.from(new Set(allData.map(d => d.week))).sort((a, b) => a - b);
@@ -937,10 +1031,18 @@ export default function CellDownDataPage() {
                     existing.cellDownName === row.cellDownName
                   );
                   
+                  // Check if new data will copy from existing data in previous week
+                  const currentWeek = row.week;
+                  const previousWeek = currentWeek - 1;
+                  const willCopyFromExisting = isNewData && allData.find(existing => 
+                    existing.cellDownName === row.cellDownName && 
+                    existing.week === previousWeek
+                  );
+                  
                   return (
                     <TableRow key={index} sx={{ 
                       '&:nth-of-type(even)': { backgroundColor: '#fafafa' },
-                      backgroundColor: isNewData ? '#e8f5e8' : '#fff3e0'
+                      backgroundColor: isNewData ? (willCopyFromExisting ? '#e3f2fd' : '#e8f5e8') : '#fff3e0'
                     }}>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{index + 1}</TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
@@ -957,7 +1059,14 @@ export default function CellDownDataPage() {
                           variant="outlined"
                         />
                       </TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        {row.subDomain}
+                        {willCopyFromExisting && (
+                          <Typography variant="caption" color="info.main" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
+                            📋 Akan copy dari week {previousWeek}
+                          </Typography>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
