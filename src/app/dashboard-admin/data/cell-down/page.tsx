@@ -885,117 +885,40 @@ export default function CellDownDataPage() {
         resetUploadState();
       }} maxWidth="xl" fullWidth>
         <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
             Preview Upload Data
           </Typography>
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="body2" color="info.main" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Week: {uploadStats.currentWeek}
+          
+          {/* UPLOAD Section */}
+          <Box sx={{ mb: 3, p: 2, backgroundColor: '#e8f5e8', borderRadius: 2, border: '2px solid #4caf50' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', mb: 2 }}>
+              UPLOAD
             </Typography>
-            <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Total Data yang di upload: {uploadStats.totalUploadedData}
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Total Data:</strong> {uploadStats.totalUploadedData}
             </Typography>
-            
-            {/* Statistik detail */}
-            <Box sx={{ mb: 2, p: 2, backgroundColor: '#e8f5e8', borderRadius: 1 }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                📊 Statistik Upload:
-              </Typography>
-              <Grid container spacing={1}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    • Data Baru: {uploadStats.newDataCount}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    • Data Update: {uploadStats.updatedDataCount}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="info.main" sx={{ fontWeight: 'bold' }}>
-                    • Akan Copy dari Week Sebelumnya: {uploadStats.newDataWithCopy}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    • Data Baru Murni: {uploadStats.newDataCount - uploadStats.newDataWithCopy}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-            
-            {/* Legend untuk warna baris */}
-            <Box sx={{ mb: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Keterangan Warna Baris:
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 20, height: 20, backgroundColor: '#e8f5e8', border: '1px solid #4caf50' }}></Box>
-                  <Typography variant="body2">Data Baru (tanpa copy data lama)</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 20, height: 20, backgroundColor: '#e3f2fd', border: '1px solid #2196f3' }}></Box>
-                  <Typography variant="body2">Data Baru (akan copy data dari week sebelumnya)</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 20, height: 20, backgroundColor: '#fff3e0', border: '1px solid #ff9800' }}></Box>
-                  <Typography variant="body2">Data Existing (akan diupdate)</Typography>
-                </Box>
-              </Box>
-            </Box>
-            
-            {/* Week-by-week breakdown */}
-            {(() => {
-              const weeks = Array.from(new Set(allData.map(d => d.week))).sort((a, b) => a - b);
-              const currentWeek = uploadStats.currentWeek;
-              const targetWeek = uploadStats.previousWeek;
-              const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
-              
-              return weeks.map(week => {
-                const weekData = allData.filter(d => d.week === week);
-                const isTargetWeek = week === targetWeek;
-                const isCurrentWeek = week === currentWeek;
-                
-                let openCount, closeCount;
-                
-                if (isTargetWeek) {
-                  // Untuk target week, hitung berdasarkan prediksi setelah upload
-                  openCount = weekData.filter(d => uploadCellDownNames.has(d.cellDownName)).length;
-                  closeCount = weekData.filter(d => !uploadCellDownNames.has(d.cellDownName)).length;
-                } else {
-                  // Untuk week lain, gunakan status saat ini
-                  openCount = weekData.filter(d => d.status === 'open').length;
-                  closeCount = weekData.filter(d => d.status === 'close').length;
-                }
-                
-                return (
-                  <Box key={week} sx={{ 
-                    mt: 1, 
-                    p: 2, 
-                    backgroundColor: isTargetWeek ? '#fff3e0' : isCurrentWeek ? '#e8f5e8' : '#f5f5f5', 
-                    borderRadius: 2,
-                    border: isTargetWeek ? '2px solid #ff9800' : isCurrentWeek ? '2px solid #4caf50' : '1px solid #e0e0e0'
-                  }}>
-                    <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 'bold', mb: 1 }}>
-                      Week {week} {isTargetWeek ? '(Akan Diupdate)' : isCurrentWeek ? '(Data Upload)' : ''}
-                    </Typography>
-                    <Typography variant="body2" color="warning.main" sx={{ ml: 2 }}>
-                      • Total Data Week {week} Open: {openCount}
-                    </Typography>
-                    <Typography variant="body2" color="success.main" sx={{ ml: 2 }}>
-                      • Total Data Week {week} Close: {closeCount}
-                    </Typography>
-                    {isTargetWeek && (
-                      <Typography variant="body2" color="info.main" sx={{ ml: 2, mt: 1, fontStyle: 'italic' }}>
-                        * Status data di week ini akan diupdate berdasarkan Cell Down Name yang ada di upload
-                      </Typography>
-                    )}
-                  </Box>
-                );
-              });
-            })()}
+            <Typography variant="body1">
+              <strong>Week:</strong> {uploadStats.currentWeek}
+            </Typography>
+          </Box>
+
+          {/* Update Week Sebelumnya Section */}
+          <Box sx={{ mb: 3, p: 2, backgroundColor: '#fff3e0', borderRadius: 2, border: '2px solid #ff9800' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', mb: 2 }}>
+              Update Week Sebelumnya
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Week:</strong> {uploadStats.previousWeek}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Total Data:</strong> {allData.filter(d => d.week === uploadStats.previousWeek).length}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Total Data Open:</strong> {allData.filter(d => d.week === uploadStats.previousWeek && d.status === 'open').length}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Total Data Close:</strong> {allData.filter(d => d.week === uploadStats.previousWeek && d.status === 'close').length}
+            </Typography>
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -1015,52 +938,30 @@ export default function CellDownDataPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {previewData.slice(0, 20).map((row, index) => {
-                  // Check if this row will be new or updated
-                  const isNewData = !allData.find(existing => 
-                    existing.week === row.week && 
-                    existing.cellDownName === row.cellDownName
-                  );
-                  
-                  // Check if new data will copy from existing data in previous week
-                  const currentWeek = row.week;
-                  const previousWeek = currentWeek - 1;
-                  const willCopyFromExisting = isNewData && allData.find(existing => 
-                    existing.cellDownName === row.cellDownName && 
-                    existing.week === previousWeek
-                  );
-                  
-                  return (
-                    <TableRow key={index} sx={{ 
-                      '&:nth-of-type(even)': { backgroundColor: '#fafafa' },
-                      backgroundColor: isNewData ? (willCopyFromExisting ? '#e3f2fd' : '#e8f5e8') : '#fff3e0'
-                    }}>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{index + 1}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.cellDownName}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.nop}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.agingDown}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.rangeAgingDown}</TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Chip 
-                          label={row.siteClass} 
-                          color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        {row.subDomain}
-                        {willCopyFromExisting && (
-                          <Typography variant="caption" color="info.main" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
-                            📋 Akan copy dari week {previousWeek}
-                          </Typography>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {previewData.slice(0, 20).map((row, index) => (
+                  <TableRow key={index} sx={{ 
+                    '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
+                  }}>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{index + 1}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>{row.cellDownName}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.nop}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.agingDown}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.rangeAgingDown}</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      <Chip 
+                        label={row.siteClass} 
+                        color={row.siteClass === 'GOLD' ? 'warning' : 'default'}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      {row.subDomain}
+                    </TableCell>
+                  </TableRow>
+                ))}
                 {previewData.length > 20 && (
                   <TableRow>
                     <TableCell colSpan={9} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
