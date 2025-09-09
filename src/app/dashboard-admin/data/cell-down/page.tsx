@@ -45,13 +45,13 @@ import {
   ExpandMore as ExpandMoreIcon,
   ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
-import CellDownDetailView from './components/CellDownDetailView';
-import ExportToExcel from './components/ExportToExcel';
-
-import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, where } from 'firebase/firestore';
-import { db } from '@/app/firebaseConfig';
+import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
 import * as XLSX from 'exceljs';
 
+import CellDownDetailView from './components/CellDownDetailView';
+import ExportToExcel from './components/ExportToExcel';
+import { db } from '@/app/firebaseConfig';
+// ===== INTERFACES =====
 interface CellDownData {
   id?: string;
   week: number;
@@ -114,33 +114,30 @@ interface UploadStats {
   newDataWithCopy: number;
 }
 
+// ===== CONSTANTS =====
 const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN'];
 const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
 const progressOptions = ['OPEN', 'DONE'];
 const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
 
+// ===== MAIN COMPONENT =====
 export default function CellDownDataPage() {
+  // ===== STATE MANAGEMENT =====
+  // Data states
   const [data, setData] = useState<CellDownData[]>([]);
   const [allData, setAllData] = useState<CellDownData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploading, setUploading] = useState(false);
-  const [previewData, setPreviewData] = useState<CellDownData[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
-  const [editModal, setEditModal] = useState(false);
-  const [detailModal, setDetailModal] = useState(false);
-  const [selectedData, setSelectedData] = useState<CellDownData | null>(null);
-  const [editData, setEditData] = useState<EditModalData>({
-    id: '', rootCause: '', detailProblem: '', planAction: '', needSupport: '', picDept: '', progress: 'OPEN', closedDate: ''
-  });
+  const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
   
+  // UI states
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
   const [totalCount, setTotalCount] = useState(0);
+  
+  // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
-  const [userRole, setUserRole] = useState<string>('');
   const [filters, setFilters] = useState<FilterData>({
     week: '',
     nop: '',
@@ -151,12 +148,15 @@ export default function CellDownDataPage() {
     status: '',
     rangeAgingDown: ''
   });
-  const [filteredData, setFilteredData] = useState<CellDownData[]>([]);
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
   const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
   const [uniqueRangeAgingDown, setUniqueRangeAgingDown] = useState<string[]>([]);
   
-  // New state for enhanced upload functionality
+  // Upload states
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [previewData, setPreviewData] = useState<CellDownData[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
   const [uploadStats, setUploadStats] = useState<UploadStats>({ 
     totalExistingData: 0,
     totalUploadedData: 0,
@@ -178,13 +178,33 @@ export default function CellDownDataPage() {
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [showUploadAnimation, setShowUploadAnimation] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  
+  // Modal states
+  const [editModal, setEditModal] = useState(false);
+  const [detailModal, setDetailModal] = useState(false);
+  const [selectedData, setSelectedData] = useState<CellDownData | null>(null);
+  const [editData, setEditData] = useState<EditModalData>({
+    id: '', 
+    rootCause: '', 
+    detailProblem: '', 
+    planAction: '', 
+    needSupport: '', 
+    picDept: '', 
+    progress: 'OPEN', 
+    closedDate: ''
+  });
+  
+  // User role state
+  const [userRole, setUserRole] = useState<string>('');
 
+  // ===== COMPUTED VALUES =====
+  const isSuperAdmin = userRole === 'super_admin';
+
+  // ===== EFFECTS =====
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     setUserRole(role || '');
   }, []);
-
-  const isSuperAdmin = userRole === 'super_admin';
 
   useEffect(() => {
     loadData();
@@ -202,13 +222,14 @@ export default function CellDownDataPage() {
     setTotalCount(filteredData.length);
   }, [filteredData, page, rowsPerPage]);
 
+  // ===== DATA FUNCTIONS =====
   const loadData = async () => {
     setLoading(true);
     try {
-      console.log('Loading data...');
       const q = query(collection(db, 'data_celldown'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       const allData: CellDownData[] = [];
+      
       querySnapshot.forEach((doc) => {
         allData.push({ id: doc.id, ...doc.data() } as CellDownData);
       });
@@ -216,16 +237,13 @@ export default function CellDownDataPage() {
       setAllData(allData);
       setFilteredData(allData);
       
-      // Extract unique NOPs for filter dropdown
+      // Extract unique values for filter dropdowns
       const nops = Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).sort();
-      setUniqueNOPs(nops);
-      
-      // Extract unique weeks for filter dropdown
       const weeks = Array.from(new Set(allData.map(item => item.week).filter(Boolean))).sort((a, b) => a - b);
-      setUniqueWeeks(weeks);
-      
-      // Extract unique range aging down for filter dropdown
       const rangeAgingDown = Array.from(new Set(allData.map(item => item.rangeAgingDown).filter(Boolean))).sort();
+      
+      setUniqueNOPs(nops);
+      setUniqueWeeks(weeks);
       setUniqueRangeAgingDown(rangeAgingDown);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -256,33 +274,17 @@ export default function CellDownDataPage() {
     }
 
     // Apply other filters
-    if (filters.week) {
-      filtered = filtered.filter(item => item.week?.toString() === filters.week);
-    }
-    if (filters.nop) {
-      filtered = filtered.filter(item => item.nop === filters.nop);
-    }
-    if (filters.rootCause) {
-      filtered = filtered.filter(item => item.rootCause === filters.rootCause);
-    }
-    if (filters.siteClass) {
-      filtered = filtered.filter(item => item.siteClass === filters.siteClass);
-    }
-    if (filters.picDept) {
-      filtered = filtered.filter(item => item.picDept === filters.picDept);
-    }
-    if (filters.progress) {
-      filtered = filtered.filter(item => item.progress === filters.progress);
-    }
-    if (filters.status) {
-      filtered = filtered.filter(item => item.status === filters.status);
-    }
-    if (filters.rangeAgingDown) {
-      filtered = filtered.filter(item => item.rangeAgingDown === filters.rangeAgingDown);
-    }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        filtered = filtered.filter(item => {
+          const fieldValue = item[key as keyof CellDownData];
+          return fieldValue?.toString() === value;
+        });
+      }
+    });
 
     setFilteredData(filtered);
-    setPage(0); // Reset to first page when filters change
+    setPage(0);
   };
 
   const resetFilters = () => {
@@ -301,6 +303,7 @@ export default function CellDownDataPage() {
     setPage(0);
   };
 
+  // ===== EVENT HANDLERS =====
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -325,6 +328,7 @@ export default function CellDownDataPage() {
     }));
   };
 
+  // ===== UPLOAD FUNCTIONS =====
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!isSuperAdmin) {
       alert('Access denied. Only Super Admin users can upload data.');
@@ -336,8 +340,8 @@ export default function CellDownDataPage() {
 
     // Validate file type
     const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel' // .xls
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
     ];
     
     if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
@@ -353,13 +357,11 @@ export default function CellDownDataPage() {
       const workbook = new XLSX.Workbook();
       await workbook.xlsx.load(await file.arrayBuffer());
       
-      // Get the first worksheet by name or index
       const worksheet = workbook.worksheets[0] || workbook.getWorksheet(1);
       if (!worksheet) {
         throw new Error('No worksheet found. Please ensure the Excel file contains at least one worksheet.');
       }
 
-      // Check if worksheet has data
       if (!worksheet.rowCount || worksheet.rowCount <= 1) {
         throw new Error('The worksheet is empty or contains only headers. Please ensure the Excel file contains data rows.');
       }
@@ -372,14 +374,14 @@ export default function CellDownDataPage() {
         if (rowNumber === 1) return;
 
         const rowData: CellDownData = {
-          week: parseInt(row.getCell(2)?.value?.toString() || '0'), // Kolom B: Week
-          siteId: row.getCell(3)?.value?.toString() || '', // Kolom C: Site ID
-          cellDownName: row.getCell(4)?.value?.toString() || '', // Kolom D: Cell Down Name
-          nop: row.getCell(5)?.value?.toString() || '', // Kolom E: NOP
-          agingDown: parseInt(row.getCell(6)?.value?.toString() || '0'), // Kolom F: AGING DOWN
-          rangeAgingDown: row.getCell(7)?.value?.toString() || '', // Kolom G: RANGE AGING DOWN
-          siteClass: row.getCell(8)?.value?.toString() || '', // Kolom H: SITE CLASS
-          subDomain: row.getCell(9)?.value?.toString() || '', // Kolom I: Sub Domain
+          week: parseInt(row.getCell(2)?.value?.toString() || '0'),
+          siteId: row.getCell(3)?.value?.toString() || '',
+          cellDownName: row.getCell(4)?.value?.toString() || '',
+          nop: row.getCell(5)?.value?.toString() || '',
+          agingDown: parseInt(row.getCell(6)?.value?.toString() || '0'),
+          rangeAgingDown: row.getCell(7)?.value?.toString() || '',
+          siteClass: row.getCell(8)?.value?.toString() || '',
+          subDomain: row.getCell(9)?.value?.toString() || '',
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -397,11 +399,9 @@ export default function CellDownDataPage() {
         setUploadProgress((rowCount / totalRows) * 100);
       });
 
-      // Analyze data to determine new vs update counts
       const stats = await analyzeUploadData(previewRows);
       setUploadStats(stats);
       setPreviewData(previewRows);
-      
       setShowPreview(true);
       setUploadStatus('');
     } catch (error) {
@@ -427,34 +427,24 @@ export default function CellDownDataPage() {
     }
   };
 
-  // Enhanced function to analyze upload data with status prediction
-  // Logika baru berdasarkan Week dan Cell Down Name:
-  // - Cek data existing di kolom week (yaitu angka terbesar)
-  // - Cocokan data yang upload dan data existing yaitu kolom Cell Down Name
-  // - Jika data cocok data di kolom status isinya Open
-  // - Jika data tidak cocok data di kolom status isinya Close
   const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
-    const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0; // Week yang diupload
-    const targetWeek = currentWeek - 1; // Week yang akan diupdate (1 tingkat di bawah week upload)
+    const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0;
+    const targetWeek = currentWeek - 1;
 
-    // 1. Hitungan awal dari data yang sudah ada (existing)
     const totalExistingData = allData.length;
     const existingOpenBeforeUpload = allData.filter(d => d.status === 'open').length;
     const existingCloseBeforeUpload = allData.filter(d => d.status === 'close').length;
 
-    // Buat set untuk pencarian efisien data yang diupload berdasarkan Cell Down Name
     const uploadCellDownNames = new Set(uploadData.map(item => item.cellDownName));
-
-    // Buat salinan sementara dari semua data untuk mensimulasikan perubahan
     const simulatedDataMap = new Map<string, CellDownData>();
-    allData.forEach(d => simulatedDataMap.set(`${d.week}-${d.cellDownName}`, { ...d })); // Deep copy data existing
+    allData.forEach(d => simulatedDataMap.set(`${d.week}-${d.cellDownName}`, { ...d }));
 
     let newDataCount = 0;
     let updatedDataCount = 0;
     let newlyAddedOpen = 0;
     let newlyAddedClose = 0;
 
-    // --- Proses data yang diupload untuk mengidentifikasi data baru/diperbarui ---
+    // Process uploaded data to identify new/updated records
     for (const uploadedItem of uploadData) {
       const key = `${uploadedItem.week}-${uploadedItem.cellDownName}`;
       const existingData = allData.find(existing => 
@@ -462,10 +452,8 @@ export default function CellDownDataPage() {
         existing.cellDownName === uploadedItem.cellDownName
       );
 
-
       if (existingData) {
-        // Data sudah ada di database dengan week dan cellDownName yang sama
-        // Tapi tetap cek apakah ada data di week sebelumnya untuk copy field
+        // Existing data - check for previous week data to copy fields
         const currentWeek = uploadedItem.week;
         const previousWeek = currentWeek - 1;
         const existingWithSameName = allData.find(existing => 
@@ -473,11 +461,9 @@ export default function CellDownDataPage() {
           existing.week === previousWeek
         );
         
-        // Update existing data dengan field yang dicopy dari week sebelumnya jika ada
         const updatedItem = {
           ...existingData,
           ...uploadedItem,
-          // Copy field dari week sebelumnya jika ada
           rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
           detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
           planAction: existingWithSameName?.planAction || existingData.planAction || '',
@@ -490,8 +476,7 @@ export default function CellDownDataPage() {
         updatedDataCount++;
         simulatedDataMap.set(key, updatedItem);
       } else {
-        // Ini adalah record yang benar-benar baru
-        // Cari data existing dengan Cell Down Name yang sama di week sebelumnya untuk copy field
+        // New data - check for previous week data to copy fields
         const currentWeek = uploadedItem.week;
         const previousWeek = currentWeek - 1;
         const existingWithSameName = allData.find(existing => 
@@ -500,10 +485,8 @@ export default function CellDownDataPage() {
         );
         
         newDataCount++;
-        newlyAddedOpen++; // Data baru selalu 'Open'
+        newlyAddedOpen++;
         
-        
-        // Simulasi data baru dengan field yang dicopy dari data existing di week sebelumnya
         const simulatedNewItem = {
           ...uploadedItem,
           rootCause: existingWithSameName?.rootCause || '',
@@ -519,23 +502,16 @@ export default function CellDownDataPage() {
       }
     }
 
-    // --- Terapkan logika baru untuk menentukan status berdasarkan Cell Down Name ---
+    // Apply status logic based on Cell Down Name
     const finalSimulatedData: CellDownData[] = [];
     const simulatedDataArray = Array.from(simulatedDataMap.entries());
 
     for (const [key, dataItem] of simulatedDataArray) {
-      let finalStatus = dataItem.status; // Mulai dengan status saat ini/awal
+      let finalStatus = dataItem.status;
 
-      // Hanya update status untuk week yang 1 tingkat di bawah week upload
       if (dataItem.week === targetWeek) {
-        // Periksa apakah Cell Down Name ini ada di data yang diupload
         const cellDownNameInUpload = uploadCellDownNames.has(dataItem.cellDownName);
-        
-        if (cellDownNameInUpload) {
-          finalStatus = 'open'; // Jika ada di upload -> status open
-        } else {
-          finalStatus = 'close'; // Jika tidak ada di upload -> status close
-        }
+        finalStatus = cellDownNameInUpload ? 'open' : 'close';
       }
       
       finalSimulatedData.push({ ...dataItem, status: finalStatus });
@@ -545,8 +521,6 @@ export default function CellDownDataPage() {
     const totalWillBeOpen = finalSimulatedData.filter(d => d.status === 'open').length;
     const totalWillBeClose = finalSimulatedData.filter(d => d.status === 'close').length;
 
-    // Hitung berapa banyak data yang akan copy data lama dari week sebelumnya
-    // (baik data baru maupun data existing yang akan diupdate)
     const newDataWithCopy = uploadData.filter(item => {
       const currentWeek = item.week;
       const previousWeek = currentWeek - 1;
@@ -572,19 +546,16 @@ export default function CellDownDataPage() {
       newDataCount,
       updatedDataCount,
       totalProcessed: uploadData.length,
-      newDataWithCopy, // Tambahkan field baru
+      newDataWithCopy,
     };
   };
 
-  // New function to reset file input and upload state
   const resetUploadState = () => {
-    // Reset file input element
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
     }
     
-    // Reset all upload-related state
     setPreviewData([]);
     setUploadStats({ 
       totalExistingData: 0,
@@ -617,7 +588,6 @@ export default function CellDownDataPage() {
 
     if (previewData.length === 0) return;
 
-    // Close preview and show upload animation
     setShowPreview(false);
     setShowUploadAnimation(true);
     setUploading(true);
@@ -631,6 +601,7 @@ export default function CellDownDataPage() {
       let newDataCount = 0;
       let updatedDataCount = 0;
 
+      // Process data in batches
       for (let i = 0; i < previewData.length; i += batchSize) {
         const currentChunk = Math.floor(i / batchSize) + 1;
         setChunkProgress({
@@ -644,15 +615,13 @@ export default function CellDownDataPage() {
         const batch = previewData.slice(i, i + batchSize);
         
         for (const item of batch) {
-          // Check if data exists based on Week and Cell Down Name
           const existingData = allData.find(existing => 
             existing.week === item.week && 
             existing.cellDownName === item.cellDownName
           );
 
           if (existingData) {
-            // Update existing data
-            // Tapi tetap cek apakah ada data di week sebelumnya untuk copy field
+            // Update existing data with copied fields from previous week
             const currentWeek = item.week;
             const previousWeek = currentWeek - 1;
             const existingWithSameName = allData.find(existing => 
@@ -664,7 +633,6 @@ export default function CellDownDataPage() {
             const updateData = {
               ...item,
               id: existingData.id,
-              // Copy field dari week sebelumnya jika ada
               rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
               detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
               planAction: existingWithSameName?.planAction || existingData.planAction || '',
@@ -672,13 +640,13 @@ export default function CellDownDataPage() {
               picDept: existingWithSameName?.picDept || existingData.picDept || '',
               progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
               updatedAt: new Date(),
-              status: 'open' // Update status to open for existing data (karena akan diupdate)
+              status: 'open'
             };
             
             await updateDoc(docRef, updateData);
             updatedDataCount++;
           } else {
-            // This is new data - check if there's existing data with the same Cell Down Name in the previous week
+            // Add new data with copied fields from previous week
             const currentWeek = item.week;
             const previousWeek = currentWeek - 1;
             const existingWithSameName = allData.find(existing => 
@@ -686,17 +654,15 @@ export default function CellDownDataPage() {
               existing.week === previousWeek
             );
             
-            // Add new data with copied fields from existing data with same Cell Down Name in previous week
             const newItem = {
               ...item,
-              // Copy existing data fields if Cell Down Name exists in previous week
               rootCause: existingWithSameName?.rootCause || '',
               detailProblem: existingWithSameName?.detailProblem || '',
               planAction: existingWithSameName?.planAction || '',
               needSupport: existingWithSameName?.needSupport || '',
               picDept: existingWithSameName?.picDept || '',
-              progress: existingWithSameName?.progress || 'OPEN', // Copy progress from existing data
-              status: 'open', // New data always starts with 'open' status
+              progress: existingWithSameName?.progress || 'OPEN',
+              status: 'open',
               createdAt: new Date(),
               updatedAt: new Date()
             };
@@ -709,33 +675,22 @@ export default function CellDownDataPage() {
           setUploadProgress((processed / previewData.length) * 100);
         }
         
-        // Small delay to show progress
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // Update status of existing data based on new logic
+      // Update status of existing data based on upload
       const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
-      
-      // Get current week from upload data
       const currentWeek = previewData.length > 0 ? previewData[0].week : 0;
-      const targetWeek = currentWeek - 1; // Week yang akan diupdate (1 tingkat di bawah week upload)
+      const targetWeek = currentWeek - 1;
       
       for (const existingItem of allData) {
-        let newStatus = existingItem.status; // Default to current status
+        let newStatus = existingItem.status;
         
-        // Hanya update status untuk week yang 1 tingkat di bawah week upload
         if (existingItem.week === targetWeek) {
-          // Periksa apakah Cell Down Name ini ada di data yang diupload
           const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
-          
-          if (cellDownNameInUpload) {
-            newStatus = 'open'; // Jika ada di upload -> status open
-          } else {
-            newStatus = 'close'; // Jika tidak ada di upload -> status close
-          }
+          newStatus = cellDownNameInUpload ? 'open' : 'close';
         }
         
-        // Update status if it changed
         if (newStatus !== existingItem.status) {
           const docRef = doc(db, 'data_celldown', existingItem.id!);
           await updateDoc(docRef, {
@@ -745,18 +700,14 @@ export default function CellDownDataPage() {
         }
       }
 
-      // Show success message with clean UI
       setShowUploadAnimation(false);
       setShowSuccessMessage(true);
       
-      // Auto hide success message after 3 seconds
       setTimeout(() => {
         setShowSuccessMessage(false);
       }, 3000);
       
       resetUploadState();
-      
-      // Reload data to show updated information
       loadData();
     } catch (error) {
       console.error('Error uploading data:', error);
@@ -770,6 +721,7 @@ export default function CellDownDataPage() {
     }
   };
 
+  // ===== MODAL FUNCTIONS =====
   const handleEdit = (row: CellDownData) => {
     setEditData({
       id: row.id || '',
@@ -784,6 +736,36 @@ export default function CellDownDataPage() {
     setEditModal(true);
   };
 
+  const handleSaveEdit = async () => {
+    if (!editData.id) return;
+
+    try {
+      const docRef = doc(db, 'data_celldown', editData.id);
+      const updateData = {
+        ...editData,
+        updatedAt: new Date()
+      };
+      
+      await updateDoc(docRef, updateData);
+      
+      setData(prev => prev.map(item => 
+        item.id === editData.id ? { ...item, ...updateData } : item
+      ));
+      
+      setEditModal(false);
+      alert('Data updated successfully!');
+    } catch (error) {
+      console.error('Error updating data:', error);
+      alert('Error updating data. Please try again.');
+    }
+  };
+
+  const handleRowClick = (row: CellDownData) => {
+    setSelectedData(row);
+    setDetailModal(true);
+  };
+
+  // ===== UTILITY FUNCTIONS =====
   const handleCopyData = async () => {
     try {
       const dataToCopy = filteredData.map(item => ({
@@ -818,42 +800,14 @@ export default function CellDownDataPage() {
     }
   };
 
-  const handleSaveEdit = async () => {
-    if (!editData.id) return;
-
-    try {
-      const docRef = doc(db, 'data_celldown', editData.id);
-      const updateData = {
-        ...editData,
-        updatedAt: new Date()
-        // Status tidak dipengaruhi oleh Progress - hapus logika ini
-      };
-      
-      await updateDoc(docRef, updateData);
-      
-      setData(prev => prev.map(item => 
-        item.id === editData.id ? { ...item, ...updateData } : item
-      ));
-      
-      setEditModal(false);
-      alert('Data updated successfully!');
-    } catch (error) {
-      console.error('Error updating data:', error);
-      alert('Error updating data. Please try again.');
-    }
-  };
-
-  const handleRowClick = (row: CellDownData) => {
-    setSelectedData(row);
-    setDetailModal(true);
-  };
-
   const getStatusColor = (status: string) => {
     return status === 'open' ? 'warning' : 'success';
   };
 
+  // ===== RENDER =====
   return (
     <Box sx={{ p: 3 }}>
+      {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" gutterBottom>
           Cell Down Data Management
@@ -868,6 +822,7 @@ export default function CellDownDataPage() {
         </Box>
       </Box>
 
+      {/* Upload Section */}
       {isSuperAdmin ? (
         <Card sx={{ mb: 3 }}>
           <CardHeader
@@ -910,7 +865,6 @@ export default function CellDownDataPage() {
                 <Typography variant="body2" color="textSecondary">Supported formats: .xlsx, .xls</Typography>
               </Grid>
             </Grid>
-            
           </CardContent>
         </Card>
       ) : (
@@ -925,6 +879,7 @@ export default function CellDownDataPage() {
         </Card>
       )}
 
+      {/* Preview Upload Dialog */}
       <Dialog open={showPreview} onClose={() => {
         setShowPreview(false);
         resetUploadState();
@@ -1128,6 +1083,7 @@ export default function CellDownDataPage() {
         </DialogActions>
       </Dialog>
 
+      {/* Edit Data Dialog */}
       <Dialog open={editModal} onClose={() => setEditModal(false)} maxWidth="md" fullWidth>
         <DialogTitle>Edit Cell Down Data</DialogTitle>
         <DialogContent>
@@ -1176,6 +1132,7 @@ export default function CellDownDataPage() {
         </DialogActions>
       </Dialog>
 
+      {/* Data Table Section */}
       <Card>
         <CardHeader
           title={
@@ -1657,6 +1614,7 @@ export default function CellDownDataPage() {
         </CardContent>
       </Card>
 
+      {/* Detail View Modal */}
       <CellDownDetailView open={detailModal} onClose={() => setDetailModal(false)} data={selectedData} />
 
       {/* Upload Animation Dialog */}
