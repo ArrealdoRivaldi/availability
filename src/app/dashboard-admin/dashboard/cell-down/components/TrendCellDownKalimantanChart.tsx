@@ -105,9 +105,6 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
           }}>
             Trend Cell Down Kalimantan
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Menampilkan data seluruh week tanpa terpengaruh filter
-          </Typography>
         </Box>
         
         {chartData && chartData.length > 1 ? (
@@ -133,7 +130,22 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
               legend: { 
                 position: 'top'
               },
-              backgroundColor: 'transparent'
+              backgroundColor: 'transparent',
+              dataLabels: {
+                enabled: true,
+                textStyle: {
+                  fontSize: 11,
+                  bold: true,
+                  color: '#333'
+                }
+              },
+              annotations: {
+                textStyle: {
+                  fontSize: 11,
+                  bold: true,
+                  color: '#333'
+                }
+              }
             }}
           />
         ) : (
@@ -150,33 +162,6 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
             </Typography>
           </Box>
         )}
-        
-        {/* Legend Explanation */}
-        <Box sx={{ mt: 2, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
-            Keterangan:
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 16, height: 16, backgroundColor: '#1976d2', borderRadius: 1 }} />
-              <Typography variant="body2" color="text.secondary">
-                <strong>Total:</strong> Total Data pada week tersebut
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 16, height: 16, backgroundColor: '#ff9800', borderRadius: 1 }} />
-              <Typography variant="body2" color="text.secondary">
-                <strong>Close:</strong> Total Data dengan status Close
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 16, height: 16, backgroundColor: '#4caf50', borderRadius: 1 }} />
-              <Typography variant="body2" color="text.secondary">
-                <strong>Progress:</strong> Persentase Close/Total
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
       </CardContent>
     </Card>
   );
