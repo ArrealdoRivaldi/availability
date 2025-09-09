@@ -33,6 +33,7 @@ import {
 import { Refresh as RefreshIcon, FilterList as FilterIcon } from '@mui/icons-material';
 import { Chart } from 'react-google-charts';
 import { CellDownData, mapFirestoreData, extractWeekFromTimestamp } from '../../../../utils/cellDownDataMapper';
+import TrendCellDownKalimantanChart from './components/TrendCellDownKalimantanChart';
 
 export default function CellDownDashboardPage() {
   const [cellDownData, setCellDownData] = useState<CellDownData[]>([]);
@@ -528,57 +529,9 @@ export default function CellDownDashboardPage() {
       </Card>
 
       <Grid container spacing={3}>
-        {/* Trend Cell Down Chart */}
+        {/* Trend Cell Down Kalimantan Chart */}
         <Grid item xs={12}>
-          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Trend Cell Down
-              </Typography>
-              <Chart
-                chartType="ColumnChart"
-                width="100%"
-                height="400px"
-                data={
-                  Object.keys(data.weeklyData || {}).length > 0 
-                    ? [
-                        ['Week', 'Cell Down', 'Progress', 'Status'],
-                        ...Object.entries(data.weeklyData || {}).map(([week, counts]) => [
-                          week,
-                          counts.total,
-                          counts.progress,
-                          counts.status
-                        ])
-                      ]
-                    : [['Week', 'Cell Down', 'Progress', 'Status'], ['No Data', 0, 0, 0]]
-                }
-                options={{
-                  title: '',
-                  chartArea: { width: '70%', height: '75%' },
-                  hAxis: { 
-                    title: 'Week', 
-                    titleTextStyle: { fontSize: 12, color: '#666' },
-                    textStyle: { fontSize: 11, color: '#666' }
-                  },
-                  vAxis: { 
-                    title: 'Count', 
-                    titleTextStyle: { fontSize: 12, color: '#666' },
-                    textStyle: { fontSize: 11, color: '#666' }
-                  },
-                  seriesType: 'bars',
-                  series: { 1: { type: 'bars' }, 2: { type: 'bars' } },
-                  colors: ['#1976d2', '#ff9800', '#4caf50'],
-                  legend: { 
-                    position: 'top',
-                    textStyle: { fontSize: 12, color: '#666' }
-                  },
-                  fontSize: 11,
-                  backgroundColor: 'transparent',
-                  bar: { groupWidth: '70%' }
-                }}
-              />
-            </CardContent>
-          </Card>
+          <TrendCellDownKalimantanChart data={cellDownData} />
         </Grid>
 
         {/* Root Cause Chart */}
