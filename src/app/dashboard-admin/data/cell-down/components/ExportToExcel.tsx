@@ -19,7 +19,6 @@ interface CellDownData {
   needSupport: string;
   picDept: string;
   progress: string;
-  closedDate: string;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -82,7 +81,6 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
          'Need Support',
          'PIC Dept',
          'Progress',
-         'Closed Date',
          'Status',
          'Created At',
          'Updated At'
@@ -117,7 +115,6 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
            item.needSupport,
            item.picDept,
            item.progress,
-           item.closedDate,
            item.status,
            item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
            item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
@@ -214,9 +211,9 @@ export default function ExportToExcel({ data, onExport }: ExportToExcelProps) {
                 <Typography variant="body2" gutterBottom>
                   <strong>Export will include:</strong>
                 </Typography>
-                                 <Typography variant="body2" color="textSecondary">
-                   • All 18 columns (9 upload + 7 editable + 2 system)
-                 </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  • All 17 columns (9 upload + 6 editable + 2 system)
+                </Typography>
                 <Typography variant="body2" color="textSecondary">
                   • Formatted headers with proper column names
                 </Typography>

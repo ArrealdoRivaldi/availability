@@ -27,7 +27,6 @@ interface CellDownData {
   needSupport: string;
   picDept: string;
   progress: string;
-  closedDate: string;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -107,7 +106,6 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
           <DetailRow label="Need Support" value={data.needSupport} />
           <DetailRow label="PIC Dept" value={data.picDept} />
           <DetailRow label="Progress" value={data.progress} />
-          <DetailRow label="Closed Date" value={data.closedDate} />
           <DetailRow label="Status" value={data.status} />
         </Box>
       </DialogContent>
