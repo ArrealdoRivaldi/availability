@@ -124,7 +124,11 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
               title: '',
               chartArea: { 
                 width: '70%', 
-                height: '75%'
+                height: '70%',
+                top: 20,
+                left: 60,
+                right: 20,
+                bottom: 40
               },
               hAxis: { 
                 title: 'Week'
@@ -140,10 +144,16 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
               backgroundColor: 'transparent',
               annotations: {
                 textStyle: {
-                  fontSize: 12,
+                  fontSize: 11,
                   bold: true,
                   color: '#333'
-                }
+                },
+                alwaysOutside: false,
+                stem: {
+                  color: 'transparent',
+                  length: 0
+                },
+                highContrast: true
               },
               enableInteractivity: true
             }}
