@@ -6,7 +6,7 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 
 interface CellDownData {
   id: string;
-  week?: string;
+  week?: number | string;
   progress?: string;
   status?: string;
   rootCause?: string;
@@ -30,9 +30,10 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
 
     // Group data by week
     const weeklyData = data.reduce((acc, item) => {
-      if (!item.week || typeof item.week !== 'string') return acc;
+      if (!item.week) return acc;
       
-      const week = item.week.trim();
+      // Convert week to string, handling both number and string types
+      const week = typeof item.week === 'number' ? item.week.toString() : item.week.toString().trim();
       if (!week) return acc;
       
       if (!acc[week]) {
