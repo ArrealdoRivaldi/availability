@@ -143,6 +143,10 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
                   fontSize: 11,
                   bold: true,
                   color: '#333'
+                },
+                alwaysOutside: true,
+                stem: {
+                  color: 'transparent'
                 }
               },
               enableInteractivity: true
