@@ -1,7 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
+
+// TypeScript declarations for Chart.js CDN
+declare global {
+  interface Window {
+    Chart: any;
+    ChartDataLabels: any;
+  }
+}
 
 interface CellDownData {
   id: string;
@@ -27,175 +35,165 @@ interface ChartData {
   progress: number;
 }
 
-interface CustomBarChartProps {
-  data: (string | number | { role: string })[][];
-}
+const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartInstance = useRef<any>(null);
 
-const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
-  // Skip header row and process data, filtering out annotation objects
-  const chartData: ChartData[] = data.slice(1).map((row) => ({
-    week: row[0] as string,
-    total: row[1] as number,
-    close: row[3] as number,
-    progress: row[5] as number
-  }));
+  useEffect(() => {
+    // Load Chart.js from CDN
+    const loadChartJS = () => {
+      return new Promise((resolve) => {
+        if (window.Chart) {
+          resolve(window.Chart);
+          return;
+        }
 
-  const maxValue = Math.max(...chartData.map(d => Math.max(d.total, d.close, d.progress)));
-  const chartHeight = 300;
-  const chartWidth = 800;
-  const barWidth = 35;
-  const groupSpacing = 15;
-  const weekSpacing = 120;
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
+        script.onload = () => resolve(window.Chart);
+        document.head.appendChild(script);
+      });
+    };
+
+    const loadDataLabelsPlugin = () => {
+      return new Promise((resolve) => {
+        if (window.Chart && window.Chart.register) {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
+          script.onload = () => {
+            if (window.ChartDataLabels) {
+              window.Chart.register(window.ChartDataLabels);
+            }
+            resolve(true);
+          };
+          document.head.appendChild(script);
+        } else {
+          resolve(true);
+        }
+      });
+    };
+
+    const createChart = async () => {
+      await loadChartJS();
+      await loadDataLabelsPlugin();
+
+      if (canvasRef.current && window.Chart) {
+        // Destroy existing chart
+        if (chartInstance.current) {
+          chartInstance.current.destroy();
+        }
+
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          chartInstance.current = new window.Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.map(d => `Week ${d.week}`),
+              datasets: [
+                {
+                  label: 'Total',
+                  data: data.map(d => d.total),
+                  backgroundColor: '#1976d2',
+                  borderColor: '#1976d2',
+                  borderWidth: 1,
+                },
+                {
+                  label: 'Close',
+                  data: data.map(d => d.close),
+                  backgroundColor: '#ff9800',
+                  borderColor: '#ff9800',
+                  borderWidth: 1,
+                },
+                {
+                  label: 'Progress',
+                  data: data.map(d => d.progress),
+                  backgroundColor: '#4caf50',
+                  borderColor: '#4caf50',
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'top',
+                  labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: {
+                      size: 12,
+                      weight: 'bold',
+                    },
+                  },
+                },
+                datalabels: {
+                  display: true,
+                  color: '#333',
+                  font: {
+                    size: 11,
+                    weight: 'bold',
+                  },
+                  anchor: 'end',
+                  align: 'top',
+                  offset: 4,
+                  formatter: (value: number, context: any) => {
+                    if (context.datasetIndex === 2) {
+                      return value.toFixed(1) + '%';
+                    }
+                    return value.toString();
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Week',
+                    font: {
+                      size: 14,
+                      weight: 'bold',
+                    },
+                  },
+                  grid: {
+                    display: false,
+                  },
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: 'Count',
+                    font: {
+                      size: 14,
+                      weight: 'bold',
+                    },
+                  },
+                  beginAtZero: true,
+                  grid: {
+                    color: '#f0f0f0',
+                  },
+                },
+              },
+            },
+          });
+        }
+      }
+    };
+
+    createChart();
+
+    // Cleanup
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [data]);
 
   return (
-    <Box sx={{ width: '100%', height: '100%', overflow: 'auto' }}>
-      <svg width="100%" height={chartHeight + 100} viewBox={`0 0 ${chartWidth} ${chartHeight + 100}`}>
-        {/* Grid lines */}
-        {[0, 0.2, 0.4, 0.6, 0.8, 1].map((ratio, index) => (
-          <g key={index}>
-            <line
-              x1={80}
-              y1={chartHeight - (chartHeight * ratio) + 20}
-              x2={chartWidth - 40}
-              y2={chartHeight - (chartHeight * ratio) + 20}
-              stroke="#e0e0e0"
-              strokeWidth={1}
-            />
-            <text
-              x={70}
-              y={chartHeight - (chartHeight * ratio) + 25}
-              fontSize="11"
-              fill="#666"
-              textAnchor="end"
-            >
-              {Math.round(maxValue * ratio)}
-            </text>
-          </g>
-        ))}
-
-        {/* Bars */}
-        {chartData.map((weekData, weekIndex) => {
-          const x = 100 + (weekIndex * weekSpacing);
-          const totalHeight = (weekData.total / maxValue) * chartHeight;
-          const closeHeight = (weekData.close / maxValue) * chartHeight;
-          const progressHeight = Math.max((weekData.progress / maxValue) * chartHeight, 5); // Minimum height for visibility
-
-          return (
-            <g key={weekData.week}>
-              {/* Total bar (blue) */}
-              <rect
-                x={x}
-                y={chartHeight - totalHeight + 20}
-                width={barWidth}
-                height={totalHeight}
-                fill="#1976d2"
-                rx={3}
-              />
-              <text
-                x={x + barWidth / 2}
-                y={chartHeight - totalHeight + 10}
-                fontSize="12"
-                fontWeight="bold"
-                fill="#333"
-                textAnchor="middle"
-              >
-                {weekData.total}
-              </text>
-
-              {/* Close bar (orange) */}
-              <rect
-                x={x + barWidth + groupSpacing}
-                y={chartHeight - closeHeight + 20}
-                width={barWidth}
-                height={closeHeight}
-                fill="#ff9800"
-                rx={3}
-              />
-              <text
-                x={x + barWidth + groupSpacing + barWidth / 2}
-                y={chartHeight - closeHeight + 10}
-                fontSize="12"
-                fontWeight="bold"
-                fill="#333"
-                textAnchor="middle"
-              >
-                {weekData.close}
-              </text>
-
-              {/* Progress bar (green) */}
-              <rect
-                x={x + (barWidth + groupSpacing) * 2}
-                y={chartHeight - progressHeight + 20}
-                width={barWidth}
-                height={progressHeight}
-                fill="#4caf50"
-                rx={3}
-              />
-              <text
-                x={x + (barWidth + groupSpacing) * 2 + barWidth / 2}
-                y={chartHeight - progressHeight + 10}
-                fontSize="12"
-                fontWeight="bold"
-                fill="#333"
-                textAnchor="middle"
-              >
-                {weekData.progress.toFixed(1)}%
-              </text>
-
-              {/* Week label */}
-              <text
-                x={x + (barWidth + groupSpacing) * 1.5}
-                y={chartHeight + 45}
-                fontSize="14"
-                fontWeight="bold"
-                fill="#333"
-                textAnchor="middle"
-              >
-                Week {weekData.week}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Axis labels */}
-        <text
-          x={chartWidth / 2}
-          y={chartHeight + 60}
-          fontSize="14"
-          fontWeight="bold"
-          fill="#333"
-          textAnchor="middle"
-        >
-          Week
-        </text>
-        <text
-          x={20}
-          y={chartHeight / 2 + 20}
-          fontSize="14"
-          fontWeight="bold"
-          fill="#333"
-          textAnchor="middle"
-          transform={`rotate(-90, 20, ${chartHeight / 2 + 20})`}
-        >
-          Count
-        </text>
-      </svg>
-
-      {/* Legend */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, backgroundColor: '#1976d2', borderRadius: 1 }} />
-          <Typography variant="body2" fontWeight="bold">Total</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, backgroundColor: '#ff9800', borderRadius: 1 }} />
-          <Typography variant="body2" fontWeight="bold">Close</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, backgroundColor: '#4caf50', borderRadius: 1 }} />
-          <Typography variant="body2" fontWeight="bold">Progress</Typography>
-        </Box>
-      </Box>
+    <Box sx={{ height: 400, width: '100%' }}>
+      <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
     </Box>
   );
 };
@@ -294,9 +292,12 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
         </Box>
         
         {chartData && chartData.length > 1 ? (
-          <Box sx={{ width: '100%', height: 400, position: 'relative' }}>
-            <CustomBarChart data={chartData} />
-          </Box>
+          <ChartJSBarChart data={chartData.slice(1).map((row) => ({
+            week: row[0] as string,
+            total: row[1] as number,
+            close: row[3] as number,
+            progress: row[5] as number
+          }))} />
         ) : (
           <Box sx={{ 
             display: 'flex', 
