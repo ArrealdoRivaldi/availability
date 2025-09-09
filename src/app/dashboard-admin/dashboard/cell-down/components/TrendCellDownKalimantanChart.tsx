@@ -49,9 +49,9 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
         return acc;
       }, {} as Record<string, { total: number; close: number }>);
 
-      // Convert to chart data format
+      // Convert to chart data format with annotations
       const chartData = [
-        ['Week', 'Total', 'Close', 'Progress'],
+        ['Week', 'Total', { role: 'annotation' }, 'Close', { role: 'annotation' }, 'Progress', { role: 'annotation' }],
         ...Object.entries(weeklyData)
           .sort(([a], [b]) => {
             // Sort by week number, handling both "W1", "W2" format and numeric format
@@ -61,12 +61,19 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
           })
           .map(([week, counts]) => {
             const progress = counts.total > 0 ? (counts.close / counts.total) * 100 : 0;
+            const totalValue = Number(counts.total);
+            const closeValue = Number(counts.close);
+            const progressValue = Number(Math.round(progress * 100) / 100);
+            
             return [
               week, 
-              Number(counts.total), 
-              Number(counts.close), 
-              Number(Math.round(progress * 100) / 100)
-            ]; // Ensure all values are numbers
+              totalValue,
+              totalValue.toString(), // Annotation for Total
+              closeValue,
+              closeValue.toString(), // Annotation for Close
+              progressValue,
+              progressValue.toFixed(1) + '%' // Annotation for Progress with % sign
+            ];
           })
       ];
 
@@ -131,21 +138,14 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
                 position: 'top'
               },
               backgroundColor: 'transparent',
-              dataLabels: {
-                enabled: true,
-                textStyle: {
-                  fontSize: 11,
-                  bold: true,
-                  color: '#333'
-                }
-              },
               annotations: {
                 textStyle: {
                   fontSize: 11,
                   bold: true,
                   color: '#333'
                 }
-              }
+              },
+              enableInteractivity: true
             }}
           />
         ) : (
