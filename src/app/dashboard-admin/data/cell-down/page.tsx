@@ -113,9 +113,9 @@ interface UploadStats {
 }
 
 // ===== CONSTANTS =====
-const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN'];
+const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN', 'Radio'];
 const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
-const progressOptions = ['OPEN', 'DONE'];
+const progressOptions = ['Open', 'Waiting Budget', 'Waiting Spare Part', 'Waiting Permit', 'Followup Comcase', 'IKN', 'Waiting Delete DB', 'Done'];
 const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
 
@@ -188,7 +188,7 @@ export default function CellDownDataPage() {
     planAction: '', 
     needSupport: '', 
     picDept: '', 
-    progress: 'OPEN'
+    progress: 'Open'
   });
   
   // User role state
@@ -384,7 +384,7 @@ export default function CellDownDataPage() {
           planAction: '',
           needSupport: '',
           picDept: '',
-          progress: 'OPEN',
+          progress: 'Open',
           status: 'open',
           createdAt: new Date(),
           updatedAt: new Date()
@@ -726,7 +726,7 @@ export default function CellDownDataPage() {
       planAction: row.planAction || '',
       needSupport: row.needSupport || '',
       picDept: row.picDept || '',
-      progress: row.progress || 'OPEN'
+      progress: row.progress || 'Open'
     });
     setEditModal(true);
   };
@@ -777,7 +777,7 @@ export default function CellDownDataPage() {
         'Plan Action': item.planAction || '',
         'Need Support': item.needSupport || '',
         'PIC Dept': item.picDept || '',
-        Progress: item.progress || 'OPEN',
+        Progress: item.progress || 'Open',
         Status: item.status
       }));
 
@@ -1203,8 +1203,8 @@ export default function CellDownDataPage() {
                       {progressOptions.map(option => (
                         <MenuItem key={option} value={option}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="h6" color={option === 'DONE' ? 'success.main' : 'error.main'}>
-                              {option === 'DONE' ? '✅' : '❌'}
+                            <Typography variant="h6" color={option === 'Done' ? 'success.main' : 'error.main'}>
+                              {option === 'Done' ? '✅' : '❌'}
                             </Typography>
                             {option}
                           </Box>
@@ -1325,8 +1325,8 @@ export default function CellDownDataPage() {
                   <Chip 
                     label={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="h6" color={filters.progress === 'DONE' ? 'success.main' : 'error.main'}>
-                          {filters.progress === 'DONE' ? '✅' : '❌'}
+                        <Typography variant="h6" color={filters.progress === 'Done' ? 'success.main' : 'error.main'}>
+                          {filters.progress === 'Done' ? '✅' : '❌'}
                         </Typography>
                         <Typography variant="body2">Progress: {filters.progress}</Typography>
                       </Box>
@@ -1446,11 +1446,11 @@ export default function CellDownDataPage() {
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                          <Typography variant="h6" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
-                            {row.progress === 'DONE' ? '✅' : '❌'}
+                          <Typography variant="h6" color={row.progress === 'Done' ? 'success.main' : 'error.main'}>
+                            {row.progress === 'Done' ? '✅' : '❌'}
                           </Typography>
-                          <Typography variant="body2" color={row.progress === 'DONE' ? 'success.main' : 'error.main'}>
-                            {row.progress || 'OPEN'}
+                          <Typography variant="body2" color={row.progress === 'Done' ? 'success.main' : 'error.main'}>
+                            {row.progress || 'Open'}
                           </Typography>
                         </Box>
                       </TableCell>
