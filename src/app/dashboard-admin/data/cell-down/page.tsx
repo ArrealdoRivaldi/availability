@@ -462,14 +462,33 @@ export default function CellDownDataPage() {
         existing.cellDownName === uploadedItem.cellDownName
       );
 
-      // Debug log untuk setiap item
-      console.log(`Processing: Week ${uploadedItem.week}, Cell Down Name: ${uploadedItem.cellDownName}`);
-      console.log(`Existing data found:`, existingData);
 
       if (existingData) {
         // Data sudah ada di database dengan week dan cellDownName yang sama
+        // Tapi tetap cek apakah ada data di week sebelumnya untuk copy field
+        const currentWeek = uploadedItem.week;
+        const previousWeek = currentWeek - 1;
+        const existingWithSameName = allData.find(existing => 
+          existing.cellDownName === uploadedItem.cellDownName && 
+          existing.week === previousWeek
+        );
+        
+        // Update existing data dengan field yang dicopy dari week sebelumnya jika ada
+        const updatedItem = {
+          ...existingData,
+          ...uploadedItem,
+          // Copy field dari week sebelumnya jika ada
+          rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
+          detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
+          planAction: existingWithSameName?.planAction || existingData.planAction || '',
+          needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
+          picDept: existingWithSameName?.picDept || existingData.picDept || '',
+          progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
+          status: 'open'
+        };
+        
         updatedDataCount++;
-        simulatedDataMap.set(key, { ...existingData, ...uploadedItem, status: 'open' });
+        simulatedDataMap.set(key, updatedItem);
       } else {
         // Ini adalah record yang benar-benar baru
         // Cari data existing dengan Cell Down Name yang sama di week sebelumnya untuk copy field
@@ -483,10 +502,6 @@ export default function CellDownDataPage() {
         newDataCount++;
         newlyAddedOpen++; // Data baru selalu 'Open'
         
-        // Debug log
-        console.log(`New data: Week ${currentWeek}, Cell Down Name: ${uploadedItem.cellDownName}`);
-        console.log(`Looking for previous week ${previousWeek} data with same Cell Down Name`);
-        console.log(`Found existing data:`, existingWithSameName);
         
         // Simulasi data baru dengan field yang dicopy dari data existing di week sebelumnya
         const simulatedNewItem = {
@@ -530,19 +545,16 @@ export default function CellDownDataPage() {
     const totalWillBeOpen = finalSimulatedData.filter(d => d.status === 'open').length;
     const totalWillBeClose = finalSimulatedData.filter(d => d.status === 'close').length;
 
-    // Hitung berapa banyak data baru yang akan copy data lama dari week sebelumnya
+    // Hitung berapa banyak data yang akan copy data lama dari week sebelumnya
+    // (baik data baru maupun data existing yang akan diupdate)
     const newDataWithCopy = uploadData.filter(item => {
-      const isNewData = !allData.find(existing => 
-        existing.week === item.week && 
-        existing.cellDownName === item.cellDownName
-      );
       const currentWeek = item.week;
       const previousWeek = currentWeek - 1;
-      const hasExistingWithSameNameInPreviousWeek = allData.find(existing => 
-        existing.cellDownName === item.cellDownName && 
+      const hasExistingWithSameNameInPreviousWeek = allData.find(existing =>
+        existing.cellDownName === item.cellDownName &&
         existing.week === previousWeek
       );
-      return isNewData && hasExistingWithSameNameInPreviousWeek;
+      return hasExistingWithSameNameInPreviousWeek;
     }).length;
 
     return {
@@ -640,10 +652,25 @@ export default function CellDownDataPage() {
 
           if (existingData) {
             // Update existing data
+            // Tapi tetap cek apakah ada data di week sebelumnya untuk copy field
+            const currentWeek = item.week;
+            const previousWeek = currentWeek - 1;
+            const existingWithSameName = allData.find(existing => 
+              existing.cellDownName === item.cellDownName && 
+              existing.week === previousWeek
+            );
+            
             const docRef = doc(db, 'data_celldown', existingData.id!);
             const updateData = {
               ...item,
               id: existingData.id,
+              // Copy field dari week sebelumnya jika ada
+              rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
+              detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
+              planAction: existingWithSameName?.planAction || existingData.planAction || '',
+              needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
+              picDept: existingWithSameName?.picDept || existingData.picDept || '',
+              progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
               updatedAt: new Date(),
               status: 'open' // Update status to open for existing data (karena akan diupdate)
             };
