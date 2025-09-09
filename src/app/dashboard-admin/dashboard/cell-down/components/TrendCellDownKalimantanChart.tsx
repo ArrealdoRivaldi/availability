@@ -28,11 +28,11 @@ interface ChartData {
 }
 
 interface CustomBarChartProps {
-  data: (string | number)[][];
+  data: (string | number | { role: string })[][];
 }
 
 const CustomBarChart: React.FC<CustomBarChartProps> = ({ data }) => {
-  // Skip header row and process data
+  // Skip header row and process data, filtering out annotation objects
   const chartData: ChartData[] = data.slice(1).map((row) => ({
     week: row[0] as string,
     total: row[1] as number,
