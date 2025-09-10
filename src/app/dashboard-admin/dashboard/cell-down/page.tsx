@@ -69,6 +69,14 @@ export default function CellDownDashboardPage() {
           mappedData.week = extractWeekFromTimestamp(mappedData.createdAt);
         }
         
+        // Fallback: if still no week, create a default one
+        if (!mappedData.week) {
+          const now = new Date();
+          const year = now.getFullYear();
+          const weekNumber = Math.ceil((now.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+          mappedData.week = `Week ${weekNumber}, ${year}`;
+        }
+        
         data.push(mappedData);
       });
       
@@ -108,10 +116,39 @@ export default function CellDownDashboardPage() {
   // Get unique values for filter options
   const getUniqueWeeks = () => {
     const weeks = cellDownData
-      .map(item => item.week)
-      .filter(week => week && typeof week === 'string' && week.trim())
+      .map(item => {
+        // Ensure we have a week value
+        if (item.week && typeof item.week === 'string' && item.week.trim()) {
+          return item.week.trim();
+        }
+        // If no week but we have createdAt, try to extract it
+        if (item.createdAt) {
+          return extractWeekFromTimestamp(item.createdAt);
+        }
+        return null;
+      })
+      .filter(week => week && week.trim())
       .filter((week, index, arr) => arr.indexOf(week) === index)
       .sort();
+    
+    console.log('Available weeks:', weeks);
+    console.log('Sample cellDownData:', cellDownData.slice(0, 3).map(item => ({ week: item.week, createdAt: item.createdAt })));
+    
+    // If no weeks found, create some default ones for testing
+    if (weeks.length === 0) {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const defaultWeeks = [
+        `Week 1, ${currentYear}`,
+        `Week 2, ${currentYear}`,
+        `Week 3, ${currentYear}`,
+        `Week 4, ${currentYear}`,
+        `Week 5, ${currentYear}`
+      ];
+      console.log('No weeks found, using default weeks:', defaultWeeks);
+      return defaultWeeks;
+    }
+    
     return weeks;
   };
 
@@ -422,11 +459,15 @@ export default function CellDownDashboardPage() {
                   <MenuItem value="">
                     <em>All Weeks</em>
                   </MenuItem>
-                  {getUniqueWeeks().map((week) => (
-                    <MenuItem key={week} value={week}>
-                      {week}
-                    </MenuItem>
-                  ))}
+                  {(() => {
+                    const weeks = getUniqueWeeks();
+                    console.log('Rendering weeks in Select:', weeks);
+                    return weeks.map((week) => (
+                      <MenuItem key={week} value={week}>
+                        {week}
+                      </MenuItem>
+                    ));
+                  })()}
                 </Select>
               </FormControl>
             </Grid>
