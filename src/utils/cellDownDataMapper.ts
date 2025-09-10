@@ -1,6 +1,6 @@
 export interface CellDownData {
   id: string;
-  week?: string;
+  week?: string | number;
   progress?: string;
   status?: string;
   rootCause?: string;
