@@ -144,6 +144,17 @@ export default function CellDownDashboardPage() {
     return nops;
   };
 
+  // Generate aging categories for remaining open tables
+  const getRemainingOpenAgingCategories = () => {
+    return [
+      { label: '1-3 Days', min: 1, max: 3 },
+      { label: '4-7 Days', min: 4, max: 7 },
+      { label: '8-30 Days', min: 8, max: 30 },
+      { label: '30-60 Days', min: 30, max: 60 },
+      { label: '>60 Days', min: 60, max: Infinity }
+    ];
+  };
+
   // Generate dynamic aging categories based on filter range
   const getAgingCategories = () => {
     const minAging = agingRangeFilter[0];
@@ -265,6 +276,106 @@ export default function CellDownDashboardPage() {
       return acc;
     }, {} as Record<string, Record<string, number>>);
 
+    // Remaining Open data processing
+    const remainingOpenAgingCategories = getRemainingOpenAgingCategories();
+    
+    // Filter for open items only
+    const openItems = filteredData.filter(item => 
+      item.status && typeof item.status === 'string' && item.status.toLowerCase() !== 'close'
+    );
+
+    // Remaining Open By NOP
+    const remainingOpenByNOP = openItems.reduce((acc, item) => {
+      if (item.nop && typeof item.nop === 'string' && item.nop.trim() && item.agingDown !== undefined) {
+        if (!acc[item.nop]) {
+          acc[item.nop] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+            catAcc[category.label] = 0;
+            return catAcc;
+          }, {} as Record<string, number>);
+        }
+        
+        const aging = Number(item.agingDown);
+        if (!isNaN(aging)) {
+          for (const category of remainingOpenAgingCategories) {
+            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
+              acc[item.nop][category.label]++;
+              break;
+            }
+          }
+        }
+      }
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
+
+    // Remaining Open By Site Class
+    const remainingOpenBySiteClass = openItems.reduce((acc, item) => {
+      if (item.siteClass && typeof item.siteClass === 'string' && item.siteClass.trim() && item.agingDown !== undefined) {
+        if (!acc[item.siteClass]) {
+          acc[item.siteClass] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+            catAcc[category.label] = 0;
+            return catAcc;
+          }, {} as Record<string, number>);
+        }
+        
+        const aging = Number(item.agingDown);
+        if (!isNaN(aging)) {
+          for (const category of remainingOpenAgingCategories) {
+            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
+              acc[item.siteClass][category.label]++;
+              break;
+            }
+          }
+        }
+      }
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
+
+    // Remaining Open By Root Cause
+    const remainingOpenByRootCause = openItems.reduce((acc, item) => {
+      if (item.rootCause && typeof item.rootCause === 'string' && item.rootCause.trim() && item.agingDown !== undefined) {
+        if (!acc[item.rootCause]) {
+          acc[item.rootCause] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+            catAcc[category.label] = 0;
+            return catAcc;
+          }, {} as Record<string, number>);
+        }
+        
+        const aging = Number(item.agingDown);
+        if (!isNaN(aging)) {
+          for (const category of remainingOpenAgingCategories) {
+            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
+              acc[item.rootCause][category.label]++;
+              break;
+            }
+          }
+        }
+      }
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
+
+    // Remaining Open By Progress
+    const remainingOpenByProgress = openItems.reduce((acc, item) => {
+      if (item.progress && typeof item.progress === 'string' && item.progress.trim() && item.agingDown !== undefined) {
+        if (!acc[item.progress]) {
+          acc[item.progress] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+            catAcc[category.label] = 0;
+            return catAcc;
+          }, {} as Record<string, number>);
+        }
+        
+        const aging = Number(item.agingDown);
+        if (!isNaN(aging)) {
+          for (const category of remainingOpenAgingCategories) {
+            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
+              acc[item.progress][category.label]++;
+              break;
+            }
+          }
+        }
+      }
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
+
     return {
       weeklyData,
       rootCauseData,
@@ -272,7 +383,12 @@ export default function CellDownDashboardPage() {
       siteClassData,
       nopData,
       agingData,
-      agingCategories
+      agingCategories,
+      remainingOpenByNOP,
+      remainingOpenBySiteClass,
+      remainingOpenByRootCause,
+      remainingOpenByProgress,
+      remainingOpenAgingCategories
     };
   };
 
@@ -535,6 +651,64 @@ export default function CellDownDashboardPage() {
         </Grid>
 
 
+        {/* Summary Cell Down Table */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Summary Cell Down
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>NOP</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Open</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Close</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Progress</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(data.nopData || {}).map(([nop, counts]) => {
+                      const openCount = counts.total - counts.status;
+                      const progress = counts.total > 0 ? ((counts.status / counts.total) * 100).toFixed(0) : '0';
+                      return (
+                        <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{counts.total}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{openCount}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{counts.status}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500, color: '#1976d2' }}>{progress}%</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.nopData || {}).reduce((a, b) => a + b.total, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.nopData || {}).reduce((a, b) => a + (b.total - b.status), 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.nopData || {}).reduce((a, b) => a + b.status, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                        {(() => {
+                          const total = Object.values(data.nopData || {}).reduce((a, b) => a + b.total, 0);
+                          const status = Object.values(data.nopData || {}).reduce((a, b) => a + b.status, 0);
+                          return total > 0 ? ((status / total) * 100).toFixed(0) : '0';
+                        })()}%
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* PIC Dept and Site Class Tables */}
         <Grid item xs={12} lg={6}>
           <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
@@ -604,6 +778,217 @@ export default function CellDownDashboardPage() {
           </Card>
         </Grid>
 
+        {/* Remaining Open By NOP */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Remaining Open By NOP
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>NOP</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>
+                          {category.label}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Total</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(data.remainingOpenByNOP || {}).map(([nop, aging]) => {
+                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                      return (
+                        <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
+                          {data.remainingOpenAgingCategories?.map((category) => (
+                            <TableCell key={category.label} align="right" sx={{ fontSize: '0.875rem' }}>
+                              {aging[category.label] || 0}
+                            </TableCell>
+                          ))}
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {Object.values(data.remainingOpenByNOP || {}).reduce((a, b) => a + (b[category.label] || 0), 0)}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.remainingOpenByNOP || {}).reduce((a, b) => a + Object.values(b).reduce((c, d) => c + d, 0), 0)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Remaining Open By Site Class */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Remaining Open By Site Class
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Site Class</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>
+                          {category.label}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Total</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(data.remainingOpenBySiteClass || {}).map(([siteClass, aging]) => {
+                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                      return (
+                        <TableRow key={siteClass} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{siteClass}</TableCell>
+                          {data.remainingOpenAgingCategories?.map((category) => (
+                            <TableCell key={category.label} align="right" sx={{ fontSize: '0.875rem' }}>
+                              {aging[category.label] || 0}
+                            </TableCell>
+                          ))}
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {Object.values(data.remainingOpenBySiteClass || {}).reduce((a, b) => a + (b[category.label] || 0), 0)}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.remainingOpenBySiteClass || {}).reduce((a, b) => a + Object.values(b).reduce((c, d) => c + d, 0), 0)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Remaining Open By Root Cause */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Remaining Open By Root Cause
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Root Cause</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>
+                          {category.label}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Total</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(data.remainingOpenByRootCause || {}).map(([rootCause, aging]) => {
+                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                      return (
+                        <TableRow key={rootCause} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{rootCause}</TableCell>
+                          {data.remainingOpenAgingCategories?.map((category) => (
+                            <TableCell key={category.label} align="right" sx={{ fontSize: '0.875rem' }}>
+                              {aging[category.label] || 0}
+                            </TableCell>
+                          ))}
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {Object.values(data.remainingOpenByRootCause || {}).reduce((a, b) => a + (b[category.label] || 0), 0)}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.remainingOpenByRootCause || {}).reduce((a, b) => a + Object.values(b).reduce((c, d) => c + d, 0), 0)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Remaining Open By Progress */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
+                Remaining Open By Progress
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Progress</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>
+                          {category.label}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Total</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(data.remainingOpenByProgress || {}).map(([progress, aging]) => {
+                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                      return (
+                        <TableRow key={progress} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{progress}</TableCell>
+                          {data.remainingOpenAgingCategories?.map((category) => (
+                            <TableCell key={category.label} align="right" sx={{ fontSize: '0.875rem' }}>
+                              {aging[category.label] || 0}
+                            </TableCell>
+                          ))}
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {Object.values(data.remainingOpenByProgress || {}).reduce((a, b) => a + (b[category.label] || 0), 0)}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        {Object.values(data.remainingOpenByProgress || {}).reduce((a, b) => a + Object.values(b).reduce((c, d) => c + d, 0), 0)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
 
       </Grid>
     </Box>
