@@ -41,8 +41,6 @@ export default function CellDownDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [weekFilter, setWeekFilter] = useState<string>('');
   const [nopFilter, setNopFilter] = useState<string>('');
-  const [agingRangeFilter, setAgingRangeFilter] = useState<[number, number]>([0, 100]);
-  const [selectedAgingCategory, setSelectedAgingCategory] = useState<string>('');
 
   useEffect(() => {
     fetchCellDownData();
@@ -50,7 +48,7 @@ export default function CellDownDashboardPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [cellDownData, weekFilter, nopFilter, agingRangeFilter, selectedAgingCategory]);
+  }, [cellDownData, weekFilter, nopFilter]);
 
   const fetchCellDownData = async () => {
     try {
@@ -98,22 +96,6 @@ export default function CellDownDashboardPage() {
       );
     }
 
-    // Filter by aging down category
-    if (selectedAgingCategory) {
-      const agingCategories = getAgingCategories();
-      const selectedCategory = agingCategories.find(cat => cat.label === selectedAgingCategory);
-      
-      if (selectedCategory) {
-        filtered = filtered.filter(item => {
-          if (item.agingDown === undefined || item.agingDown === null) return false;
-          
-          const aging = Number(item.agingDown);
-          if (isNaN(aging)) return false;
-          
-          return aging >= selectedCategory.min && (selectedCategory.max === Infinity || aging <= selectedCategory.max);
-        });
-      }
-    }
 
     setFilteredData(filtered);
   };
@@ -121,8 +103,6 @@ export default function CellDownDashboardPage() {
   const clearFilters = () => {
     setWeekFilter('');
     setNopFilter('');
-    setAgingRangeFilter([0, 100]);
-    setSelectedAgingCategory('');
   };
 
   // Get unique values for filter options
@@ -153,50 +133,6 @@ export default function CellDownDashboardPage() {
       { label: '30-60 Days', min: 30, max: 60 },
       { label: '>60 Days', min: 60, max: Infinity }
     ];
-  };
-
-  // Generate dynamic aging categories based on filter range
-  const getAgingCategories = () => {
-    const minAging = agingRangeFilter[0];
-    const maxAging = agingRangeFilter[1];
-    
-    // If no range is set, use default categories
-    if (minAging === 0 && maxAging === 100) {
-      return [
-        { label: '8-30 Days', min: 8, max: 30 },
-        { label: '30-60 Days', min: 30, max: 60 },
-        { label: '>60 Days', min: 60, max: Infinity }
-      ];
-    }
-    
-    // Create dynamic categories based on the range
-    const range = maxAging - minAging;
-    const categories = [];
-    
-    if (range <= 30) {
-      // Small range: create 3 equal parts
-      const step = Math.ceil(range / 3);
-      categories.push({ label: `${minAging}-${minAging + step} Days`, min: minAging, max: minAging + step });
-      categories.push({ label: `${minAging + step + 1}-${minAging + step * 2} Days`, min: minAging + step + 1, max: minAging + step * 2 });
-      categories.push({ label: `>${minAging + step * 2} Days`, min: minAging + step * 2 + 1, max: Infinity });
-    } else if (range <= 60) {
-      // Medium range: create 4 equal parts
-      const step = Math.ceil(range / 4);
-      categories.push({ label: `${minAging}-${minAging + step} Days`, min: minAging, max: minAging + step });
-      categories.push({ label: `${minAging + step + 1}-${minAging + step * 2} Days`, min: minAging + step + 1, max: minAging + step * 2 });
-      categories.push({ label: `${minAging + step * 2 + 1}-${minAging + step * 3} Days`, min: minAging + step * 2 + 1, max: minAging + step * 3 });
-      categories.push({ label: `>${minAging + step * 3} Days`, min: minAging + step * 3 + 1, max: Infinity });
-    } else {
-      // Large range: create 5 equal parts
-      const step = Math.ceil(range / 5);
-      categories.push({ label: `${minAging}-${minAging + step} Days`, min: minAging, max: minAging + step });
-      categories.push({ label: `${minAging + step + 1}-${minAging + step * 2} Days`, min: minAging + step + 1, max: minAging + step * 2 });
-      categories.push({ label: `${minAging + step * 2 + 1}-${minAging + step * 3} Days`, min: minAging + step * 2 + 1, max: minAging + step * 3 });
-      categories.push({ label: `${minAging + step * 3 + 1}-${minAging + step * 4} Days`, min: minAging + step * 3 + 1, max: minAging + step * 4 });
-      categories.push({ label: `>${minAging + step * 4} Days`, min: minAging + step * 4 + 1, max: Infinity });
-    }
-    
-    return categories;
   };
 
   // Process data for charts and tables using filtered data
@@ -252,29 +188,6 @@ export default function CellDownDashboardPage() {
       return acc;
     }, {} as Record<string, { total: number; progress: number; status: number }>);
 
-    // Aging data with dynamic categories
-    const agingCategories = getAgingCategories();
-    const agingData = filteredData.reduce((acc, item) => {
-      if (item.nop && typeof item.nop === 'string' && item.nop.trim() && item.agingDown !== undefined) {
-        if (!acc[item.nop]) {
-          acc[item.nop] = agingCategories.reduce((catAcc, category) => {
-            catAcc[category.label] = 0;
-            return catAcc;
-          }, {} as Record<string, number>);
-        }
-        
-        const aging = Number(item.agingDown);
-        if (!isNaN(aging)) {
-          for (const category of agingCategories) {
-            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
-              acc[item.nop][category.label]++;
-              break;
-            }
-          }
-        }
-      }
-      return acc;
-    }, {} as Record<string, Record<string, number>>);
 
     // Remaining Open data processing
     const remainingOpenAgingCategories = getRemainingOpenAgingCategories();
@@ -382,8 +295,6 @@ export default function CellDownDashboardPage() {
       picDeptData,
       siteClassData,
       nopData,
-      agingData,
-      agingCategories,
       remainingOpenByNOP,
       remainingOpenBySiteClass,
       remainingOpenByRootCause,
@@ -561,49 +472,8 @@ export default function CellDownDashboardPage() {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth size="medium">
-                <InputLabel sx={{ 
-                  color: '#666',
-                  fontWeight: 500,
-                  '&.Mui-focused': { color: '#1976d2' }
-                }}>
-                  RANGE AGING DOWN
-                </InputLabel>
-                <Select
-                  value={selectedAgingCategory}
-                  label="RANGE AGING DOWN"
-                  onChange={(e: SelectChangeEvent) => setSelectedAgingCategory(e.target.value)}
-                  sx={{
-                    borderRadius: 2,
-                    '& .MuiOutlinedInput-notchedOutline': { 
-                      borderColor: '#e0e0e0',
-                      borderWidth: 2
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { 
-                      borderColor: '#1976d2',
-                      borderWidth: 2
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1976d2',
-                      borderWidth: 2
-                    }
-                  }}
-                >
-                  <MenuItem value="">
-                    <em>All Categories</em>
-                  </MenuItem>
-                  {getAgingCategories().map((category) => (
-                    <MenuItem key={category.label} value={category.label}>
-                      {category.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} md={2}>
-              <Stack spacing={2} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Stack spacing={2} alignItems="flex-end">
                 <Button 
                   variant="outlined" 
                   onClick={clearFilters}
@@ -625,19 +495,6 @@ export default function CellDownDashboardPage() {
                 >
                   Clear Filters
                 </Button>
-                <Chip 
-                  label={`${filteredData.length} of ${cellDownData.length} records`}
-                  color="primary"
-                  variant="outlined"
-                  sx={{ 
-                    backgroundColor: alpha('#1976d2', 0.1),
-                    borderColor: '#1976d2',
-                    color: '#1976d2',
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    height: 32
-                  }}
-                />
               </Stack>
             </Grid>
           </Grid>
