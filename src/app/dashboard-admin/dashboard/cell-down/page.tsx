@@ -93,18 +93,22 @@ export default function CellDownDashboardPage() {
     let filtered = [...cellDownData];
 
     if (weekFilter) {
+      const filterWeek = parseInt(weekFilter);
       filtered = filtered.filter(item => {
         if (!item.week) return false;
         
         // Handle both string and number week formats
-        let itemWeek = '';
-        if (typeof item.week === 'string') {
-          itemWeek = item.week.trim();
-        } else if (typeof item.week === 'number') {
-          itemWeek = `W${item.week}`;
+        let itemWeek = null;
+        if (typeof item.week === 'number') {
+          itemWeek = item.week;
+        } else if (typeof item.week === 'string') {
+          const weekNum = parseInt(item.week.replace('W', ''));
+          if (!isNaN(weekNum)) {
+            itemWeek = weekNum;
+          }
         }
         
-        return itemWeek === weekFilter;
+        return itemWeek === filterWeek;
       });
     }
 
@@ -129,53 +133,48 @@ export default function CellDownDashboardPage() {
     
     const weeks = cellDownData
       .map(item => {
-        let weekValue = null;
-        
-        // Handle different week formats
+        // Handle different week formats - keep as numbers when possible
         if (item.week) {
-          if (typeof item.week === 'string' && item.week.trim()) {
-            weekValue = item.week.trim();
-            console.log(`Using existing week string: ${weekValue}`);
-          } else if (typeof item.week === 'number') {
-            weekValue = `W${item.week}`;
-            console.log(`Converting number week to string: ${weekValue}`);
+          if (typeof item.week === 'number') {
+            console.log(`Using existing week number: ${item.week}`);
+            return item.week;
+          } else if (typeof item.week === 'string' && item.week.trim()) {
+            // Convert string like "W36" to number 36
+            const weekNum = parseInt(item.week.replace('W', ''));
+            if (!isNaN(weekNum)) {
+              console.log(`Converting week string to number: ${item.week} -> ${weekNum}`);
+              return weekNum;
+            }
           }
         }
         
         // If no week but we have createdAt, try to extract it
-        if (!weekValue && item.createdAt) {
+        if (item.createdAt) {
           const extractedWeek = extractWeekFromTimestamp(item.createdAt);
           if (extractedWeek) {
-            weekValue = extractedWeek;
-            console.log(`Extracted week from createdAt: ${weekValue}`);
+            const weekNum = parseInt(extractedWeek.replace('W', ''));
+            if (!isNaN(weekNum)) {
+              console.log(`Extracted week from createdAt: ${extractedWeek} -> ${weekNum}`);
+              return weekNum;
+            }
           }
         }
         
-        return weekValue;
+        return null;
       })
-      .filter(week => week && week.trim())
+      .filter(week => week !== null && !isNaN(week))
       .filter((week, index, arr) => arr.indexOf(week) === index)
       .sort((a, b) => {
-        // Sort weeks properly (W1, W2, W3, etc.)
+        // Sort weeks numerically
         if (!a || !b) return 0;
-        const aNum = parseInt(a.replace('W', ''));
-        const bNum = parseInt(b.replace('W', ''));
-        return aNum - bNum;
+        return a - b;
       });
     
-    console.log('Final available weeks:', weeks);
+    console.log('Final available weeks (numbers):', weeks);
     
     // If no weeks found, create some default ones for testing
     if (weeks.length === 0) {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const defaultWeeks = [
-        `W1`,
-        `W2`,
-        `W3`,
-        `W4`,
-        `W5`
-      ];
+      const defaultWeeks = [1, 2, 3, 4, 5];
       console.log('No weeks found, using default weeks:', defaultWeeks);
       return defaultWeeks;
     }
@@ -212,14 +211,17 @@ export default function CellDownDashboardPage() {
       if (!item.week) return acc;
       
       // Handle both string and number week formats
-      let weekKey = '';
-      if (typeof item.week === 'string') {
-        weekKey = item.week.trim();
-      } else if (typeof item.week === 'number') {
-        weekKey = `W${item.week}`;
-      } else {
-        return acc;
+      let weekKey = null;
+      if (typeof item.week === 'number') {
+        weekKey = item.week;
+      } else if (typeof item.week === 'string') {
+        const weekNum = parseInt(item.week.replace('W', ''));
+        if (!isNaN(weekNum)) {
+          weekKey = weekNum;
+        }
       }
+      
+      if (weekKey === null) return acc;
       
       if (!acc[weekKey]) {
         acc[weekKey] = { total: 0, progress: 0, status: 0 };
@@ -228,7 +230,7 @@ export default function CellDownDashboardPage() {
       if (item.progress && typeof item.progress === 'string' && item.progress.toLowerCase() === 'done') acc[weekKey].progress++;
       if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') acc[weekKey].status++;
       return acc;
-    }, {} as Record<string, { total: number; progress: number; status: number }>);
+    }, {} as Record<number, { total: number; progress: number; status: number }>);
 
     // Root cause data
     const rootCauseData = filteredData.reduce((acc, item) => {
@@ -505,8 +507,8 @@ export default function CellDownDashboardPage() {
                     const weeks = getUniqueWeeks();
                     console.log('Rendering weeks in Select:', weeks);
                     return weeks.map((week) => (
-                      <MenuItem key={week} value={week}>
-                        {week}
+                      <MenuItem key={week} value={week.toString()}>
+                        Week {week}
                       </MenuItem>
                     ));
                   })()}
