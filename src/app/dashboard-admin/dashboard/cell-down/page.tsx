@@ -157,6 +157,7 @@ export default function CellDownDashboardPage() {
       .filter((week, index, arr) => arr.indexOf(week) === index)
       .sort((a, b) => {
         // Sort weeks properly (W1, W2, W3, etc.)
+        if (!a || !b) return 0;
         const aNum = parseInt(a.replace('W', ''));
         const bNum = parseInt(b.replace('W', ''));
         return aNum - bNum;
