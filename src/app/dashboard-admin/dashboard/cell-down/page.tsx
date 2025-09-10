@@ -127,7 +127,7 @@ export default function CellDownDashboardPage() {
   };
 
   // Get unique values for filter options
-  const getUniqueWeeks = () => {
+  const getUniqueWeeks = (): number[] => {
     console.log('getUniqueWeeks called with cellDownData length:', cellDownData.length);
     console.log('Sample cellDownData:', cellDownData.slice(0, 3).map(item => ({ week: item.week, weekType: typeof item.week, createdAt: item.createdAt })));
     
@@ -162,13 +162,9 @@ export default function CellDownDashboardPage() {
         
         return null;
       })
-      .filter(week => week !== null && !isNaN(week))
+      .filter((week): week is number => week !== null && !isNaN(week))
       .filter((week, index, arr) => arr.indexOf(week) === index)
-      .sort((a, b) => {
-        // Sort weeks numerically
-        if (!a || !b) return 0;
-        return a - b;
-      });
+      .sort((a, b) => a - b);
     
     console.log('Final available weeks (numbers):', weeks);
     
