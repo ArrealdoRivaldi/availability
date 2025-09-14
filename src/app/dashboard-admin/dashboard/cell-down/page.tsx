@@ -297,11 +297,14 @@ export default function CellDownDashboardPage() {
       return acc;
     }, {} as Record<string, Record<string, number>>);
 
-    // Remaining Open By Site Class
+    // Remaining Open By Site Class (normalize case to avoid duplicates)
     const remainingOpenBySiteClass = openItems.reduce((acc, item) => {
       if (item.siteClass && typeof item.siteClass === 'string' && item.siteClass.trim() && item.agingDown !== undefined) {
-        if (!acc[item.siteClass]) {
-          acc[item.siteClass] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+        // Normalize site class name to uppercase to avoid duplicates
+        const normalizedSiteClass = item.siteClass.toUpperCase();
+        
+        if (!acc[normalizedSiteClass]) {
+          acc[normalizedSiteClass] = remainingOpenAgingCategories.reduce((catAcc, category) => {
             catAcc[category.label] = 0;
             return catAcc;
           }, {} as Record<string, number>);
@@ -311,7 +314,7 @@ export default function CellDownDashboardPage() {
         if (!isNaN(aging)) {
           for (const category of remainingOpenAgingCategories) {
             if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
-              acc[item.siteClass][category.label]++;
+              acc[normalizedSiteClass][category.label]++;
               break;
             }
           }
@@ -366,6 +369,29 @@ export default function CellDownDashboardPage() {
       return acc;
     }, {} as Record<string, Record<string, number>>);
 
+    // Remaining Open By PIC Department
+    const remainingOpenByPICDept = openItems.reduce((acc, item) => {
+      if (item.picDept && typeof item.picDept === 'string' && item.picDept.trim() && item.agingDown !== undefined) {
+        if (!acc[item.picDept]) {
+          acc[item.picDept] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+            catAcc[category.label] = 0;
+            return catAcc;
+          }, {} as Record<string, number>);
+        }
+        
+        const aging = Number(item.agingDown);
+        if (!isNaN(aging)) {
+          for (const category of remainingOpenAgingCategories) {
+            if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
+              acc[item.picDept][category.label]++;
+              break;
+            }
+          }
+        }
+      }
+      return acc;
+    }, {} as Record<string, Record<string, number>>);
+
     return {
       weeklyData,
       rootCauseData,
@@ -376,6 +402,7 @@ export default function CellDownDashboardPage() {
       remainingOpenBySiteClass,
       remainingOpenByRootCause,
       remainingOpenByProgress,
+      remainingOpenByPICDept,
       remainingOpenAgingCategories
     };
   };
@@ -647,66 +674,50 @@ export default function CellDownDashboardPage() {
           </Card>
         </Grid>
 
-        {/* PIC Dept and Site Class Tables */}
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
+        {/* Remaining Open By PIC Department */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                PIC Department
+                Remaining Open By PIC Department
               </Typography>
               <TableContainer>
                 <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#fafafa' }}>
-                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Department</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Count</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>PIC Department</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>
+                          {category.label}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Total</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.picDeptData || {}).map(([pic, count]) => (
-                      <TableRow key={pic} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
-                        <TableCell sx={{ fontSize: '0.875rem' }}>{pic || '(blank)'}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{count}</TableCell>
-                      </TableRow>
-                    ))}
+                    {Object.entries(data.remainingOpenByPICDept || {}).map(([picDept, aging]) => {
+                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                      return (
+                        <TableRow key={picDept} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
+                          <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{picDept || '(blank)'}</TableCell>
+                          {data.remainingOpenAgingCategories?.map((category) => (
+                            <TableCell key={category.label} align="right" sx={{ fontSize: '0.875rem' }}>
+                              {aging[category.label] || 0}
+                            </TableCell>
+                          ))}
+                          <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
-                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
+                      {data.remainingOpenAgingCategories?.map((category) => (
+                        <TableCell key={category.label} align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                          {Object.values(data.remainingOpenByPICDept || {}).reduce((a, b) => a + (b[category.label] || 0), 0)}
+                        </TableCell>
+                      ))}
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {Object.values(data.picDeptData || {}).reduce((a, b) => a + b, 0)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', height: '100%' }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1a1a1a' }}>
-                Site Classification
-              </Typography>
-              <TableContainer>
-                <Table size="small" sx={{ '& .MuiTableCell-root': { borderColor: '#f0f0f0' } }}>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: '#fafafa' }}>
-                      <TableCell sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Site Class</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Count</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {Object.entries(data.siteClassData || {}).map(([siteClass, count]) => (
-                      <TableRow key={siteClass} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
-                        <TableCell sx={{ fontSize: '0.875rem' }}>{siteClass}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{count}</TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
-                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Grand Total</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
-                        {Object.values(data.siteClassData || {}).reduce((a, b) => a + b, 0)}
+                        {Object.values(data.remainingOpenByPICDept || {}).reduce((a, b) => a + Object.values(b).reduce((c, d) => c + d, 0), 0)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
