@@ -9,11 +9,6 @@ export interface CellDownData {
   nop?: string;
   agingDown?: number;
   createdAt?: any;
-  cellDownName?: string;
-  category?: string;
-  detailProblem?: string;
-  planAction?: string;
-  needSupport?: string;
 }
 
 export const mapFirestoreData = (docData: any, docId: string): CellDownData => {
@@ -27,12 +22,7 @@ export const mapFirestoreData = (docData: any, docId: string): CellDownData => {
     siteClass: docData.siteClass || docData.site_class || docData.siteClassification || '',
     nop: docData.nop || docData.nop_location || docData.location || docData.region || '',
     agingDown: docData.agingDown || docData.aging_down || docData.aging || 0,
-    createdAt: docData.createdAt || docData.created_at || docData.timestamp || null,
-    cellDownName: docData.cellDownName || docData.cell_down_name || docData.name || '',
-    category: docData.category || docData.cell_category || '',
-    detailProblem: docData.detailProblem || docData.detail_problem || docData.problem_detail || '',
-    planAction: docData.planAction || docData.plan_action || docData.action_plan || '',
-    needSupport: docData.needSupport || docData.need_support || docData.support_needed || ''
+    createdAt: docData.createdAt || docData.created_at || docData.timestamp || null
   };
 };
 
