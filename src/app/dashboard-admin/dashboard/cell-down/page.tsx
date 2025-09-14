@@ -635,7 +635,9 @@ export default function CellDownDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.nopData || {}).map(([nop, counts]) => {
+                    {Object.entries(data.nopData || {})
+                      .sort(([, a], [, b]) => b.total - a.total)
+                      .map(([nop, counts]) => {
                       const openCount = counts.total - counts.status;
                       const progress = counts.total > 0 ? ((counts.status / counts.total) * 100).toFixed(0) : '0';
                       return (
@@ -695,9 +697,13 @@ export default function CellDownDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.remainingOpenByPICDept || {}).map(([picDept, aging]) => {
-                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
-                      return (
+                    {Object.entries(data.remainingOpenByPICDept || {})
+                      .map(([picDept, aging]) => {
+                        const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                        return { picDept, aging, total };
+                      })
+                      .sort((a, b) => b.total - a.total)
+                      .map(({ picDept, aging, total }) => (
                         <TableRow key={picDept} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                           <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{picDept || '(blank)'}</TableCell>
                           {data.remainingOpenAgingCategories?.map((category) => (
@@ -707,8 +713,7 @@ export default function CellDownDashboardPage() {
                           ))}
                           <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
                       {data.remainingOpenAgingCategories?.map((category) => (
@@ -748,9 +753,13 @@ export default function CellDownDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.remainingOpenByNOP || {}).map(([nop, aging]) => {
-                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
-                      return (
+                    {Object.entries(data.remainingOpenByNOP || {})
+                      .map(([nop, aging]) => {
+                        const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                        return { nop, aging, total };
+                      })
+                      .sort((a, b) => b.total - a.total)
+                      .map(({ nop, aging, total }) => (
                         <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                           <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
                           {data.remainingOpenAgingCategories?.map((category) => (
@@ -760,8 +769,7 @@ export default function CellDownDashboardPage() {
                           ))}
                           <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
                       {data.remainingOpenAgingCategories?.map((category) => (
@@ -801,9 +809,13 @@ export default function CellDownDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.remainingOpenBySiteClass || {}).map(([siteClass, aging]) => {
-                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
-                      return (
+                    {Object.entries(data.remainingOpenBySiteClass || {})
+                      .map(([siteClass, aging]) => {
+                        const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                        return { siteClass, aging, total };
+                      })
+                      .sort((a, b) => b.total - a.total)
+                      .map(({ siteClass, aging, total }) => (
                         <TableRow key={siteClass} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                           <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{siteClass}</TableCell>
                           {data.remainingOpenAgingCategories?.map((category) => (
@@ -813,8 +825,7 @@ export default function CellDownDashboardPage() {
                           ))}
                           <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
                       {data.remainingOpenAgingCategories?.map((category) => (
@@ -854,9 +865,13 @@ export default function CellDownDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.remainingOpenByRootCause || {}).map(([rootCause, aging]) => {
-                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
-                      return (
+                    {Object.entries(data.remainingOpenByRootCause || {})
+                      .map(([rootCause, aging]) => {
+                        const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                        return { rootCause, aging, total };
+                      })
+                      .sort((a, b) => b.total - a.total)
+                      .map(({ rootCause, aging, total }) => (
                         <TableRow key={rootCause} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                           <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{rootCause}</TableCell>
                           {data.remainingOpenAgingCategories?.map((category) => (
@@ -866,8 +881,7 @@ export default function CellDownDashboardPage() {
                           ))}
                           <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
                       {data.remainingOpenAgingCategories?.map((category) => (
@@ -907,9 +921,13 @@ export default function CellDownDashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(data.remainingOpenByProgress || {}).map(([progress, aging]) => {
-                      const total = Object.values(aging).reduce((a, b) => a + b, 0);
-                      return (
+                    {Object.entries(data.remainingOpenByProgress || {})
+                      .map(([progress, aging]) => {
+                        const total = Object.values(aging).reduce((a, b) => a + b, 0);
+                        return { progress, aging, total };
+                      })
+                      .sort((a, b) => b.total - a.total)
+                      .map(({ progress, aging, total }) => (
                         <TableRow key={progress} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                           <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{progress}</TableCell>
                           {data.remainingOpenAgingCategories?.map((category) => (
@@ -919,8 +937,7 @@ export default function CellDownDashboardPage() {
                           ))}
                           <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{total}</TableCell>
                         </TableRow>
-                      );
-                    })}
+                      ))}
                     <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
                       <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>TOTAL</TableCell>
                       {data.remainingOpenAgingCategories?.map((category) => (
