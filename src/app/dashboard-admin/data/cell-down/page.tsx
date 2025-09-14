@@ -62,6 +62,7 @@ interface CellDownData {
   rangeAgingDown: string;
   siteClass: string;
   subDomain: string;
+  category: string;
   rootCause: string;
   detailProblem: string;
   planAction: string;
@@ -81,6 +82,7 @@ interface EditModalData {
   needSupport: string;
   picDept: string;
   progress: string;
+  category: string;
 }
 
 interface FilterData {
@@ -92,6 +94,7 @@ interface FilterData {
   progress: string;
   status: string;
   rangeAgingDown: string;
+  category: string;
 }
 
 interface UploadStats {
@@ -113,11 +116,12 @@ interface UploadStats {
 }
 
 // ===== CONSTANTS =====
-const rootCauseOptions = ['Hardware', 'Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN', 'Radio'];
+const rootCauseOptions = ['Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN', 'Radio', 'Trial Lock', 'Database', 'Vandalism'];
 const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
-const progressOptions = ['Open', 'Waiting Budget', 'Waiting Spare Part', 'Waiting Permit', 'Followup Comcase', 'IKN', 'Waiting Delete DB', 'Done'];
+const progressOptions = ['Open', 'Waiting Budget', 'Waiting Spare Part', 'Waiting Permit', 'Followup Comcase', 'IKN', 'Waiting Delete DB', 'Waiting team', 'Trial Lock', 'Waiting SVA', 'Waiting Support PIC DEPT', 'Done'];
 const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
+const categoryOptions = ['Site Down', 'Cell Down'];
 
 // ===== MAIN COMPONENT =====
 export default function CellDownDataPage() {
@@ -144,7 +148,8 @@ export default function CellDownDataPage() {
     picDept: '',
     progress: '',
     status: '',
-    rangeAgingDown: ''
+    rangeAgingDown: '',
+    category: ''
   });
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
   const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
@@ -188,7 +193,8 @@ export default function CellDownDataPage() {
     planAction: '', 
     needSupport: '', 
     picDept: '', 
-    progress: 'Open'
+    progress: 'Open',
+    category: ''
   });
   
   // User role state
@@ -293,7 +299,8 @@ export default function CellDownDataPage() {
       picDept: '',
       progress: '',
       status: '',
-      rangeAgingDown: ''
+      rangeAgingDown: '',
+      category: ''
     });
     setSearchTerm('');
     setSearchField('all');
@@ -379,6 +386,7 @@ export default function CellDownDataPage() {
           rangeAgingDown: row.getCell(7)?.value?.toString() || '',
           siteClass: row.getCell(8)?.value?.toString() || '',
           subDomain: row.getCell(9)?.value?.toString() || '',
+          category: 'Cell Down', // Default category
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -719,6 +727,7 @@ export default function CellDownDataPage() {
 
   // ===== MODAL FUNCTIONS =====
   const handleEdit = (row: CellDownData) => {
+    setSelectedData(row);
     setEditData({
       id: row.id || '',
       rootCause: row.rootCause || '',
@@ -726,7 +735,8 @@ export default function CellDownDataPage() {
       planAction: row.planAction || '',
       needSupport: row.needSupport || '',
       picDept: row.picDept || '',
-      progress: row.progress || 'Open'
+      progress: row.progress || 'Open',
+      category: row.category || ''
     });
     setEditModal(true);
   };
@@ -772,6 +782,7 @@ export default function CellDownDataPage() {
         'Range Aging Down': item.rangeAgingDown,
         'Site Class': item.siteClass,
         'Sub Domain': item.subDomain,
+        'Category': item.category || 'Cell Down',
         'Root Cause': item.rootCause || '',
         'Detail Problem': item.detailProblem || '',
         'Plan Action': item.planAction || '',
@@ -980,7 +991,14 @@ export default function CellDownDataPage() {
 
       {/* Edit Data Dialog */}
       <Dialog open={editModal} onClose={() => setEditModal(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Edit Cell Down Data</DialogTitle>
+        <DialogTitle>
+          <Box>
+            <Typography variant="h6">Edit Cell Down Data</Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+              Cell Down Name: <strong>{selectedData?.cellDownName || 'N/A'}</strong>
+            </Typography>
+          </Box>
+        </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
@@ -1003,7 +1021,24 @@ export default function CellDownDataPage() {
               <FormControl fullWidth>
                 <InputLabel>Progress</InputLabel>
                 <Select value={editData.progress} onChange={(e) => setEditData({ ...editData, progress: e.target.value })} label="Progress">
-                  {progressOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
+                  {progressOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h6" color={option === 'Done' ? 'success.main' : 'error.main'}>
+                          {option === 'Done' ? '✅' : '❌'}
+                        </Typography>
+                        {option}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Category</InputLabel>
+                <Select value={editData.category || ''} onChange={(e) => setEditData({ ...editData, category: e.target.value })} label="Category">
+                  {categoryOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
             </Grid>
@@ -1250,6 +1285,21 @@ export default function CellDownDataPage() {
                     </Select>
                   </FormControl>
                 </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Category</InputLabel>
+                    <Select 
+                      value={filters.category} 
+                      onChange={(e) => handleFilterChange('category', e.target.value)} 
+                      label="Category"
+                    >
+                      <MenuItem value="">All Categories</MenuItem>
+                      {categoryOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
                 </Grid>
               )}
             </AccordionDetails>
@@ -1359,6 +1409,14 @@ export default function CellDownDataPage() {
                     deleteIcon={<ClearIcon />}
                   />
                 )}
+                {filters.category && (
+                  <Chip 
+                    label={`Category: ${filters.category}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('category', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
               </Box>
             </Box>
           )}
@@ -1377,6 +1435,7 @@ export default function CellDownDataPage() {
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Category</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Root Cause</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Detail Problem</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Plan Action</TableCell>
@@ -1419,6 +1478,14 @@ export default function CellDownDataPage() {
                         />
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                        <Chip 
+                          label={row.category || 'Cell Down'} 
+                          color={row.category === 'Site Down' ? 'error' : 'primary'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', padding: '8px 4px' }}>
                         <Typography variant="body2" sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {row.rootCause || ''}
