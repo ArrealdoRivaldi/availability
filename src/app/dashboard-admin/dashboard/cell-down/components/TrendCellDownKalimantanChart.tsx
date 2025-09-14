@@ -139,9 +139,11 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                   align: 'top',
                   offset: 4,
                   formatter: (value: number, context: any) => {
+                    // Show percentage for progress dataset (index 2)
                     if (context.datasetIndex === 2) {
                       return value.toFixed(1) + '%';
                     }
+                    // Show actual values for total and close datasets
                     return value.toString();
                   },
                 },
@@ -200,10 +202,10 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
 
 const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> = ({ data }) => {
   // Process data for the chart - this should show ALL weeks regardless of filters
-  const processChartData = () => {
+  const processChartData = (): ChartData[] => {
     try {
       if (!data || data.length === 0) {
-        return [['Week', 'Total', 'Close', 'Progress'], ['No Data', 0, 0, 0]];
+        return [];
       }
 
       // Group data by week
@@ -221,54 +223,52 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
         acc[week].total++;
         if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') {
           acc[week].close++;
+          console.log(`Found close item for week ${week}:`, { id: item.id, status: item.status });
         }
         
         return acc;
       }, {} as Record<string, { total: number; close: number }>);
 
-      // Convert to chart data format with annotations
-      const chartData = [
-        ['Week', 'Total', { role: 'annotation' }, 'Close', { role: 'annotation' }, 'Progress', { role: 'annotation' }],
-        ...Object.entries(weeklyData)
-          .sort(([a], [b]) => {
-            // Sort by week number, handling both "W1", "W2" format and numeric format
-            const aNum = a.startsWith('W') ? parseInt(a.substring(1)) : parseInt(a);
-            const bNum = b.startsWith('W') ? parseInt(b.substring(1)) : parseInt(b);
-            return aNum - bNum;
-          })
-          .map(([week, counts]) => {
-            const progress = counts.total > 0 ? (counts.close / counts.total) * 100 : 0;
-            const totalValue = Number(counts.total);
-            const closeValue = Number(counts.close);
-            const progressValue = Number(Math.round(progress * 100) / 100);
-            
-            return [
-              week, 
-              totalValue,
-              totalValue.toString(), // Annotation for Total
-              closeValue,
-              closeValue.toString(), // Annotation for Close
-              progressValue,
-              progressValue.toFixed(1) + '%' // Annotation for Progress with % sign
-            ];
-          })
-      ];
+      console.log('Weekly data after processing:', weeklyData);
+
+      // Convert to chart data format for ChartJS
+      const chartData = Object.entries(weeklyData)
+        .sort(([a], [b]) => {
+          // Sort by week number, handling both "W1", "W2" format and numeric format
+          const aNum = a.startsWith('W') ? parseInt(a.substring(1)) : parseInt(a);
+          const bNum = b.startsWith('W') ? parseInt(b.substring(1)) : parseInt(b);
+          return aNum - bNum;
+        })
+        .map(([week, counts]) => {
+          const progress = counts.total > 0 ? (counts.close / counts.total) * 100 : 0;
+          
+          return {
+            week: week,
+            total: counts.total,
+            close: counts.close,
+            progress: Math.round(progress * 100) / 100
+          };
+        });
 
       return chartData;
     } catch (error) {
       console.error('Error processing chart data:', error);
-      return [['Week', 'Total', 'Close', 'Progress'], ['Error', 0, 0, 0]];
+      return [];
     }
   };
 
   const chartData = processChartData();
 
   // Debug logging
-  console.log('TrendCellDownKalimantanChart - Raw data:', data);
+  console.log('TrendCellDownKalimantanChart - Raw data length:', data.length);
+  console.log('TrendCellDownKalimantanChart - Sample raw data:', data.slice(0, 3).map(item => ({
+    id: item.id,
+    week: item.week,
+    status: item.status,
+    progress: item.progress
+  })));
   console.log('TrendCellDownKalimantanChart - Processed chart data:', chartData);
-  console.log('TrendCellDownKalimantanChart - Chart data types:', chartData.map((row, index) => 
-    index === 0 ? 'header' : row.map(cell => typeof cell)
-  ));
+  console.log('TrendCellDownKalimantanChart - Chart data sample:', chartData.slice(0, 2));
 
   return (
     <Card sx={{ 
@@ -291,13 +291,8 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
           </Typography>
         </Box>
         
-        {chartData && chartData.length > 1 ? (
-          <ChartJSBarChart data={chartData.slice(1).map((row) => ({
-            week: row[0] as string,
-            total: row[1] as number,
-            close: row[3] as number,
-            progress: row[5] as number
-          }))} />
+        {chartData && chartData.length > 0 ? (
+          <ChartJSBarChart data={chartData} />
         ) : (
           <Box sx={{ 
             display: 'flex', 
@@ -308,7 +303,7 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
             borderRadius: 1
           }}>
             <Typography variant="h6" color="text.secondary">
-              {chartData && chartData.length === 1 ? 'No Data Available' : 'Loading Chart...'}
+              No Data Available
             </Typography>
           </Box>
         )}
