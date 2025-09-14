@@ -30,10 +30,11 @@ import {
   alpha,
   Stack
 } from '@mui/material';
-import { Refresh as RefreshIcon, FilterList as FilterIcon } from '@mui/icons-material';
+import { Refresh as RefreshIcon, FilterList as FilterIcon, Edit as EditIcon } from '@mui/icons-material';
 import { Chart } from 'react-google-charts';
 import { CellDownData, mapFirestoreData, extractWeekFromTimestamp } from '../../../../utils/cellDownDataMapper';
 import TrendCellDownKalimantanChart from './components/TrendCellDownKalimantanChart';
+import EditCellDownModal from './components/EditCellDownModal';
 
 export default function CellDownDashboardPage() {
   const [cellDownData, setCellDownData] = useState<CellDownData[]>([]);
@@ -41,6 +42,9 @@ export default function CellDownDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [weekFilter, setWeekFilter] = useState<string>('');
   const [nopFilter, setNopFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedCellDown, setSelectedCellDown] = useState<CellDownData | null>(null);
 
   useEffect(() => {
     fetchCellDownData();
@@ -48,7 +52,7 @@ export default function CellDownDashboardPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [cellDownData, weekFilter, nopFilter]);
+  }, [cellDownData, weekFilter, nopFilter, categoryFilter]);
 
   const fetchCellDownData = async () => {
     try {
@@ -118,12 +122,44 @@ export default function CellDownDashboardPage() {
       );
     }
 
+    if (categoryFilter) {
+      filtered = filtered.filter(item => 
+        item.category && typeof item.category === 'string' && item.category.toLowerCase() === categoryFilter.toLowerCase()
+      );
+    }
+
     setFilteredData(filtered);
   };
 
   const clearFilters = () => {
     setWeekFilter('');
     setNopFilter('');
+    setCategoryFilter('');
+  };
+
+  const handleEditCellDown = (cellDown: CellDownData) => {
+    setSelectedCellDown(cellDown);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveCellDown = async (updatedData: Partial<CellDownData>) => {
+    try {
+      // Here you would typically update the data in Firestore
+      // For now, we'll just update the local state
+      setCellDownData(prevData => 
+        prevData.map(item => 
+          item.id === updatedData.id ? { ...item, ...updatedData } : item
+        )
+      );
+      console.log('Cell down data updated:', updatedData);
+    } catch (error) {
+      console.error('Error updating cell down data:', error);
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setSelectedCellDown(null);
   };
 
   // Get unique values for filter options
@@ -185,6 +221,15 @@ export default function CellDownDashboardPage() {
       .filter((nop, index, arr) => arr.indexOf(nop) === index)
       .sort();
     return nops;
+  };
+
+  const getUniqueCategories = () => {
+    const categories = cellDownData
+      .map(item => item.category)
+      .filter(category => category && typeof category === 'string' && category.trim())
+      .filter((category, index, arr) => arr.indexOf(category) === index)
+      .sort();
+    return categories;
   };
 
   // Generate aging categories for remaining open tables
@@ -552,8 +597,49 @@ export default function CellDownDashboardPage() {
                 </Select>
               </FormControl>
             </Grid>
+
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth size="medium">
+                <InputLabel sx={{ 
+                  color: '#666',
+                  fontWeight: 500,
+                  '&.Mui-focused': { color: '#1976d2' }
+                }}>
+                  Filter by Category
+                </InputLabel>
+                <Select
+                  value={categoryFilter}
+                  label="Filter by Category"
+                  onChange={(e: SelectChangeEvent) => setCategoryFilter(e.target.value)}
+                  sx={{
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#e0e0e0',
+                      borderWidth: 2
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1976d2',
+                      borderWidth: 2
+                    }
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>All Categories</em>
+                  </MenuItem>
+                  {getUniqueCategories().map((category) => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
               <Stack spacing={2} alignItems="flex-end">
                 <Button 
                   variant="outlined" 
@@ -605,12 +691,15 @@ export default function CellDownDashboardPage() {
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Open</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Close</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Progress</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 600, color: '#666', fontSize: '0.875rem' }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {Object.entries(data.nopData || {}).map(([nop, counts]) => {
                       const openCount = counts.total - counts.status;
                       const progress = counts.total > 0 ? ((counts.status / counts.total) * 100).toFixed(0) : '0';
+                      // Find a sample cell down data for this NOP to edit
+                      const sampleCellDown = filteredData.find(item => item.nop === nop);
                       return (
                         <TableRow key={nop} sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                           <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{nop}</TableCell>
@@ -618,6 +707,24 @@ export default function CellDownDashboardPage() {
                           <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{openCount}</TableCell>
                           <TableCell align="right" sx={{ fontSize: '0.875rem' }}>{counts.status}</TableCell>
                           <TableCell align="right" sx={{ fontSize: '0.875rem', fontWeight: 500, color: '#1976d2' }}>{progress}%</TableCell>
+                          <TableCell align="center" sx={{ fontSize: '0.875rem' }}>
+                            {sampleCellDown && (
+                              <Tooltip title="Edit Cell Down Data">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleEditCellDown(sampleCellDown)}
+                                  sx={{
+                                    color: '#1976d2',
+                                    '&:hover': {
+                                      backgroundColor: alpha('#1976d2', 0.1)
+                                    }
+                                  }}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -929,6 +1036,14 @@ export default function CellDownDashboardPage() {
         </Grid>
 
       </Grid>
+
+      {/* Edit Cell Down Modal */}
+      <EditCellDownModal
+        open={editModalOpen}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveCellDown}
+        cellDownData={selectedCellDown}
+      />
     </Box>
   );
 }
