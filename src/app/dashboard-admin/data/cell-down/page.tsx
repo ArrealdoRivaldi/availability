@@ -446,8 +446,9 @@ export default function CellDownDataPage() {
     const targetWeek = currentWeek - 1;
 
     const totalExistingData = allData.length;
-    const existingOpenBeforeUpload = allData.filter(d => d.status === 'open').length;
-    const existingCloseBeforeUpload = allData.filter(d => d.status === 'close').length;
+    const previousWeekData = allData.filter(d => d.week === targetWeek);
+    const existingOpenBeforeUpload = previousWeekData.filter(d => d.status === 'open').length;
+    const existingCloseBeforeUpload = previousWeekData.filter(d => d.status === 'close').length;
 
     const uploadCellDownNames = new Set(uploadData.map(item => item.cellDownName));
     const simulatedDataMap = new Map<string, CellDownData>();
@@ -939,10 +940,10 @@ export default function CellDownDataPage() {
               <strong>Total Data:</strong> {allData.filter(d => d.week === uploadStats.previousWeek).length}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Total Data Open:</strong> {allData.filter(d => d.week === uploadStats.previousWeek && d.status === 'open').length}
+              <strong>Total Data Open:</strong> {uploadStats.existingOpenBeforeUpload}
             </Typography>
             <Typography variant="body1">
-              <strong>Total Data Close:</strong> {allData.filter(d => d.week === uploadStats.previousWeek && d.status === 'close').length}
+              <strong>Total Data Close:</strong> {uploadStats.existingCloseBeforeUpload}
             </Typography>
           </Box>
         </DialogTitle>
@@ -960,6 +961,8 @@ export default function CellDownDataPage() {
                   <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
                   <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
                   <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>TO</TableCell>
+                  <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Category</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -985,11 +988,22 @@ export default function CellDownDataPage() {
                     <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                       {row.subDomain}
                     </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      {row.to || ''}
+                    </TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
+                      <Chip 
+                        label={row.category || ''} 
+                        color={row.category === 'Site Down' ? 'error' : 'primary'}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
                 {previewData.length > 20 && (
                   <TableRow>
-                    <TableCell colSpan={9} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
+                    <TableCell colSpan={11} align="center" sx={{ border: '1px solid #e0e0e0', padding: '16px' }}>
                       <Typography variant="body2" color="textSecondary">... and {previewData.length - 20} more records</Typography>
                     </TableCell>
                   </TableRow>
