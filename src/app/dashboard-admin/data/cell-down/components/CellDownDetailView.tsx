@@ -21,6 +21,8 @@ interface CellDownData {
   rangeAgingDown: string;
   siteClass: string;
   subDomain: string;
+  to: string;
+  category: string;
   rootCause: string;
   detailProblem: string;
   planAction: string;
@@ -100,6 +102,8 @@ export default function CellDownDetailView({ open, onClose, data }: CellDownDeta
           <DetailRow label="RANGE AGING DOWN" value={data.rangeAgingDown} />
           <DetailRow label="SITE CLASS" value={data.siteClass} />
           <DetailRow label="Sub Domain" value={data.subDomain} />
+          <DetailRow label="TO" value={data.to} />
+          <DetailRow label="Category" value={data.category} />
           <DetailRow label="Root Cause" value={data.rootCause} />
           <DetailRow label="Detail Problem" value={data.detailProblem} />
           <DetailRow label="Plan Action" value={data.planAction} />

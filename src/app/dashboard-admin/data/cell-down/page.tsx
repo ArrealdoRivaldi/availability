@@ -62,6 +62,7 @@ interface CellDownData {
   rangeAgingDown: string;
   siteClass: string;
   subDomain: string;
+  to: string;
   category: string;
   rootCause: string;
   detailProblem: string;
@@ -82,6 +83,7 @@ interface EditModalData {
   needSupport: string;
   picDept: string;
   progress: string;
+  to: string;
   category: string;
 }
 
@@ -94,6 +96,7 @@ interface FilterData {
   progress: string;
   status: string;
   rangeAgingDown: string;
+  to: string;
   category: string;
 }
 
@@ -121,6 +124,7 @@ const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
 const progressOptions = ['Open', 'Waiting Budget', 'Waiting Spare Part', 'Waiting Permit', 'Followup Comcase', 'IKN', 'Waiting Delete DB', 'Waiting team', 'Trial Lock', 'Waiting SVA', 'Waiting Support PIC DEPT', 'Done'];
 const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
+const toOptions = ['TO1', 'TO2', 'TO3', 'TO4', 'TO5', 'TO6', 'TO7', 'TO8', 'TO9', 'TO10'];
 const categoryOptions = ['Site Down', 'Cell Down'];
 
 // ===== MAIN COMPONENT =====
@@ -149,6 +153,7 @@ export default function CellDownDataPage() {
     progress: '',
     status: '',
     rangeAgingDown: '',
+    to: '',
     category: ''
   });
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
@@ -194,6 +199,7 @@ export default function CellDownDataPage() {
     needSupport: '', 
     picDept: '', 
     progress: 'Open',
+    to: '',
     category: ''
   });
   
@@ -300,6 +306,7 @@ export default function CellDownDataPage() {
       progress: '',
       status: '',
       rangeAgingDown: '',
+      to: '',
       category: ''
     });
     setSearchTerm('');
@@ -386,7 +393,8 @@ export default function CellDownDataPage() {
           rangeAgingDown: row.getCell(7)?.value?.toString() || '',
           siteClass: row.getCell(8)?.value?.toString() || '',
           subDomain: row.getCell(9)?.value?.toString() || '',
-          category: 'Cell Down', // Default category
+          to: '', // Empty by default
+          category: '', // Empty by default
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -474,6 +482,8 @@ export default function CellDownDataPage() {
           needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
           picDept: existingWithSameName?.picDept || existingData.picDept || '',
           progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
+          to: existingWithSameName?.to || existingData.to || '',
+          category: existingWithSameName?.category || existingData.category || '',
           status: 'open'
         };
         
@@ -499,6 +509,8 @@ export default function CellDownDataPage() {
           needSupport: existingWithSameName?.needSupport || '',
           picDept: existingWithSameName?.picDept || '',
           progress: existingWithSameName?.progress || 'OPEN',
+          to: existingWithSameName?.to || '',
+          category: existingWithSameName?.category || '',
           status: 'open'
         };
         
@@ -643,6 +655,8 @@ export default function CellDownDataPage() {
               needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
               picDept: existingWithSameName?.picDept || existingData.picDept || '',
               progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
+              to: existingWithSameName?.to || existingData.to || '',
+              category: existingWithSameName?.category || existingData.category || '',
               updatedAt: new Date(),
               status: 'open'
             };
@@ -666,6 +680,8 @@ export default function CellDownDataPage() {
               needSupport: existingWithSameName?.needSupport || '',
               picDept: existingWithSameName?.picDept || '',
               progress: existingWithSameName?.progress || 'OPEN',
+              to: existingWithSameName?.to || '',
+              category: existingWithSameName?.category || '',
               status: 'open',
               createdAt: new Date(),
               updatedAt: new Date()
@@ -736,6 +752,7 @@ export default function CellDownDataPage() {
       needSupport: row.needSupport || '',
       picDept: row.picDept || '',
       progress: row.progress || 'Open',
+      to: row.to || '',
       category: row.category || ''
     });
     setEditModal(true);
@@ -782,7 +799,8 @@ export default function CellDownDataPage() {
         'Range Aging Down': item.rangeAgingDown,
         'Site Class': item.siteClass,
         'Sub Domain': item.subDomain,
-        'Category': item.category || 'Cell Down',
+        'TO': item.to || '',
+        'Category': item.category || '',
         'Root Cause': item.rootCause || '',
         'Detail Problem': item.detailProblem || '',
         'Plan Action': item.planAction || '',
@@ -1031,6 +1049,14 @@ export default function CellDownDataPage() {
                       </Box>
                     </MenuItem>
                   ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>TO</InputLabel>
+                <Select value={editData.to || ''} onChange={(e) => setEditData({ ...editData, to: e.target.value })} label="TO">
+                  {toOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
             </Grid>
@@ -1287,6 +1313,21 @@ export default function CellDownDataPage() {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <FormControl fullWidth size="small">
+                    <InputLabel>TO</InputLabel>
+                    <Select 
+                      value={filters.to} 
+                      onChange={(e) => handleFilterChange('to', e.target.value)} 
+                      label="TO"
+                    >
+                      <MenuItem value="">All TOs</MenuItem>
+                      {toOptions.map(option => (
+                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <FormControl fullWidth size="small">
                     <InputLabel>Category</InputLabel>
                     <Select 
                       value={filters.category} 
@@ -1409,6 +1450,14 @@ export default function CellDownDataPage() {
                     deleteIcon={<ClearIcon />}
                   />
                 )}
+                {filters.to && (
+                  <Chip 
+                    label={`TO: ${filters.to}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange('to', '')}
+                    deleteIcon={<ClearIcon />}
+                  />
+                )}
                 {filters.category && (
                   <Chip 
                     label={`Category: ${filters.category}`} 
@@ -1435,6 +1484,7 @@ export default function CellDownDataPage() {
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 140 }}>RANGE AGING DOWN</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>SITE CLASS</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Sub Domain</TableCell>
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>TO</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Category</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Root Cause</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 120 }}>Detail Problem</TableCell>
@@ -1478,9 +1528,10 @@ export default function CellDownDataPage() {
                         />
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.subDomain}</TableCell>
+                      <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.to || ''}</TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
                         <Chip 
-                          label={row.category || 'Cell Down'} 
+                          label={row.category || ''} 
                           color={row.category === 'Site Down' ? 'error' : 'primary'}
                           size="small"
                           variant="outlined"
