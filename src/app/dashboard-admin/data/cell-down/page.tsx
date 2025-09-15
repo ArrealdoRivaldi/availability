@@ -124,7 +124,6 @@ const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
 const progressOptions = ['Open', 'Waiting Budget', 'Waiting Spare Part', 'Waiting Permit', 'Followup Comcase', 'IKN', 'Waiting Delete DB', 'Waiting team', 'Trial Lock', 'Waiting SVA', 'Waiting Support PIC DEPT', 'Done'];
 const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
 const statusOptions = ['open', 'close'];
-const toOptions = ['TO1', 'TO2', 'TO3', 'TO4', 'TO5', 'TO6', 'TO7', 'TO8', 'TO9', 'TO10'];
 const categoryOptions = ['Site Down', 'Cell Down'];
 
 // ===== MAIN COMPONENT =====
@@ -159,6 +158,7 @@ export default function CellDownDataPage() {
   const [uniqueNOPs, setUniqueNOPs] = useState<string[]>([]);
   const [uniqueWeeks, setUniqueWeeks] = useState<number[]>([]);
   const [uniqueRangeAgingDown, setUniqueRangeAgingDown] = useState<string[]>([]);
+  const [uniqueTOs, setUniqueTOs] = useState<string[]>([]);
   
   // Upload states
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -250,10 +250,12 @@ export default function CellDownDataPage() {
       const nops = Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).sort();
       const weeks = Array.from(new Set(allData.map(item => item.week).filter(Boolean))).sort((a, b) => a - b);
       const rangeAgingDown = Array.from(new Set(allData.map(item => item.rangeAgingDown).filter(Boolean))).sort();
+      const tos = Array.from(new Set(allData.map(item => item.to).filter(Boolean))).sort();
       
       setUniqueNOPs(nops);
       setUniqueWeeks(weeks);
       setUniqueRangeAgingDown(rangeAgingDown);
+      setUniqueTOs(tos);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -1056,7 +1058,8 @@ export default function CellDownDataPage() {
               <FormControl fullWidth>
                 <InputLabel>TO</InputLabel>
                 <Select value={editData.to || ''} onChange={(e) => setEditData({ ...editData, to: e.target.value })} label="TO">
-                  {toOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
+                  <MenuItem value="">Select TO</MenuItem>
+                  {uniqueTOs.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
             </Grid>
@@ -1320,7 +1323,7 @@ export default function CellDownDataPage() {
                       label="TO"
                     >
                       <MenuItem value="">All TOs</MenuItem>
-                      {toOptions.map(option => (
+                      {uniqueTOs.map(option => (
                         <MenuItem key={option} value={option}>{option}</MenuItem>
                       ))}
                     </Select>
