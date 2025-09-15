@@ -108,6 +108,7 @@ interface UploadStats {
   previousWeek: number;
   existingOpenBeforeUpload: number;
   existingCloseBeforeUpload: number;
+  actualCloseCount: number;
   newlyAddedOpen: number;
   newlyAddedClose: number;
   totalWillBeOpen: number;
@@ -173,6 +174,7 @@ export default function CellDownDataPage() {
     previousWeek: 0,
     existingOpenBeforeUpload: 0,
     existingCloseBeforeUpload: 0,
+    actualCloseCount: 0,
     newlyAddedOpen: 0,
     newlyAddedClose: 0,
     totalWillBeOpen: 0,
@@ -391,12 +393,12 @@ export default function CellDownDataPage() {
           siteId: row.getCell(3)?.value?.toString() || '',
           cellDownName: row.getCell(4)?.value?.toString() || '',
           nop: row.getCell(5)?.value?.toString() || '',
-          agingDown: parseInt(row.getCell(6)?.value?.toString() || '0'),
-          rangeAgingDown: row.getCell(7)?.value?.toString() || '',
-          siteClass: row.getCell(8)?.value?.toString() || '',
-          subDomain: row.getCell(9)?.value?.toString() || '',
-          to: '', // Empty by default
-          category: '', // Empty by default
+          to: row.getCell(6)?.value?.toString() || '',
+          agingDown: parseInt(row.getCell(7)?.value?.toString() || '0'),
+          rangeAgingDown: row.getCell(8)?.value?.toString() || '',
+          siteClass: row.getCell(9)?.value?.toString() || '',
+          subDomain: row.getCell(10)?.value?.toString() || '',
+          category: row.getCell(11)?.value?.toString() || '',
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -539,6 +541,10 @@ export default function CellDownDataPage() {
     const totalDataAfterUpload = finalSimulatedData.length;
     const totalWillBeOpen = finalSimulatedData.filter(d => d.status === 'open').length;
     const totalWillBeClose = finalSimulatedData.filter(d => d.status === 'close').length;
+    
+    // Calculate actual close count for previous week after status logic
+    const previousWeekAfterLogic = finalSimulatedData.filter(d => d.week === targetWeek);
+    const actualCloseCount = previousWeekAfterLogic.filter(d => d.status === 'close').length;
 
     const newDataWithCopy = uploadData.filter(item => {
       const currentWeek = item.week;
@@ -558,6 +564,7 @@ export default function CellDownDataPage() {
       previousWeek: targetWeek,
       existingOpenBeforeUpload,
       existingCloseBeforeUpload,
+      actualCloseCount,
       newlyAddedOpen,
       newlyAddedClose,
       totalWillBeOpen,
@@ -584,6 +591,7 @@ export default function CellDownDataPage() {
       previousWeek: 0,
       existingOpenBeforeUpload: 0,
       existingCloseBeforeUpload: 0,
+      actualCloseCount: 0,
       newlyAddedOpen: 0,
       newlyAddedClose: 0,
       totalWillBeOpen: 0,
@@ -943,7 +951,7 @@ export default function CellDownDataPage() {
               <strong>Total Data Open:</strong> {uploadStats.existingOpenBeforeUpload}
             </Typography>
             <Typography variant="body1">
-              <strong>Total Data Close:</strong> {uploadStats.existingCloseBeforeUpload}
+              <strong>Total Data Close:</strong> {uploadStats.actualCloseCount}
             </Typography>
           </Box>
         </DialogTitle>
