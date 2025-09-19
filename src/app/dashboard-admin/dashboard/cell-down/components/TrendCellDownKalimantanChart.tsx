@@ -119,29 +119,53 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
               plugins: {
                 legend: {
                   position: 'top',
+                  align: 'center',
                   labels: {
                     usePointStyle: true,
-                    padding: 20,
+                    padding: 25,
                     font: {
-                      size: 12,
+                      size: 13,
                       weight: 'bold',
                     },
+                    generateLabels: function(chart: any) {
+                      const datasets = chart.data.datasets;
+                      return datasets.map((dataset: any, index: number) => ({
+                        text: dataset.label,
+                        fillStyle: dataset.backgroundColor,
+                        strokeStyle: dataset.borderColor,
+                        lineWidth: dataset.borderWidth,
+                        pointStyle: 'circle',
+                        datasetIndex: index
+                      }));
+                    }
                   },
                 },
                 datalabels: {
-                  display: true,
-                  color: '#333',
+                  display: function(context: any) {
+                    // Only show labels for values > 0 and limit density
+                    const value = context.parsed.y;
+                    const dataIndex = context.dataIndex;
+                    // Show every 2nd label to reduce clutter
+                    return value > 0 && (dataIndex % 2 === 0 || value > 500);
+                  },
+                  color: function(context: any) {
+                    // Use different colors for better contrast
+                    const colors = ['#fff', '#fff', '#333'];
+                    return colors[context.datasetIndex] || '#333';
+                  },
                   font: {
-                    size: 11,
+                    size: 10,
                     weight: 'bold',
                   },
                   anchor: 'end',
                   align: 'top',
-                  offset: 4,
+                  offset: 2,
                   formatter: (value: number, context: any) => {
+                    if (value === 0) return '';
+                    
                     // Show percentage for progress dataset (index 2)
                     if (context.datasetIndex === 2) {
-                      return value.toFixed(1) + '%';
+                      return value.toFixed(0) + '%';
                     }
                     // Show actual values for total and close datasets
                     return value.toString();
@@ -157,6 +181,23 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                       size: 14,
                       weight: 'bold',
                     },
+                  },
+                  ticks: {
+                    maxRotation: 45,
+                    minRotation: 45,
+                    font: {
+                      size: 10,
+                    },
+                    maxTicksLimit: 15, // Limit number of visible ticks
+                    callback: function(value: any, index: number, ticks: any[]) {
+                      const labels = this.chart.data.labels;
+                      if (!labels || index >= labels.length) return '';
+                      
+                      const totalTicks = ticks.length;
+                      // Show every 2nd or 3rd label based on total count
+                      const skipFactor = totalTicks > 20 ? 3 : 2;
+                      return index % skipFactor === 0 ? labels[index] : '';
+                    }
                   },
                   grid: {
                     display: false,
@@ -174,6 +215,12 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                   beginAtZero: true,
                   grid: {
                     color: '#f0f0f0',
+                    lineWidth: 1,
+                  },
+                  ticks: {
+                    font: {
+                      size: 11,
+                    },
                   },
                 },
               },
@@ -194,7 +241,7 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
   }, [data]);
 
   return (
-    <Box sx={{ height: 400, width: '100%' }}>
+    <Box sx={{ height: 500, width: '100%' }}>
       <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
     </Box>
   );
@@ -248,7 +295,9 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
             close: counts.close,
             progress: Math.round(progress * 100) / 100
           };
-        });
+        })
+        // Limit to latest 24 weeks for better readability
+        .slice(-24);
 
       return chartData;
     } catch (error) {
@@ -298,7 +347,7 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
             display: 'flex', 
             justifyContent: 'center', 
             alignItems: 'center', 
-            height: 400,
+            height: 500,
             backgroundColor: '#f5f5f5',
             borderRadius: 1
           }}>
