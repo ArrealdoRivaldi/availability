@@ -140,34 +140,70 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                     }
                   },
                 },
+                tooltip: {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  titleColor: '#fff',
+                  bodyColor: '#fff',
+                  borderColor: '#ddd',
+                  borderWidth: 1,
+                  cornerRadius: 8,
+                  displayColors: true,
+                  callbacks: {
+                    title: function(context: any) {
+                      return context[0].label || '';
+                    },
+                    label: function(context: any) {
+                      const datasetLabel = context.dataset.label || '';
+                      const value = context.parsed.y;
+                      
+                      if (datasetLabel === 'Progress') {
+                        return `${datasetLabel}: ${value.toFixed(1)}%`;
+                      }
+                      return `${datasetLabel}: ${value}`;
+                    },
+                    afterBody: function(context: any) {
+                      const weekData = context[0];
+                      const total = weekData.chart.data.datasets[0].data[weekData.dataIndex];
+                      const close = weekData.chart.data.datasets[1].data[weekData.dataIndex];
+                      const open = total - close;
+                      return [
+                        `Open: ${open}`,
+                        `Completion Rate: ${((close / total) * 100).toFixed(1)}%`
+                      ];
+                    }
+                  }
+                },
                 datalabels: {
                   display: function(context: any) {
-                    // Only show labels for values > 0 and limit density
                     const value = context.parsed.y;
                     const dataIndex = context.dataIndex;
-                    // Show every 2nd label to reduce clutter
-                    return value > 0 && (dataIndex % 2 === 0 || value > 500);
+                    const datasetIndex = context.datasetIndex;
+                    
+                    // Only show labels for significant values and reduce density drastically
+                    if (value === 0) return false;
+                    
+                    // For Total dataset (index 0): Show every 4th label and only if value > 800
+                    if (datasetIndex === 0) {
+                      return dataIndex % 4 === 0 && value > 800;
+                    }
+                    
+                    // For Close dataset (index 1): Show every 4th label and only if value > 300
+                    if (datasetIndex === 1) {
+                      return dataIndex % 4 === 0 && value > 300;
+                    }
+                    
+                    // For Progress dataset (index 2): Don't show data labels, too cluttered
+                    return false;
                   },
-                  color: function(context: any) {
-                    // Use different colors for better contrast
-                    const colors = ['#fff', '#fff', '#333'];
-                    return colors[context.datasetIndex] || '#333';
-                  },
+                  color: '#fff',
                   font: {
-                    size: 10,
+                    size: 9,
                     weight: 'bold',
                   },
-                  anchor: 'end',
-                  align: 'top',
-                  offset: 2,
+                  anchor: 'center',
+                  align: 'center',
+                  offset: 0,
                   formatter: (value: number, context: any) => {
-                    if (value === 0) return '';
-                    
-                    // Show percentage for progress dataset (index 2)
-                    if (context.datasetIndex === 2) {
-                      return value.toFixed(0) + '%';
-                    }
-                    // Show actual values for total and close datasets
                     return value.toString();
                   },
                 },
@@ -183,20 +219,18 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                     },
                   },
                   ticks: {
-                    maxRotation: 45,
-                    minRotation: 45,
+                    maxRotation: 90,
+                    minRotation: 90,
                     font: {
-                      size: 10,
+                      size: 8,
                     },
-                    maxTicksLimit: 15, // Limit number of visible ticks
+                    maxTicksLimit: 12, // Drastically reduce visible ticks
                     callback: function(value: any, index: number, ticks: any[]) {
                       const labels = this.chart.data.labels;
                       if (!labels || index >= labels.length) return '';
                       
-                      const totalTicks = ticks.length;
-                      // Show every 2nd or 3rd label based on total count
-                      const skipFactor = totalTicks > 20 ? 3 : 2;
-                      return index % skipFactor === 0 ? labels[index] : '';
+                      // Show every 3rd label to significantly reduce crowding
+                      return index % 3 === 0 ? labels[index] : '';
                     }
                   },
                   grid: {
@@ -296,8 +330,8 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
             progress: Math.round(progress * 100) / 100
           };
         })
-        // Limit to latest 24 weeks for better readability
-        .slice(-24);
+        // Limit to latest 16 weeks for better readability
+        .slice(-16);
 
       return chartData;
     } catch (error) {
