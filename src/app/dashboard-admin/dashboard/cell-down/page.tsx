@@ -231,7 +231,8 @@ export default function CellDownDashboardPage() {
     // Root cause data
     const rootCauseData = filteredData.reduce((acc, item) => {
       if (item.rootCause && typeof item.rootCause === 'string' && item.rootCause.trim()) {
-        acc[item.rootCause] = (acc[item.rootCause] || 0) + 1;
+        const normalizedRootCause = item.rootCause.trim();
+        acc[normalizedRootCause] = (acc[normalizedRootCause] || 0) + 1;
       }
       return acc;
     }, {} as Record<string, number>);
@@ -239,7 +240,8 @@ export default function CellDownDashboardPage() {
     // PIC Dept data
     const picDeptData = filteredData.reduce((acc, item) => {
       if (item.picDept && typeof item.picDept === 'string' && item.picDept.trim()) {
-        acc[item.picDept] = (acc[item.picDept] || 0) + 1;
+        const normalizedPicDept = item.picDept.trim();
+        acc[normalizedPicDept] = (acc[normalizedPicDept] || 0) + 1;
       }
       return acc;
     }, {} as Record<string, number>);
@@ -247,7 +249,8 @@ export default function CellDownDashboardPage() {
     // Site Class data
     const siteClassData = filteredData.reduce((acc, item) => {
       if (item.siteClass && typeof item.siteClass === 'string' && item.siteClass.trim()) {
-        acc[item.siteClass] = (acc[item.siteClass] || 0) + 1;
+        const normalizedSiteClass = item.siteClass.toUpperCase().trim();
+        acc[normalizedSiteClass] = (acc[normalizedSiteClass] || 0) + 1;
       }
       return acc;
     }, {} as Record<string, number>);
@@ -255,12 +258,13 @@ export default function CellDownDashboardPage() {
     // NOP data
     const nopData = filteredData.reduce((acc, item) => {
       if (item.nop && typeof item.nop === 'string' && item.nop.trim()) {
-        if (!acc[item.nop]) {
-          acc[item.nop] = { total: 0, progress: 0, status: 0 };
+        const normalizedNop = item.nop.trim();
+        if (!acc[normalizedNop]) {
+          acc[normalizedNop] = { total: 0, progress: 0, status: 0 };
         }
-        acc[item.nop].total++;
-        if (item.progress && typeof item.progress === 'string' && item.progress.toLowerCase() === 'done') acc[item.nop].progress++;
-        if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') acc[item.nop].status++;
+        acc[normalizedNop].total++;
+        if (item.progress && typeof item.progress === 'string' && item.progress.toLowerCase() === 'done') acc[normalizedNop].progress++;
+        if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') acc[normalizedNop].status++;
       }
       return acc;
     }, {} as Record<string, { total: number; progress: number; status: number }>);
@@ -277,8 +281,9 @@ export default function CellDownDashboardPage() {
     // Remaining Open By NOP
     const remainingOpenByNOP = openItems.reduce((acc, item) => {
       if (item.nop && typeof item.nop === 'string' && item.nop.trim() && item.agingDown !== undefined) {
-        if (!acc[item.nop]) {
-          acc[item.nop] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+        const normalizedNop = item.nop.trim();
+        if (!acc[normalizedNop]) {
+          acc[normalizedNop] = remainingOpenAgingCategories.reduce((catAcc, category) => {
             catAcc[category.label] = 0;
             return catAcc;
           }, {} as Record<string, number>);
@@ -288,7 +293,7 @@ export default function CellDownDashboardPage() {
         if (!isNaN(aging)) {
           for (const category of remainingOpenAgingCategories) {
             if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
-              acc[item.nop][category.label]++;
+              acc[normalizedNop][category.label]++;
               break;
             }
           }
@@ -326,8 +331,11 @@ export default function CellDownDashboardPage() {
     // Remaining Open By Root Cause
     const remainingOpenByRootCause = openItems.reduce((acc, item) => {
       if (item.rootCause && typeof item.rootCause === 'string' && item.rootCause.trim() && item.agingDown !== undefined) {
-        if (!acc[item.rootCause]) {
-          acc[item.rootCause] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+        // Normalize root cause to avoid case-sensitive duplicates (keep original case for display but group consistently)
+        const normalizedRootCause = item.rootCause.trim();
+        
+        if (!acc[normalizedRootCause]) {
+          acc[normalizedRootCause] = remainingOpenAgingCategories.reduce((catAcc, category) => {
             catAcc[category.label] = 0;
             return catAcc;
           }, {} as Record<string, number>);
@@ -337,7 +345,7 @@ export default function CellDownDashboardPage() {
         if (!isNaN(aging)) {
           for (const category of remainingOpenAgingCategories) {
             if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
-              acc[item.rootCause][category.label]++;
+              acc[normalizedRootCause][category.label]++;
               break;
             }
           }
@@ -349,8 +357,11 @@ export default function CellDownDashboardPage() {
     // Remaining Open By Progress
     const remainingOpenByProgress = openItems.reduce((acc, item) => {
       if (item.progress && typeof item.progress === 'string' && item.progress.trim() && item.agingDown !== undefined) {
-        if (!acc[item.progress]) {
-          acc[item.progress] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+        // Normalize progress to uppercase to avoid case-sensitive duplicates
+        const normalizedProgress = item.progress.toUpperCase();
+        
+        if (!acc[normalizedProgress]) {
+          acc[normalizedProgress] = remainingOpenAgingCategories.reduce((catAcc, category) => {
             catAcc[category.label] = 0;
             return catAcc;
           }, {} as Record<string, number>);
@@ -360,7 +371,7 @@ export default function CellDownDashboardPage() {
         if (!isNaN(aging)) {
           for (const category of remainingOpenAgingCategories) {
             if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
-              acc[item.progress][category.label]++;
+              acc[normalizedProgress][category.label]++;
               break;
             }
           }
@@ -372,8 +383,9 @@ export default function CellDownDashboardPage() {
     // Remaining Open By PIC Department
     const remainingOpenByPICDept = openItems.reduce((acc, item) => {
       if (item.picDept && typeof item.picDept === 'string' && item.picDept.trim() && item.agingDown !== undefined) {
-        if (!acc[item.picDept]) {
-          acc[item.picDept] = remainingOpenAgingCategories.reduce((catAcc, category) => {
+        const normalizedPicDept = item.picDept.trim();
+        if (!acc[normalizedPicDept]) {
+          acc[normalizedPicDept] = remainingOpenAgingCategories.reduce((catAcc, category) => {
             catAcc[category.label] = 0;
             return catAcc;
           }, {} as Record<string, number>);
@@ -383,7 +395,7 @@ export default function CellDownDashboardPage() {
         if (!isNaN(aging)) {
           for (const category of remainingOpenAgingCategories) {
             if (aging >= category.min && (category.max === Infinity || aging <= category.max)) {
-              acc[item.picDept][category.label]++;
+              acc[normalizedPicDept][category.label]++;
               break;
             }
           }
