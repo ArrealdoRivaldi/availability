@@ -381,6 +381,50 @@ export default function CellDownDataPage() {
         throw new Error('The worksheet is empty or contains only headers. Please ensure the Excel file contains data rows.');
       }
 
+      // Get header row to map columns dynamically
+      const headerRow = worksheet.getRow(1);
+      const columnMap: { [key: string]: number } = {};
+      
+      // Map column headers to column numbers
+      headerRow.eachCell((cell, colNumber) => {
+        const headerValue = cell.value?.toString().toLowerCase().trim();
+        if (headerValue) {
+          // Map various possible header names to our data fields
+          if (headerValue.includes('week') || headerValue.includes('minggu')) {
+            columnMap['week'] = colNumber;
+          } else if (headerValue.includes('site') && headerValue.includes('id')) {
+            columnMap['siteId'] = colNumber;
+          } else if (headerValue.includes('cell') && headerValue.includes('down') && headerValue.includes('name')) {
+            columnMap['cellDownName'] = colNumber;
+          } else if (headerValue.includes('nop')) {
+            columnMap['nop'] = colNumber;
+          } else if (headerValue.includes('to')) {
+            columnMap['to'] = colNumber;
+          } else if (headerValue.includes('aging') && headerValue.includes('down')) {
+            columnMap['agingDown'] = colNumber;
+          } else if (headerValue.includes('range') && headerValue.includes('aging')) {
+            columnMap['rangeAgingDown'] = colNumber;
+          } else if (headerValue.includes('site') && headerValue.includes('class')) {
+            columnMap['siteClass'] = colNumber;
+          } else if (headerValue.includes('sub') && headerValue.includes('domain')) {
+            columnMap['subDomain'] = colNumber;
+          } else if (headerValue.includes('category') || headerValue.includes('kategori')) {
+            columnMap['category'] = colNumber;
+          }
+        }
+      });
+
+      // Validate required columns
+      const requiredColumns = ['week', 'siteId', 'cellDownName', 'nop'];
+      const missingColumns = requiredColumns.filter(col => !columnMap[col]);
+      
+      if (missingColumns.length > 0) {
+        throw new Error(`Missing required columns: ${missingColumns.join(', ')}. Please ensure your Excel file has the correct headers.`);
+      }
+
+      // Log detected column mapping for debugging
+      console.log('Detected column mapping:', columnMap);
+
       const previewRows: CellDownData[] = [];
       let rowCount = 0;
       const totalRows = worksheet.rowCount - 1;
@@ -388,17 +432,27 @@ export default function CellDownDataPage() {
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return;
 
+        const getCellValue = (columnName: string): string => {
+          const colNum = columnMap[columnName];
+          return colNum ? (row.getCell(colNum)?.value?.toString() || '') : '';
+        };
+
+        const getCellNumber = (columnName: string): number => {
+          const colNum = columnMap[columnName];
+          return colNum ? parseInt(row.getCell(colNum)?.value?.toString() || '0') : 0;
+        };
+
         const rowData: CellDownData = {
-          week: parseInt(row.getCell(2)?.value?.toString() || '0'),
-          siteId: row.getCell(3)?.value?.toString() || '',
-          cellDownName: row.getCell(4)?.value?.toString() || '',
-          nop: row.getCell(5)?.value?.toString() || '',
-          to: row.getCell(6)?.value?.toString() || '',
-          agingDown: parseInt(row.getCell(7)?.value?.toString() || '0'),
-          rangeAgingDown: row.getCell(8)?.value?.toString() || '',
-          siteClass: row.getCell(9)?.value?.toString() || '',
-          subDomain: row.getCell(10)?.value?.toString() || '',
-          category: row.getCell(11)?.value?.toString() || '',
+          week: getCellNumber('week'),
+          siteId: getCellValue('siteId'),
+          cellDownName: getCellValue('cellDownName'),
+          nop: getCellValue('nop'),
+          to: getCellValue('to'),
+          agingDown: getCellNumber('agingDown'),
+          rangeAgingDown: getCellValue('rangeAgingDown'),
+          siteClass: getCellValue('siteClass'),
+          subDomain: getCellValue('subDomain'),
+          category: getCellValue('category'),
           rootCause: '',
           detailProblem: '',
           planAction: '',
@@ -931,8 +985,11 @@ export default function CellDownDataPage() {
             <Typography variant="body1" sx={{ mb: 1 }}>
               <strong>Total Data:</strong> {uploadStats.totalUploadedData}
             </Typography>
-            <Typography variant="body1">
+            <Typography variant="body1" sx={{ mb: 1 }}>
               <strong>Week:</strong> {uploadStats.currentWeek}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+              ✅ Kolom terdeteksi berdasarkan header Excel (posisi kolom fleksibel)
             </Typography>
           </Box>
 
