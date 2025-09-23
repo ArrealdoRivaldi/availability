@@ -43,9 +43,13 @@ import {
   FilterList as FilterListIcon,
   Clear as ClearIcon,
   ExpandMore as ExpandMoreIcon,
-  ContentCopy as ContentCopyIcon
+  ContentCopy as ContentCopyIcon,
+  Delete as DeleteIcon,
+  DeleteForever as DeleteForeverIcon,
+  Checkbox,
+  CheckboxOutlineBlank
 } from '@mui/icons-material';
-import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, deleteDoc, writeBatch } from 'firebase/firestore';
 import * as XLSX from 'exceljs';
 
 import CellDownDetailView from './components/CellDownDetailView';
@@ -207,6 +211,13 @@ export default function CellDownDataPage() {
   
   // User role state
   const [userRole, setUserRole] = useState<string>('');
+  
+  // Delete states
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteType, setDeleteType] = useState<'single' | 'bulk'>('single');
+  const [itemToDelete, setItemToDelete] = useState<CellDownData | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // ===== COMPUTED VALUES =====
   const isSuperAdmin = userRole === 'super_admin';
@@ -852,6 +863,97 @@ export default function CellDownDataPage() {
     setDetailModal(true);
   };
 
+  // ===== DELETE FUNCTIONS =====
+  const handleDeleteSingle = (row: CellDownData) => {
+    if (!isSuperAdmin) {
+      alert('Access denied. Only Super Admin users can delete data.');
+      return;
+    }
+    
+    setItemToDelete(row);
+    setDeleteType('single');
+    setDeleteModal(true);
+  };
+
+  const handleDeleteBulk = () => {
+    if (!isSuperAdmin) {
+      alert('Access denied. Only Super Admin users can delete data.');
+      return;
+    }
+    
+    if (selectedItems.length === 0) {
+      alert('Please select items to delete.');
+      return;
+    }
+    
+    setDeleteType('bulk');
+    setDeleteModal(true);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItems(data.map(item => item.id!));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  const handleSelectItem = (itemId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItems(prev => [...prev, itemId]);
+    } else {
+      setSelectedItems(prev => prev.filter(id => id !== itemId));
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!isSuperAdmin) {
+      alert('Access denied. Only Super Admin users can delete data.');
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      if (deleteType === 'single' && itemToDelete) {
+        // Single delete
+        await deleteDoc(doc(db, 'data_celldown', itemToDelete.id!));
+        
+        // Update local state
+        setData(prev => prev.filter(item => item.id !== itemToDelete.id));
+        setAllData(prev => prev.filter(item => item.id !== itemToDelete.id));
+        setFilteredData(prev => prev.filter(item => item.id !== itemToDelete.id));
+        
+        alert('Data deleted successfully!');
+      } else if (deleteType === 'bulk' && selectedItems.length > 0) {
+        // Bulk delete using batch
+        const batch = writeBatch(db);
+        
+        selectedItems.forEach(itemId => {
+          const docRef = doc(db, 'data_celldown', itemId);
+          batch.delete(docRef);
+        });
+        
+        await batch.commit();
+        
+        // Update local state
+        setData(prev => prev.filter(item => !selectedItems.includes(item.id!)));
+        setAllData(prev => prev.filter(item => !selectedItems.includes(item.id!)));
+        setFilteredData(prev => prev.filter(item => !selectedItems.includes(item.id!)));
+        
+        alert(`${selectedItems.length} records deleted successfully!`);
+        setSelectedItems([]);
+      }
+      
+      setDeleteModal(false);
+      setItemToDelete(null);
+    } catch (error) {
+      console.error('Error deleting data:', error);
+      alert('Error deleting data. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // ===== UTILITY FUNCTIONS =====
   const handleCopyData = async () => {
     try {
@@ -1183,6 +1285,21 @@ export default function CellDownDataPage() {
           }
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
+              {isSuperAdmin && selectedItems.length > 0 && (
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<DeleteForeverIcon />}
+                  onClick={handleDeleteBulk}
+                  size="small"
+                  sx={{ 
+                    backgroundColor: '#d32f2f',
+                    '&:hover': { backgroundColor: '#b71c1c' }
+                  }}
+                >
+                  Delete ({selectedItems.length})
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 startIcon={<ContentCopyIcon />}
@@ -1557,6 +1674,16 @@ export default function CellDownDataPage() {
               <Table stickyHeader size="small" sx={{ borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    {isSuperAdmin && (
+                      <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 50 }}>
+                        <Checkbox
+                          checked={selectedItems.length === data.length && data.length > 0}
+                          indeterminate={selectedItems.length > 0 && selectedItems.length < data.length}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          color="primary"
+                        />
+                      </TableCell>
+                    )}
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 60 }}>No.</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Week</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Site ID</TableCell>
@@ -1587,9 +1714,22 @@ export default function CellDownDataPage() {
                       sx={{ 
                         cursor: 'pointer',
                         '&:hover': { backgroundColor: '#f0f8ff' },
-                        '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
+                        '&:nth-of-type(even)': { backgroundColor: '#fafafa' },
+                        backgroundColor: selectedItems.includes(row.id!) ? '#ffebee' : 'inherit'
                       }}
                     >
+                      {isSuperAdmin && (
+                        <TableCell 
+                          sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            checked={selectedItems.includes(row.id!)}
+                            onChange={(e) => handleSelectItem(row.id!, e.target.checked)}
+                            color="primary"
+                          />
+                        </TableCell>
+                      )}
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{page * rowsPerPage + index + 1}</TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
@@ -1665,21 +1805,40 @@ export default function CellDownDataPage() {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <IconButton 
-                          size="small" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(row);
-                          }} 
-                          color="primary" 
-                          title="Edit Data"
-                          sx={{ 
-                            backgroundColor: '#e8f5e8',
-                            '&:hover': { backgroundColor: '#c8e6c9' }
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(row);
+                            }} 
+                            color="primary" 
+                            title="Edit Data"
+                            sx={{ 
+                              backgroundColor: '#e8f5e8',
+                              '&:hover': { backgroundColor: '#c8e6c9' }
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          {isSuperAdmin && (
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSingle(row);
+                              }} 
+                              color="error" 
+                              title="Delete Data"
+                              sx={{ 
+                                backgroundColor: '#ffebee',
+                                '&:hover': { backgroundColor: '#ffcdd2' }
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1704,6 +1863,102 @@ export default function CellDownDataPage() {
 
       {/* Detail View Modal */}
       <CellDownDetailView open={detailModal} onClose={() => setDetailModal(false)} data={selectedData} />
+
+      {/* Delete Confirmation Modal */}
+      <Dialog 
+        open={deleteModal} 
+        onClose={() => !deleting && setDeleteModal(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '300px'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(4px)'
+          }
+        }}
+      >
+        <Box sx={{ 
+          textAlign: 'center', 
+          p: 4,
+          backgroundColor: 'white',
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          minWidth: '400px'
+        }}>
+          {/* Warning Icon */}
+          <Box sx={{ 
+            position: 'relative',
+            display: 'inline-block',
+            mb: 3
+          }}>
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              backgroundColor: 'error.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'pulse 0.6s ease-out',
+              '@keyframes pulse': {
+                '0%': { transform: 'scale(0.3)', opacity: 0 },
+                '50%': { transform: 'scale(1.1)', opacity: 1 },
+                '100%': { transform: 'scale(1)', opacity: 1 }
+              }
+            }}>
+              <DeleteForeverIcon sx={{ fontSize: 40, color: 'white' }} />
+            </Box>
+          </Box>
+
+          {/* Warning Message */}
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'error.main' }}>
+            {deleteType === 'single' ? 'Delete Data?' : `Delete ${selectedItems.length} Records?`}
+          </Typography>
+          
+          <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
+            {deleteType === 'single' 
+              ? `Are you sure you want to delete "${itemToDelete?.cellDownName}"? This action cannot be undone.`
+              : `Are you sure you want to delete ${selectedItems.length} selected records? This action cannot be undone.`
+            }
+          </Typography>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setDeleteModal(false)}
+              disabled={deleting}
+              sx={{ minWidth: 100 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={confirmDelete}
+              disabled={deleting}
+              startIcon={deleting ? <CircularProgress size={20} color="inherit" /> : <DeleteForeverIcon />}
+              sx={{ 
+                minWidth: 120,
+                backgroundColor: '#d32f2f',
+                '&:hover': { backgroundColor: '#b71c1c' }
+              }}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
 
       {/* Upload Animation Dialog */}
       <Dialog 
