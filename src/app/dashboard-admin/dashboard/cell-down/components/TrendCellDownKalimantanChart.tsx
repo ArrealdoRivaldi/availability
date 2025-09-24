@@ -225,8 +225,9 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                       size: 8,
                     },
                     maxTicksLimit: 12, // Drastically reduce visible ticks
-                    callback: function(value: any, index: number, ticks: any[]) {
-                      const labels = this.chart.data.labels;
+                    callback: function(value: any, index: number, ticks: any[]): string {
+                      // Access labels from the chart data directly
+                      const labels = data.map(d => `Week ${d.week}`);
                       if (!labels || index >= labels.length) return '';
                       
                       // Show every 3rd label to significantly reduce crowding
