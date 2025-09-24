@@ -927,8 +927,8 @@ export default function CellDownDataPage() {
       return;
     }
     
-    if (selectedItems.length === 0) {
-      alert('Please select items to delete.');
+    if (filteredData.length === 0) {
+      alert('No data to delete.');
       return;
     }
     
@@ -970,11 +970,12 @@ export default function CellDownDataPage() {
         setFilteredData(prev => prev.filter(item => item.id !== itemToDelete.id));
         
         alert('Data deleted successfully!');
-      } else if (deleteType === 'bulk' && selectedItems.length > 0) {
-        // Bulk delete using batch
+      } else if (deleteType === 'bulk' && filteredData.length > 0) {
+        // Bulk delete all filtered data using batch
         const batch = writeBatch(db);
+        const itemsToDelete = filteredData.map(item => item.id!);
         
-        selectedItems.forEach(itemId => {
+        itemsToDelete.forEach(itemId => {
           const docRef = doc(db, 'data_celldown', itemId);
           batch.delete(docRef);
         });
@@ -982,11 +983,11 @@ export default function CellDownDataPage() {
         await batch.commit();
         
         // Update local state
-        setData(prev => prev.filter(item => !selectedItems.includes(item.id!)));
-        setAllData(prev => prev.filter(item => !selectedItems.includes(item.id!)));
-        setFilteredData(prev => prev.filter(item => !selectedItems.includes(item.id!)));
+        setData(prev => prev.filter(item => !itemsToDelete.includes(item.id!)));
+        setAllData(prev => prev.filter(item => !itemsToDelete.includes(item.id!)));
+        setFilteredData(prev => prev.filter(item => !itemsToDelete.includes(item.id!)));
         
-        alert(`${selectedItems.length} records deleted successfully!`);
+        alert(`${itemsToDelete.length} records deleted successfully!`);
         setSelectedItems([]);
       }
       
@@ -1056,7 +1057,7 @@ export default function CellDownDataPage() {
             size="small"
           />
           <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
-            Delete: {isSuperAdmin ? 'Enabled' : 'Disabled'}
+            Delete: {isSuperAdmin ? 'Enabled' : 'Disabled'} | Filtered: {filteredData.length} | Selected: {selectedItems.length}
           </Typography>
         </Box>
       </Box>
@@ -1338,38 +1339,9 @@ export default function CellDownDataPage() {
           }
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<DeleteForeverIcon />}
-                onClick={handleDeleteBulk}
-                size="small"
-                disabled={!isSuperAdmin || selectedItems.length === 0}
-                sx={{ 
-                  backgroundColor: isSuperAdmin && selectedItems.length > 0 ? '#d32f2f' : '#bdbdbd',
-                  '&:hover': { 
-                    backgroundColor: isSuperAdmin && selectedItems.length > 0 ? '#b71c1c' : '#bdbdbd' 
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#bdbdbd',
-                    color: '#757575'
-                  }
-                }}
-              >
-                {isSuperAdmin 
-                  ? `Delete (${selectedItems.length})` 
-                  : 'Delete (Super Admin Only)'
-                }
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<ContentCopyIcon />}
-                onClick={handleCopyData}
-                size="small"
-              >
-                Copy Data
-              </Button>
-              <ExportToExcel data={filteredData} onExport={() => {}} />
+              <Typography variant="body2" color="textSecondary">
+                {isSuperAdmin && filteredData.length > 0 && `Bulk delete will remove ${filteredData.length} records`}
+              </Typography>
             </Box>
           }
         />
@@ -1412,6 +1384,43 @@ export default function CellDownDataPage() {
               >
                 Reset
               </Button>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<DeleteForeverIcon />}
+                  onClick={handleDeleteBulk}
+                  size="small"
+                  disabled={!isSuperAdmin || filteredData.length === 0}
+                  sx={{ 
+                    backgroundColor: isSuperAdmin && filteredData.length > 0 ? '#d32f2f' : '#bdbdbd',
+                    '&:hover': { 
+                      backgroundColor: isSuperAdmin && filteredData.length > 0 ? '#b71c1c' : '#bdbdbd' 
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#bdbdbd',
+                      color: '#757575'
+                    },
+                    minWidth: '140px'
+                  }}
+                >
+                  {isSuperAdmin 
+                    ? `Delete All (${filteredData.length})` 
+                    : 'Delete (Super Admin Only)'
+                  }
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<ContentCopyIcon />}
+                  onClick={handleCopyData}
+                  size="small"
+                >
+                  Copy Data
+                </Button>
+                <ExportToExcel data={filteredData} onExport={() => {}} />
+              </Box>
             </Grid>
           </Grid>
 
@@ -1986,13 +1995,13 @@ export default function CellDownDataPage() {
 
           {/* Warning Message */}
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'error.main' }}>
-            {deleteType === 'single' ? 'Delete Data?' : `Delete ${selectedItems.length} Records?`}
+            {deleteType === 'single' ? 'Delete Data?' : `Delete All Filtered Data?`}
           </Typography>
           
           <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
             {deleteType === 'single' 
               ? `Are you sure you want to delete "${itemToDelete?.cellDownName}"? This action cannot be undone.`
-              : `Are you sure you want to delete ${selectedItems.length} selected records? This action cannot be undone.`
+              : `Are you sure you want to delete ALL ${filteredData.length} filtered records? This action cannot be undone and will delete all data that matches your current search/filter criteria.`
             }
           </Typography>
 
