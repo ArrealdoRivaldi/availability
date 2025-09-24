@@ -47,7 +47,7 @@ import {
   ContentCopy as ContentCopyIcon,
   Delete as DeleteIcon,
   DeleteForever as DeleteForeverIcon,
-  CheckboxOutlineBlank
+  CheckBoxOutlineBlank
 } from '@mui/icons-material';
 import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, deleteDoc, writeBatch } from 'firebase/firestore';
 import * as XLSX from 'exceljs';
