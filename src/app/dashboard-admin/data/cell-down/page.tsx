@@ -224,6 +224,10 @@ export default function CellDownDataPage() {
 
   // ===== COMPUTED VALUES =====
   const isSuperAdmin = userRole === 'super_admin';
+  
+  // Debug logging
+  console.log('User role:', userRole);
+  console.log('Is Super Admin:', isSuperAdmin);
 
   // ===== EFFECTS =====
   useEffect(() => {
@@ -1051,6 +1055,9 @@ export default function CellDownDataPage() {
             color={isSuperAdmin ? 'success' : 'default'}
             size="small"
           />
+          <Typography variant="body2" color="textSecondary" sx={{ ml: 2 }}>
+            Delete: {isSuperAdmin ? 'Enabled' : 'Disabled'}
+          </Typography>
         </Box>
       </Box>
 
@@ -1331,21 +1338,29 @@ export default function CellDownDataPage() {
           }
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
-              {isSuperAdmin && selectedItems.length > 0 && (
-                <Button
-                  variant="contained"
-                  color="error"
-                  startIcon={<DeleteForeverIcon />}
-                  onClick={handleDeleteBulk}
-                  size="small"
-                  sx={{ 
-                    backgroundColor: '#d32f2f',
-                    '&:hover': { backgroundColor: '#b71c1c' }
-                  }}
-                >
-                  Delete ({selectedItems.length})
-                </Button>
-              )}
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<DeleteForeverIcon />}
+                onClick={handleDeleteBulk}
+                size="small"
+                disabled={!isSuperAdmin || selectedItems.length === 0}
+                sx={{ 
+                  backgroundColor: isSuperAdmin && selectedItems.length > 0 ? '#d32f2f' : '#bdbdbd',
+                  '&:hover': { 
+                    backgroundColor: isSuperAdmin && selectedItems.length > 0 ? '#b71c1c' : '#bdbdbd' 
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#bdbdbd',
+                    color: '#757575'
+                  }
+                }}
+              >
+                {isSuperAdmin 
+                  ? `Delete (${selectedItems.length})` 
+                  : 'Delete (Super Admin Only)'
+                }
+              </Button>
               <Button
                 variant="outlined"
                 startIcon={<ContentCopyIcon />}
@@ -1720,16 +1735,15 @@ export default function CellDownDataPage() {
               <Table stickyHeader size="small" sx={{ borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    {isSuperAdmin && (
-                      <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 50 }}>
-                        <Checkbox
-                          checked={selectedItems.length === data.length && data.length > 0}
-                          indeterminate={selectedItems.length > 0 && selectedItems.length < data.length}
-                          onChange={(e) => handleSelectAll(e.target.checked)}
-                          color="primary"
-                        />
-                      </TableCell>
-                    )}
+                    <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 50 }}>
+                      <Checkbox
+                        checked={selectedItems.length === data.length && data.length > 0}
+                        indeterminate={selectedItems.length > 0 && selectedItems.length < data.length}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        color="primary"
+                        disabled={!isSuperAdmin}
+                      />
+                    </TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 60 }}>No.</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 80 }}>Week</TableCell>
                     <TableCell sx={{ border: '1px solid #e0e0e0', fontWeight: 'bold', textAlign: 'center', minWidth: 100 }}>Site ID</TableCell>
@@ -1764,18 +1778,17 @@ export default function CellDownDataPage() {
                         backgroundColor: selectedItems.includes(row.id!) ? '#ffebee' : 'inherit'
                       }}
                     >
-                      {isSuperAdmin && (
-                        <TableCell 
-                          sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Checkbox
-                            checked={selectedItems.includes(row.id!)}
-                            onChange={(e) => handleSelectItem(row.id!, e.target.checked)}
-                            color="primary"
-                          />
-                        </TableCell>
-                      )}
+                      <TableCell 
+                        sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedItems.includes(row.id!)}
+                          onChange={(e) => handleSelectItem(row.id!, e.target.checked)}
+                          color="primary"
+                          disabled={!isSuperAdmin}
+                        />
+                      </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{page * rowsPerPage + index + 1}</TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>{row.week}</TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px', fontWeight: 'bold' }}>{row.siteId}</TableCell>
@@ -1867,23 +1880,28 @@ export default function CellDownDataPage() {
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          {isSuperAdmin && (
-                            <IconButton 
-                              size="small" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteSingle(row);
-                              }} 
-                              color="error" 
-                              title="Delete Data"
-                              sx={{ 
-                                backgroundColor: '#ffebee',
-                                '&:hover': { backgroundColor: '#ffcdd2' }
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          )}
+                          <IconButton 
+                            size="small" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSingle(row);
+                            }} 
+                            color="error" 
+                            title={isSuperAdmin ? "Delete Data" : "Delete (Super Admin Only)"}
+                            disabled={!isSuperAdmin}
+                            sx={{ 
+                              backgroundColor: isSuperAdmin ? '#ffebee' : '#f5f5f5',
+                              '&:hover': { 
+                                backgroundColor: isSuperAdmin ? '#ffcdd2' : '#f5f5f5' 
+                              },
+                              '&:disabled': {
+                                backgroundColor: '#f5f5f5',
+                                color: '#bdbdbd'
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
                         </Box>
                       </TableCell>
                     </TableRow>
