@@ -225,7 +225,7 @@ const ChartJSBarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
                       size: 8,
                     },
                     maxTicksLimit: 12, // Drastically reduce visible ticks
-                    callback: function(value: any, index: number, ticks: any[]): string {
+                    callback: function(value: any, index: number, ticks: any[]) {
                       const labels = this.chart.data.labels;
                       if (!labels || index >= labels.length) return '';
                       
