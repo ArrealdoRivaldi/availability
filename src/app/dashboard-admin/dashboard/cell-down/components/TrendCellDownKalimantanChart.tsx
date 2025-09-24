@@ -305,13 +305,11 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
         acc[week].total++;
         if (item.status && typeof item.status === 'string' && item.status.toLowerCase() === 'close') {
           acc[week].close++;
-          console.log(`Found close item for week ${week}:`, { id: item.id, status: item.status });
         }
         
         return acc;
       }, {} as Record<string, { total: number; close: number }>);
 
-      console.log('Weekly data after processing:', weeklyData);
 
       // Convert to chart data format for ChartJS
       const chartData = Object.entries(weeklyData)
@@ -343,16 +341,6 @@ const TrendCellDownKalimantanChart: React.FC<TrendCellDownKalimantanChartProps> 
 
   const chartData = processChartData();
 
-  // Debug logging
-  console.log('TrendCellDownKalimantanChart - Raw data length:', data.length);
-  console.log('TrendCellDownKalimantanChart - Sample raw data:', data.slice(0, 3).map(item => ({
-    id: item.id,
-    week: item.week,
-    status: item.status,
-    progress: item.progress
-  })));
-  console.log('TrendCellDownKalimantanChart - Processed chart data:', chartData);
-  console.log('TrendCellDownKalimantanChart - Chart data sample:', chartData.slice(0, 2));
 
   return (
     <Card sx={{ 

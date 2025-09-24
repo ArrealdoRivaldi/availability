@@ -225,9 +225,6 @@ export default function CellDownDataPage() {
   // ===== COMPUTED VALUES =====
   const isSuperAdmin = userRole === 'super_admin';
   
-  // Debug logging
-  console.log('User role:', userRole);
-  console.log('Is Super Admin:', isSuperAdmin);
 
   // ===== EFFECTS =====
   useEffect(() => {
@@ -406,40 +403,29 @@ export default function CellDownDataPage() {
       // Map column headers to column numbers
       headerRow.eachCell((cell, colNumber) => {
         const headerValue = cell.value?.toString().toLowerCase().trim();
-        console.log(`Column ${colNumber}: "${headerValue}"`); // Debug log
         
         if (headerValue) {
           // Map various possible header names to our data fields
           if (headerValue.includes('week') || headerValue.includes('minggu')) {
             columnMap['week'] = colNumber;
-            console.log(`Mapped week to column ${colNumber}`);
           } else if (headerValue.includes('site') && headerValue.includes('id')) {
             columnMap['siteId'] = colNumber;
-            console.log(`Mapped siteId to column ${colNumber}`);
           } else if (headerValue.includes('cell') && headerValue.includes('down') && headerValue.includes('name')) {
             columnMap['cellDownName'] = colNumber;
-            console.log(`Mapped cellDownName to column ${colNumber}`);
           } else if (headerValue.includes('nop')) {
             columnMap['nop'] = colNumber;
-            console.log(`Mapped nop to column ${colNumber}`);
           } else if (headerValue === 'to' || headerValue.includes('to') || headerValue.includes('t.o')) {
             columnMap['to'] = colNumber;
-            console.log(`Mapped to to column ${colNumber}`);
           } else if (headerValue.includes('aging') && headerValue.includes('down')) {
             columnMap['agingDown'] = colNumber;
-            console.log(`Mapped agingDown to column ${colNumber}`);
           } else if (headerValue.includes('range') && headerValue.includes('aging')) {
             columnMap['rangeAgingDown'] = colNumber;
-            console.log(`Mapped rangeAgingDown to column ${colNumber}`);
           } else if (headerValue.includes('site') && headerValue.includes('class')) {
             columnMap['siteClass'] = colNumber;
-            console.log(`Mapped siteClass to column ${colNumber}`);
           } else if (headerValue.includes('sub') && headerValue.includes('domain')) {
             columnMap['subDomain'] = colNumber;
-            console.log(`Mapped subDomain to column ${colNumber}`);
           } else if (headerValue.includes('category') || headerValue.includes('kategori') || headerValue === 'cat') {
             columnMap['category'] = colNumber;
-            console.log(`Mapped category to column ${colNumber}`);
           }
         }
       });
@@ -452,30 +438,21 @@ export default function CellDownDataPage() {
         throw new Error(`Missing required columns: ${missingColumns.join(', ')}. Please ensure your Excel file has the correct headers.`);
       }
 
-      // Log detected column mapping for debugging
-      console.log('Detected column mapping:', columnMap);
-      
       // Show warning if TO or Category columns are not detected
       if (!columnMap['to']) {
-        console.warn('TO column not detected. Available headers:', headerRow.values);
         // Try to find TO column by position (usually column 5 or 6)
         if (headerRow.getCell(5)?.value) {
           columnMap['to'] = 5;
-          console.log('Fallback: Mapped TO to column 5');
         } else if (headerRow.getCell(6)?.value) {
           columnMap['to'] = 6;
-          console.log('Fallback: Mapped TO to column 6');
         }
       }
       if (!columnMap['category']) {
-        console.warn('Category column not detected. Available headers:', headerRow.values);
         // Try to find Category column by position (usually column 10 or 11)
         if (headerRow.getCell(10)?.value) {
           columnMap['category'] = 10;
-          console.log('Fallback: Mapped Category to column 10');
         } else if (headerRow.getCell(11)?.value) {
           columnMap['category'] = 11;
-          console.log('Fallback: Mapped Category to column 11');
         }
       }
       
