@@ -33,7 +33,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  CircularProgress
+  CircularProgress,
+  Checkbox
 } from '@mui/material';
 import {
   Upload as UploadIcon,
@@ -46,7 +47,6 @@ import {
   ContentCopy as ContentCopyIcon,
   Delete as DeleteIcon,
   DeleteForever as DeleteForeverIcon,
-  Checkbox,
   CheckboxOutlineBlank
 } from '@mui/icons-material';
 import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, deleteDoc, writeBatch } from 'firebase/firestore';
@@ -1387,6 +1387,10 @@ export default function CellDownDataPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                {/* Debug Info */}
+                <Typography variant="caption" sx={{ color: 'red', fontSize: '10px' }}>
+                  Debug: isSuperAdmin={isSuperAdmin.toString()}, filteredData={filteredData.length}
+                </Typography>
                 <Button
                   variant="contained"
                   color="error"
@@ -1403,7 +1407,8 @@ export default function CellDownDataPage() {
                       backgroundColor: '#bdbdbd',
                       color: '#757575'
                     },
-                    minWidth: '140px'
+                    minWidth: '140px',
+                    display: 'block' // Force display
                   }}
                 >
                   {isSuperAdmin 
@@ -1873,44 +1878,51 @@ export default function CellDownDataPage() {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                          <IconButton 
-                            size="small" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(row);
-                            }} 
-                            color="primary" 
-                            title="Edit Data"
-                            sx={{ 
-                              backgroundColor: '#e8f5e8',
-                              '&:hover': { backgroundColor: '#c8e6c9' }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteSingle(row);
-                            }} 
-                            color="error" 
-                            title={isSuperAdmin ? "Delete Data" : "Delete (Super Admin Only)"}
-                            disabled={!isSuperAdmin}
-                            sx={{ 
-                              backgroundColor: isSuperAdmin ? '#ffebee' : '#f5f5f5',
-                              '&:hover': { 
-                                backgroundColor: isSuperAdmin ? '#ffcdd2' : '#f5f5f5' 
-                              },
-                              '&:disabled': {
-                                backgroundColor: '#f5f5f5',
-                                color: '#bdbdbd'
-                              }
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', flexDirection: 'column' }}>
+                          {/* Debug Info */}
+                          <Typography variant="caption" sx={{ color: 'red', fontSize: '8px' }}>
+                            isSuperAdmin: {isSuperAdmin.toString()}
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(row);
+                              }} 
+                              color="primary" 
+                              title="Edit Data"
+                              sx={{ 
+                                backgroundColor: '#e8f5e8',
+                                '&:hover': { backgroundColor: '#c8e6c9' }
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSingle(row);
+                              }} 
+                              color="error" 
+                              title={isSuperAdmin ? "Delete Data" : "Delete (Super Admin Only)"}
+                              disabled={!isSuperAdmin}
+                              sx={{ 
+                                backgroundColor: isSuperAdmin ? '#ffebee' : '#f5f5f5',
+                                '&:hover': { 
+                                  backgroundColor: isSuperAdmin ? '#ffcdd2' : '#f5f5f5' 
+                                },
+                                '&:disabled': {
+                                  backgroundColor: '#f5f5f5',
+                                  color: '#bdbdbd'
+                                },
+                                display: 'block' // Force display
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
                         </Box>
                       </TableCell>
                     </TableRow>
