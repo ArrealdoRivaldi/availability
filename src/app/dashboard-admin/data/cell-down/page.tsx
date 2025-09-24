@@ -1387,10 +1387,6 @@ export default function CellDownDataPage() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                {/* Debug Info */}
-                <Typography variant="caption" sx={{ color: 'red', fontSize: '10px' }}>
-                  Debug: isSuperAdmin={isSuperAdmin.toString()}, filteredData={filteredData.length}
-                </Typography>
                 <Button
                   variant="contained"
                   color="error"
@@ -1878,12 +1874,7 @@ export default function CellDownDataPage() {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: '8px 4px' }}>
-                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', flexDirection: 'column' }}>
-                          {/* Debug Info */}
-                          <Typography variant="caption" sx={{ color: 'red', fontSize: '8px' }}>
-                            isSuperAdmin: {isSuperAdmin.toString()}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                             <IconButton 
                               size="small" 
                               onClick={(e) => {
@@ -1922,7 +1913,6 @@ export default function CellDownDataPage() {
                             >
                               <DeleteIcon fontSize="small" />
                             </IconButton>
-                          </Box>
                         </Box>
                       </TableCell>
                     </TableRow>

@@ -1,12 +1,14 @@
 import { createTheme } from "@mui/material/styles";
-import { Plus_Jakarta_Sans } from "next/font/google";
 
-export const plus = Plus_Jakarta_Sans({
-  weight: ["300", "400", "500", "600", "700"],
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["Helvetica", "Arial", "sans-serif"],
-});
+// Use system fonts only - no Google Fonts
+const systemFonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+const plus = {
+  className: "",
+  style: {
+    fontFamily: systemFonts
+  }
+};
 
 const baselightTheme = createTheme({
   direction: "ltr",
