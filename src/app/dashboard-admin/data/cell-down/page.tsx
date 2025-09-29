@@ -405,6 +405,8 @@ export default function CellDownDataPage() {
         const headerValue = cell.value?.toString().toLowerCase().trim();
         
         if (headerValue) {
+          // Debug: Log all headers to help identify TO column
+          console.log(`Column ${colNumber}: "${headerValue}"`);
           // Map various possible header names to our data fields
           if (headerValue.includes('week') || headerValue.includes('minggu')) {
             columnMap['week'] = colNumber;
@@ -414,7 +416,7 @@ export default function CellDownDataPage() {
             columnMap['cellDownName'] = colNumber;
           } else if (headerValue.includes('nop')) {
             columnMap['nop'] = colNumber;
-          } else if (headerValue === 'to' || headerValue.includes('to') || headerValue.includes('t.o')) {
+          } else if (headerValue === 'to' || headerValue.includes('to') || headerValue.includes('t.o') || headerValue.includes('t o')) {
             columnMap['to'] = colNumber;
           } else if (headerValue.includes('aging') && headerValue.includes('down') && !headerValue.includes('range')) {
             columnMap['agingDown'] = colNumber;
@@ -441,11 +443,13 @@ export default function CellDownDataPage() {
 
       // Show warning if TO or Category columns are not detected
       if (!columnMap['to']) {
-        // Try to find TO column by position (usually column 5 or 6)
+        // Try to find TO column by position (usually column 5, 6, or 7)
         if (headerRow.getCell(5)?.value) {
           columnMap['to'] = 5;
         } else if (headerRow.getCell(6)?.value) {
           columnMap['to'] = 6;
+        } else if (headerRow.getCell(7)?.value) {
+          columnMap['to'] = 7;
         }
       }
       if (!columnMap['category']) {
@@ -467,6 +471,9 @@ export default function CellDownDataPage() {
       
       // Save column mapping to state for preview dialog
       setColumnMap(columnMap);
+      
+      // Debug: Log final column mapping
+      console.log('Final column mapping:', columnMap);
 
       const previewRows: CellDownData[] = [];
       let rowCount = 0;
