@@ -416,9 +416,10 @@ export default function CellDownDataPage() {
             columnMap['nop'] = colNumber;
           } else if (headerValue === 'to' || headerValue.includes('to') || headerValue.includes('t.o')) {
             columnMap['to'] = colNumber;
-          } else if (headerValue.includes('aging') && headerValue.includes('down')) {
+          } else if (headerValue.includes('aging') && headerValue.includes('down') && !headerValue.includes('range')) {
             columnMap['agingDown'] = colNumber;
-          } else if (headerValue.includes('range') && headerValue.includes('aging')) {
+          } else if ((headerValue.includes('range') && headerValue.includes('aging')) || 
+                     (headerValue.includes('range') && headerValue.includes('down'))) {
             columnMap['rangeAgingDown'] = colNumber;
           } else if (headerValue.includes('site') && headerValue.includes('class')) {
             columnMap['siteClass'] = colNumber;
@@ -453,6 +454,14 @@ export default function CellDownDataPage() {
           columnMap['category'] = 10;
         } else if (headerRow.getCell(11)?.value) {
           columnMap['category'] = 11;
+        }
+      }
+      if (!columnMap['rangeAgingDown']) {
+        // Try to find Range Aging Down column by position (usually column 8)
+        if (headerRow.getCell(8)?.value) {
+          columnMap['rangeAgingDown'] = 8;
+        } else if (headerRow.getCell(9)?.value) {
+          columnMap['rangeAgingDown'] = 9;
         }
       }
       
@@ -1116,13 +1125,6 @@ export default function CellDownDataPage() {
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
               <strong>Week:</strong> {uploadStats.currentWeek}
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-              ✅ Kolom terdeteksi berdasarkan header Excel (posisi kolom fleksibel)
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5, fontSize: '0.75rem' }}>
-              TO: {columnMap['to'] ? `Kolom ${columnMap['to']}` : 'Tidak terdeteksi'} | 
-              Category: {columnMap['category'] ? `Kolom ${columnMap['category']}` : 'Tidak terdeteksi'}
             </Typography>
           </Box>
 
