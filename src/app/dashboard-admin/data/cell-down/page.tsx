@@ -14,10 +14,6 @@ import {
   Typography,
   IconButton,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -46,90 +42,45 @@ import {
   ExpandMore as ExpandMoreIcon,
   ContentCopy as ContentCopyIcon,
   Delete as DeleteIcon,
-  DeleteForever as DeleteForeverIcon,
-  CheckBoxOutlineBlank
+  DeleteForever as DeleteForeverIcon
 } from '@mui/icons-material';
-import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, deleteDoc, writeBatch } from 'firebase/firestore';
-import * as XLSX from 'exceljs';
 
+// Import services and components
+import { DataService } from './services/dataService';
+import { UploadService } from './services/uploadService';
+import { EditModal } from './components/EditModal';
+import { DeleteModal } from './components/DeleteModal';
+import { UploadPreviewModal } from './components/UploadPreviewModal';
+import { UploadAnimationModal } from './components/UploadAnimationModal';
+import { SuccessModal } from './components/SuccessModal';
 import CellDownDetailView from './components/CellDownDetailView';
 import ExportToExcel from './components/ExportToExcel';
-import { db } from '@/app/firebaseConfig';
-// ===== INTERFACES =====
-interface CellDownData {
-  id?: string;
-  week: number;
-  siteId: string;
-  cellDownName: string;
-  nop: string;
-  agingDown: number;
-  rangeAgingDown: string;
-  siteClass: string;
-  subDomain: string;
-  to: string;
-  category: string;
-  rootCause: string;
-  detailProblem: string;
-  planAction: string;
-  needSupport: string;
-  picDept: string;
-  progress: string;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
-interface EditModalData {
-  id: string;
-  rootCause: string;
-  detailProblem: string;
-  planAction: string;
-  needSupport: string;
-  picDept: string;
-  progress: string;
-  to: string;
-  category: string;
-}
-
-interface FilterData {
-  week: string;
-  nop: string;
-  rootCause: string;
-  siteClass: string;
-  picDept: string;
-  progress: string;
-  status: string;
-  rangeAgingDown: string;
-  to: string;
-  category: string;
-}
-
-interface UploadStats {
-  totalExistingData: number;
-  totalUploadedData: number;
-  totalDataAfterUpload: number;
-  currentWeek: number;
-  previousWeek: number;
-  existingOpenBeforeUpload: number;
-  existingCloseBeforeUpload: number;
-  actualCloseCount: number;
-  newlyAddedOpen: number;
-  newlyAddedClose: number;
-  totalWillBeOpen: number;
-  totalWillBeClose: number;
-  newDataCount: number;
-  updatedDataCount: number;
-  totalProcessed: number;
-  newDataWithCopy: number;
-}
-
-// ===== CONSTANTS =====
-const rootCauseOptions = ['Power', 'Transport', 'Comcase', 'Dismantle', 'Combat Relocation', 'IKN', 'Radio', 'Trial Lock', 'Database', 'Vandalism'];
-const picDeptOptions = ['ENOM', 'NOP', 'NOS', 'SQA', 'CTO', 'RTPD', 'RTPE'];
-const progressOptions = ['Open', 'Waiting Budget', 'Waiting Spare Part', 'Waiting Permit', 'Followup Comcase', 'IKN', 'Waiting Delete DB', 'Waiting team', 'Trial Lock', 'Waiting SVA', 'Waiting Support PIC DEPT', 'Done'];
-const siteClassOptions = ['GOLD', 'SILVER', 'BRONZE'];
-const statusOptions = ['open', 'close'];
-const categoryOptions = ['Site Down', 'Cell Down'];
+// Import types and constants
+import { 
+  CellDownData, 
+  EditModalData, 
+  FilterData, 
+  UploadStats, 
+  ChunkProgress, 
+  DeleteType, 
+  SearchField 
+} from './types';
+import { 
+  ROOT_CAUSE_OPTIONS, 
+  PIC_DEPT_OPTIONS, 
+  PROGRESS_OPTIONS, 
+  SITE_CLASS_OPTIONS, 
+  STATUS_OPTIONS, 
+  CATEGORY_OPTIONS,
+  SEARCH_FIELD_OPTIONS,
+  ROWS_PER_PAGE_OPTIONS,
+  DEFAULT_ROWS_PER_PAGE,
+  SUCCESS_MESSAGE_DURATION
+} from './constants';
+// ===== SERVICES =====
+const dataService = new DataService();
+const uploadService = new UploadService();
 
 // ===== MAIN COMPONENT =====
 export default function CellDownDataPage() {
@@ -142,12 +93,12 @@ export default function CellDownDataPage() {
   // UI states
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [totalCount, setTotalCount] = useState(0);
   
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchField, setSearchField] = useState('all');
+  const [searchField, setSearchField] = useState<SearchField>('all');
   const [filters, setFilters] = useState<FilterData>({
     week: '',
     nop: '',
@@ -215,7 +166,7 @@ export default function CellDownDataPage() {
   // Delete states
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [deleteType, setDeleteType] = useState<'single' | 'bulk'>('single');
+  const [deleteType, setDeleteType] = useState<DeleteType>('single');
   const [itemToDelete, setItemToDelete] = useState<CellDownData | null>(null);
   const [deleting, setDeleting] = useState(false);
   
@@ -249,25 +200,18 @@ export default function CellDownDataPage() {
   }, [filteredData, page, rowsPerPage]);
 
   // ===== DATA FUNCTIONS =====
+  /**
+   * Load all Cell Down data from the database
+   */
   const loadData = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, 'data_celldown'), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      const allData: CellDownData[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        allData.push({ id: doc.id, ...doc.data() } as CellDownData);
-      });
-      
+      const allData = await dataService.loadData();
       setAllData(allData);
       setFilteredData(allData);
       
       // Extract unique values for filter dropdowns
-      const nops = Array.from(new Set(allData.map(item => item.nop).filter(Boolean))).sort();
-      const weeks = Array.from(new Set(allData.map(item => item.week).filter(Boolean))).sort((a, b) => a - b);
-      const rangeAgingDown = Array.from(new Set(allData.map(item => item.rangeAgingDown).filter(Boolean))).sort();
-      const tos = Array.from(new Set(allData.map(item => item.to).filter(Boolean))).sort();
+      const { nops, weeks, rangeAgingDown, tos } = dataService.extractUniqueValues(allData);
       
       setUniqueNOPs(nops);
       setUniqueWeeks(weeks);
@@ -275,42 +219,17 @@ export default function CellDownDataPage() {
       setUniqueTOs(tos);
     } catch (error) {
       console.error('Error loading data:', error);
+      alert('Failed to load data. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Apply filters to the data
+   */
   const applyFilters = () => {
-    let filtered = [...allData];
-
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = filtered.filter(item => {
-        if (searchField === 'all') {
-          return (
-            item.siteId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.nop?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.cellDownName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.rootCause?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.picDept?.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        } else {
-          const fieldValue = item[searchField as keyof CellDownData];
-          return fieldValue?.toString().toLowerCase().includes(searchTerm.toLowerCase());
-        }
-      });
-    }
-
-    // Apply other filters
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        filtered = filtered.filter(item => {
-          const fieldValue = item[key as keyof CellDownData];
-          return fieldValue?.toString() === value;
-        });
-      }
-    });
-
+    const filtered = dataService.applyFilters(allData, filters, searchTerm, searchField);
     setFilteredData(filtered);
     setPage(0);
   };
@@ -359,6 +278,9 @@ export default function CellDownDataPage() {
   };
 
   // ===== UPLOAD FUNCTIONS =====
+  /**
+   * Handle file upload and process Excel data
+   */
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!isSuperAdmin) {
       alert('Access denied. Only Super Admin users can upload data.');
@@ -368,155 +290,23 @@ export default function CellDownDataPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel'
-    ];
-    
-    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
-      alert('Please select a valid Excel file (.xlsx or .xls format).');
-      return;
-    }
-
     try {
       setUploading(true);
       setUploadProgress(0);
       setUploadStatus('Processing Excel file...');
       
-      const workbook = new XLSX.Workbook();
-      await workbook.xlsx.load(await file.arrayBuffer());
+      // Validate file
+      uploadService.validateFile(file);
       
-      const worksheet = workbook.worksheets[0] || workbook.getWorksheet(1);
-      if (!worksheet) {
-        throw new Error('No worksheet found. Please ensure the Excel file contains at least one worksheet.');
-      }
-
-      if (!worksheet.rowCount || worksheet.rowCount <= 1) {
-        throw new Error('The worksheet is empty or contains only headers. Please ensure the Excel file contains data rows.');
-      }
-
-      // Get header row to map columns dynamically
-      const headerRow = worksheet.getRow(1);
-      const columnMap: { [key: string]: number } = {};
+      // Process Excel file
+      const { data: previewData, columnMap } = await uploadService.processExcelFile(file);
       
-      // Map column headers to column numbers
-      headerRow.eachCell((cell, colNumber) => {
-        const headerValue = cell.value?.toString().toLowerCase().trim();
-        
-        if (headerValue) {
-          // Map various possible header names to our data fields
-          if (headerValue.includes('week') || headerValue.includes('minggu')) {
-            columnMap['week'] = colNumber;
-          } else if (headerValue.includes('site') && headerValue.includes('id')) {
-            columnMap['siteId'] = colNumber;
-          } else if (headerValue.includes('cell') && headerValue.includes('down') && headerValue.includes('name')) {
-            columnMap['cellDownName'] = colNumber;
-          } else if (headerValue.includes('nop')) {
-            columnMap['nop'] = colNumber;
-          } else if (headerValue === 'to' || headerValue.includes('to') || headerValue.includes('t.o') || headerValue.includes('t o')) {
-            columnMap['to'] = colNumber;
-          } else if (headerValue.includes('aging') && headerValue.includes('down') && !headerValue.includes('range')) {
-            columnMap['agingDown'] = colNumber;
-          } else if ((headerValue.includes('range') && headerValue.includes('aging')) || 
-                     (headerValue.includes('range') && headerValue.includes('down'))) {
-            columnMap['rangeAgingDown'] = colNumber;
-          } else if (headerValue.includes('site') && headerValue.includes('class')) {
-            columnMap['siteClass'] = colNumber;
-          } else if (headerValue.includes('sub') && headerValue.includes('domain')) {
-            columnMap['subDomain'] = colNumber;
-          } else if (headerValue.includes('category') || headerValue.includes('kategori') || headerValue === 'cat') {
-            columnMap['category'] = colNumber;
-          }
-        }
-      });
-
-      // Validate required columns
-      const requiredColumns = ['week', 'siteId', 'cellDownName', 'nop'];
-      const missingColumns = requiredColumns.filter(col => !columnMap[col]);
+      // Analyze upload data
+      const stats = await uploadService.analyzeUploadData(previewData, allData);
       
-      if (missingColumns.length > 0) {
-        throw new Error(`Missing required columns: ${missingColumns.join(', ')}. Please ensure your Excel file has the correct headers.`);
-      }
-
-      // Show warning if TO or Category columns are not detected
-      if (!columnMap['to']) {
-        // Try to find TO column by position (usually column 5, 6, or 7)
-        if (headerRow.getCell(5)?.value) {
-          columnMap['to'] = 5;
-        } else if (headerRow.getCell(6)?.value) {
-          columnMap['to'] = 6;
-        } else if (headerRow.getCell(7)?.value) {
-          columnMap['to'] = 7;
-        }
-      }
-      if (!columnMap['category']) {
-        // Try to find Category column by position (usually column 10 or 11)
-        if (headerRow.getCell(10)?.value) {
-          columnMap['category'] = 10;
-        } else if (headerRow.getCell(11)?.value) {
-          columnMap['category'] = 11;
-        }
-      }
-      if (!columnMap['rangeAgingDown']) {
-        // Try to find Range Aging Down column by position (usually column 8)
-        if (headerRow.getCell(8)?.value) {
-          columnMap['rangeAgingDown'] = 8;
-        } else if (headerRow.getCell(9)?.value) {
-          columnMap['rangeAgingDown'] = 9;
-        }
-      }
-      
-      // Save column mapping to state for preview dialog
       setColumnMap(columnMap);
-
-      const previewRows: CellDownData[] = [];
-      let rowCount = 0;
-      const totalRows = worksheet.rowCount - 1;
-
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return;
-
-        const getCellValue = (columnName: string): string => {
-          const colNum = columnMap[columnName];
-          return colNum ? (row.getCell(colNum)?.value?.toString() || '') : '';
-        };
-
-        const getCellNumber = (columnName: string): number => {
-          const colNum = columnMap[columnName];
-          return colNum ? parseInt(row.getCell(colNum)?.value?.toString() || '0') : 0;
-        };
-
-        const rowData: CellDownData = {
-          week: getCellNumber('week'),
-          siteId: getCellValue('siteId'),
-          cellDownName: getCellValue('cellDownName'),
-          nop: getCellValue('nop'),
-          to: getCellValue('to'),
-          agingDown: getCellNumber('agingDown'),
-          rangeAgingDown: getCellValue('rangeAgingDown'),
-          siteClass: getCellValue('siteClass'),
-          subDomain: getCellValue('subDomain'),
-          category: getCellValue('category'),
-          rootCause: '',
-          detailProblem: '',
-          planAction: '',
-          needSupport: '',
-          picDept: '',
-          progress: 'Open',
-          status: 'open',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-
-        previewRows.push(rowData);
-        rowCount++;
-        setUploadProgress((rowCount / totalRows) * 100);
-      });
-
-      const stats = await analyzeUploadData(previewRows);
       setUploadStats(stats);
-      setPreviewData(previewRows);
+      setPreviewData(previewData);
       setShowPreview(true);
       setUploadStatus('');
     } catch (error) {
@@ -542,138 +332,6 @@ export default function CellDownDataPage() {
     }
   };
 
-  const analyzeUploadData = async (uploadData: CellDownData[]): Promise<UploadStats> => {
-    const currentWeek = uploadData.length > 0 ? uploadData[0].week : 0;
-    const targetWeek = currentWeek - 1;
-
-    const totalExistingData = allData.length;
-    const previousWeekData = allData.filter(d => d.week === targetWeek);
-    const existingOpenBeforeUpload = previousWeekData.filter(d => d.status === 'open').length;
-    const existingCloseBeforeUpload = previousWeekData.filter(d => d.status === 'close').length;
-
-    const uploadCellDownNames = new Set(uploadData.map(item => item.cellDownName));
-    const simulatedDataMap = new Map<string, CellDownData>();
-    allData.forEach(d => simulatedDataMap.set(`${d.week}-${d.cellDownName}`, { ...d }));
-
-    let newDataCount = 0;
-    let updatedDataCount = 0;
-    let newlyAddedOpen = 0;
-    let newlyAddedClose = 0;
-
-    // Process uploaded data to identify new/updated records
-    for (const uploadedItem of uploadData) {
-      const key = `${uploadedItem.week}-${uploadedItem.cellDownName}`;
-      const existingData = allData.find(existing => 
-        existing.week === uploadedItem.week && 
-        existing.cellDownName === uploadedItem.cellDownName
-      );
-
-      if (existingData) {
-        // Existing data - check for previous week data to copy fields
-        const currentWeek = uploadedItem.week;
-        const previousWeek = currentWeek - 1;
-        const existingWithSameName = allData.find(existing => 
-          existing.cellDownName === uploadedItem.cellDownName && 
-          existing.week === previousWeek
-        );
-        
-        const updatedItem = {
-          ...existingData,
-          ...uploadedItem,
-          rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
-          detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
-          planAction: existingWithSameName?.planAction || existingData.planAction || '',
-          needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
-          picDept: existingWithSameName?.picDept || existingData.picDept || '',
-          progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
-          to: uploadedItem.to || existingWithSameName?.to || existingData.to || '',
-          category: uploadedItem.category || existingWithSameName?.category || existingData.category || '',
-          status: 'open'
-        };
-        
-        updatedDataCount++;
-        simulatedDataMap.set(key, updatedItem);
-      } else {
-        // New data - check for previous week data to copy fields
-        const currentWeek = uploadedItem.week;
-        const previousWeek = currentWeek - 1;
-        const existingWithSameName = allData.find(existing => 
-          existing.cellDownName === uploadedItem.cellDownName && 
-          existing.week === previousWeek
-        );
-        
-        newDataCount++;
-        newlyAddedOpen++;
-        
-        const simulatedNewItem = {
-          ...uploadedItem,
-          rootCause: existingWithSameName?.rootCause || '',
-          detailProblem: existingWithSameName?.detailProblem || '',
-          planAction: existingWithSameName?.planAction || '',
-          needSupport: existingWithSameName?.needSupport || '',
-          picDept: existingWithSameName?.picDept || '',
-          progress: existingWithSameName?.progress || 'OPEN',
-          to: uploadedItem.to || existingWithSameName?.to || '',
-          category: uploadedItem.category || existingWithSameName?.category || '',
-          status: 'open'
-        };
-        
-        simulatedDataMap.set(key, simulatedNewItem);
-      }
-    }
-
-    // Apply status logic based on Cell Down Name
-    const finalSimulatedData: CellDownData[] = [];
-    const simulatedDataArray = Array.from(simulatedDataMap.entries());
-
-    for (const [key, dataItem] of simulatedDataArray) {
-      let finalStatus = dataItem.status;
-
-      if (dataItem.week === targetWeek) {
-        const cellDownNameInUpload = uploadCellDownNames.has(dataItem.cellDownName);
-        finalStatus = cellDownNameInUpload ? 'open' : 'close';
-      }
-      
-      finalSimulatedData.push({ ...dataItem, status: finalStatus });
-    }
-
-    const totalDataAfterUpload = finalSimulatedData.length;
-    const totalWillBeOpen = finalSimulatedData.filter(d => d.status === 'open').length;
-    const totalWillBeClose = finalSimulatedData.filter(d => d.status === 'close').length;
-    
-    // Calculate actual close count for previous week after status logic
-    const previousWeekAfterLogic = finalSimulatedData.filter(d => d.week === targetWeek);
-    const actualCloseCount = previousWeekAfterLogic.filter(d => d.status === 'close').length;
-
-    const newDataWithCopy = uploadData.filter(item => {
-      const currentWeek = item.week;
-      const previousWeek = currentWeek - 1;
-      const hasExistingWithSameNameInPreviousWeek = allData.find(existing =>
-        existing.cellDownName === item.cellDownName &&
-        existing.week === previousWeek
-      );
-      return hasExistingWithSameNameInPreviousWeek;
-    }).length;
-
-    return {
-      totalExistingData,
-      totalUploadedData: uploadData.length,
-      totalDataAfterUpload,
-      currentWeek,
-      previousWeek: targetWeek,
-      existingOpenBeforeUpload,
-      existingCloseBeforeUpload,
-      actualCloseCount,
-      newlyAddedOpen,
-      newlyAddedClose,
-      totalWillBeOpen,
-      totalWillBeClose,
-      newDataCount,
-      updatedDataCount,
-      totalProcessed: uploadData.length,
-      newDataWithCopy,
-    };
-  };
 
   const resetUploadState = () => {
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
@@ -706,6 +364,9 @@ export default function CellDownDataPage() {
     setUploading(false);
   };
 
+  /**
+   * Confirm and execute upload operation
+   */
   const confirmUpload = async () => {
     if (!isSuperAdmin) {
       alert('Access denied. Only Super Admin users can upload data.');
@@ -721,121 +382,22 @@ export default function CellDownDataPage() {
     setUploadStatus('Starting upload process...');
     
     try {
-      const batchSize = 100;
-      const totalChunks = Math.ceil(previewData.length / batchSize);
-      let processed = 0;
-      let newDataCount = 0;
-      let updatedDataCount = 0;
-
-      // Process data in batches
-      for (let i = 0; i < previewData.length; i += batchSize) {
-        const currentChunk = Math.floor(i / batchSize) + 1;
-        setChunkProgress({
-          current: currentChunk,
-          total: totalChunks,
-          percentage: Math.round((currentChunk / totalChunks) * 100)
-        });
-        
-        setUploadStatus(`Uploading chunk ${currentChunk}/${totalChunks}... ${Math.round((currentChunk / totalChunks) * 100)}%`);
-        
-        const batch = previewData.slice(i, i + batchSize);
-        
-        for (const item of batch) {
-          const existingData = allData.find(existing => 
-            existing.week === item.week && 
-            existing.cellDownName === item.cellDownName
-          );
-
-          if (existingData) {
-            // Update existing data with copied fields from previous week
-            const currentWeek = item.week;
-            const previousWeek = currentWeek - 1;
-            const existingWithSameName = allData.find(existing => 
-              existing.cellDownName === item.cellDownName && 
-              existing.week === previousWeek
-            );
-            
-            const docRef = doc(db, 'data_celldown', existingData.id!);
-            const updateData = {
-              ...item,
-              id: existingData.id,
-              rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
-              detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
-              planAction: existingWithSameName?.planAction || existingData.planAction || '',
-              needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
-              picDept: existingWithSameName?.picDept || existingData.picDept || '',
-              progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
-              to: item.to || existingWithSameName?.to || existingData.to || '',
-              category: item.category || existingWithSameName?.category || existingData.category || '',
-              updatedAt: new Date(),
-              status: 'open'
-            };
-            
-            await updateDoc(docRef, updateData);
-            updatedDataCount++;
-          } else {
-            // Add new data with copied fields from previous week
-            const currentWeek = item.week;
-            const previousWeek = currentWeek - 1;
-            const existingWithSameName = allData.find(existing => 
-              existing.cellDownName === item.cellDownName && 
-              existing.week === previousWeek
-            );
-            
-            const newItem = {
-              ...item,
-              rootCause: existingWithSameName?.rootCause || '',
-              detailProblem: existingWithSameName?.detailProblem || '',
-              planAction: existingWithSameName?.planAction || '',
-              needSupport: existingWithSameName?.needSupport || '',
-              picDept: existingWithSameName?.picDept || '',
-              progress: existingWithSameName?.progress || 'OPEN',
-              to: item.to || existingWithSameName?.to || '',
-              category: item.category || existingWithSameName?.category || '',
-              status: 'open',
-              createdAt: new Date(),
-              updatedAt: new Date()
-            };
-            
-            await addDoc(collection(db, 'data_celldown'), newItem);
-            newDataCount++;
-          }
-          
-          processed++;
-          setUploadProgress((processed / previewData.length) * 100);
+      // Upload data using service
+      const { newDataCount, updatedDataCount } = await uploadService.uploadData(
+        previewData, 
+        allData,
+        (progress, status) => {
+          setUploadProgress(progress);
+          setUploadStatus(status);
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-
-      // Update status of existing data based on upload
-      const uploadCellDownNames = new Set(previewData.map(item => item.cellDownName));
-      const currentWeek = previewData.length > 0 ? previewData[0].week : 0;
-      const targetWeek = currentWeek - 1;
-      
-      for (const existingItem of allData) {
-        let newStatus = existingItem.status;
-        
-        if (existingItem.week === targetWeek) {
-          const cellDownNameInUpload = uploadCellDownNames.has(existingItem.cellDownName);
-          newStatus = cellDownNameInUpload ? 'open' : 'close';
-        }
-        
-        if (newStatus !== existingItem.status) {
-          const docRef = doc(db, 'data_celldown', existingItem.id!);
-          await updateDoc(docRef, {
-            status: newStatus,
-            updatedAt: new Date()
-          });
-        }
-      }
+      );
 
       setShowUploadAnimation(false);
       setShowSuccessMessage(true);
       
       setTimeout(() => {
         setShowSuccessMessage(false);
-      }, 3000);
+      }, SUCCESS_MESSAGE_DURATION);
       
       resetUploadState();
       loadData();
@@ -868,20 +430,24 @@ export default function CellDownDataPage() {
     setEditModal(true);
   };
 
+  /**
+   * Save edited data
+   */
   const handleSaveEdit = async () => {
     if (!editData.id) return;
 
     try {
-      const docRef = doc(db, 'data_celldown', editData.id);
-      const updateData = {
-        ...editData,
-        updatedAt: new Date()
-      };
+      await dataService.updateRecord(editData.id, editData);
       
-      await updateDoc(docRef, updateData);
-      
+      // Update local state
       setData(prev => prev.map(item => 
-        item.id === editData.id ? { ...item, ...updateData } : item
+        item.id === editData.id ? { ...item, ...editData } : item
+      ));
+      setAllData(prev => prev.map(item => 
+        item.id === editData.id ? { ...item, ...editData } : item
+      ));
+      setFilteredData(prev => prev.map(item => 
+        item.id === editData.id ? { ...item, ...editData } : item
       ));
       
       setEditModal(false);
@@ -940,6 +506,9 @@ export default function CellDownDataPage() {
     }
   };
 
+  /**
+   * Confirm and execute delete operation
+   */
   const confirmDelete = async () => {
     if (!isSuperAdmin) {
       alert('Access denied. Only Super Admin users can delete data.');
@@ -950,7 +519,7 @@ export default function CellDownDataPage() {
     try {
       if (deleteType === 'single' && itemToDelete) {
         // Single delete
-        await deleteDoc(doc(db, 'data_celldown', itemToDelete.id!));
+        await dataService.deleteRecord(itemToDelete.id!);
         
         // Update local state
         setData(prev => prev.filter(item => item.id !== itemToDelete.id));
@@ -959,16 +528,9 @@ export default function CellDownDataPage() {
         
         alert('Data deleted successfully!');
       } else if (deleteType === 'bulk' && filteredData.length > 0) {
-        // Bulk delete all filtered data using batch
-        const batch = writeBatch(db);
+        // Bulk delete all filtered data
         const itemsToDelete = filteredData.map(item => item.id!);
-        
-        itemsToDelete.forEach(itemId => {
-          const docRef = doc(db, 'data_celldown', itemId);
-          batch.delete(docRef);
-        });
-        
-        await batch.commit();
+        await dataService.deleteRecordsBatch(itemsToDelete);
         
         // Update local state
         setData(prev => prev.filter(item => !itemsToDelete.includes(item.id!)));
@@ -990,34 +552,12 @@ export default function CellDownDataPage() {
   };
 
   // ===== UTILITY FUNCTIONS =====
+  /**
+   * Copy filtered data to clipboard
+   */
   const handleCopyData = async () => {
     try {
-      const dataToCopy = filteredData.map(item => ({
-        Week: item.week,
-        'Site ID': item.siteId,
-        'Cell Down Name': item.cellDownName,
-        NOP: item.nop,
-        'Aging Down': item.agingDown,
-        'Range Aging Down': item.rangeAgingDown,
-        'Site Class': item.siteClass,
-        'Sub Domain': item.subDomain,
-        'TO': item.to || '',
-        'Category': item.category || '',
-        'Root Cause': item.rootCause || '',
-        'Detail Problem': item.detailProblem || '',
-        'Plan Action': item.planAction || '',
-        'Need Support': item.needSupport || '',
-        'PIC Dept': item.picDept || '',
-        Progress: item.progress || 'Open',
-        Status: item.status
-      }));
-
-      const csvContent = [
-        Object.keys(dataToCopy[0]).join(','),
-        ...dataToCopy.map(row => Object.values(row).map(value => `"${value}"`).join(','))
-      ].join('\n');
-
-      await navigator.clipboard.writeText(csvContent);
+      await dataService.copyToClipboard(filteredData);
       alert('Data copied to clipboard! You can paste it into Excel or any spreadsheet application.');
     } catch (error) {
       console.error('Error copying data:', error);
@@ -1346,12 +886,11 @@ export default function CellDownDataPage() {
               <FormControl fullWidth size="small">
                 <InputLabel>Search Field</InputLabel>
                 <Select value={searchField} onChange={handleSearchFieldChange} label="Search Field">
-                  <MenuItem value="all">All Fields</MenuItem>
-                  <MenuItem value="siteId">Site ID</MenuItem>
-                  <MenuItem value="nop">NOP</MenuItem>
-                  <MenuItem value="cellDownName">Cell Down Name</MenuItem>
-                  <MenuItem value="rootCause">Root Cause</MenuItem>
-                  <MenuItem value="picDept">PIC Dept</MenuItem>
+                  {SEARCH_FIELD_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -1467,7 +1006,7 @@ export default function CellDownDataPage() {
                       label="Root Cause"
                     >
                       <MenuItem value="">All Root Causes</MenuItem>
-                      {rootCauseOptions.map(option => (
+                      {ROOT_CAUSE_OPTIONS.map(option => (
                         <MenuItem key={option} value={option}>{option}</MenuItem>
                       ))}
                     </Select>
@@ -1482,7 +1021,7 @@ export default function CellDownDataPage() {
                       label="Site Class"
                     >
                       <MenuItem value="">All Site Classes</MenuItem>
-                      {siteClassOptions.map(option => (
+                      {SITE_CLASS_OPTIONS.map(option => (
                         <MenuItem key={option} value={option}>{option}</MenuItem>
                       ))}
                     </Select>
@@ -1497,7 +1036,7 @@ export default function CellDownDataPage() {
                       label="PIC Department"
                     >
                       <MenuItem value="">All PIC Departments</MenuItem>
-                      {picDeptOptions.map(option => (
+                      {PIC_DEPT_OPTIONS.map(option => (
                         <MenuItem key={option} value={option}>{option}</MenuItem>
                       ))}
                     </Select>
@@ -1512,7 +1051,7 @@ export default function CellDownDataPage() {
                       label="Progress"
                     >
                       <MenuItem value="">All Progress</MenuItem>
-                      {progressOptions.map(option => (
+                      {PROGRESS_OPTIONS.map(option => (
                         <MenuItem key={option} value={option}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography variant="h6" color={option === 'Done' ? 'success.main' : 'error.main'}>
@@ -1534,7 +1073,7 @@ export default function CellDownDataPage() {
                       label="Status"
                     >
                       <MenuItem value="">All Status</MenuItem>
-                      {statusOptions.map(option => (
+                      {STATUS_OPTIONS.map(option => (
                         <MenuItem key={option} value={option}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography variant="h6" color={option === 'close' ? 'success.main' : 'error.main'}>
@@ -1586,7 +1125,7 @@ export default function CellDownDataPage() {
                       label="Category"
                     >
                       <MenuItem value="">All Categories</MenuItem>
-                      {categoryOptions.map(option => (
+                      {CATEGORY_OPTIONS.map(option => (
                         <MenuItem key={option} value={option}>{option}</MenuItem>
                       ))}
                     </Select>
@@ -1910,7 +1449,7 @@ export default function CellDownDataPage() {
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[25, 50, 100]}
+            rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count !== -1 ? count : `more than ${to}`}`}
             labelRowsPerPage="Show:"
           />
@@ -1920,279 +1459,56 @@ export default function CellDownDataPage() {
       {/* Detail View Modal */}
       <CellDownDetailView open={detailModal} onClose={() => setDetailModal(false)} data={selectedData} />
 
+      {/* Edit Modal */}
+      <EditModal
+        open={editModal}
+        onClose={() => setEditModal(false)}
+        onSave={handleSaveEdit}
+        editData={editData}
+        setEditData={setEditData}
+        selectedData={selectedData}
+        uniqueTOs={uniqueTOs}
+      />
+
       {/* Delete Confirmation Modal */}
-      <Dialog 
-        open={deleteModal} 
-        onClose={() => !deleting && setDeleteModal(false)} 
-        maxWidth="sm" 
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '300px'
-          }
+      <DeleteModal
+        open={deleteModal}
+        onClose={() => setDeleteModal(false)}
+        onConfirm={confirmDelete}
+        deleteType={deleteType}
+        itemToDelete={itemToDelete}
+        filteredDataCount={filteredData.length}
+        deleting={deleting}
+      />
+
+      {/* Upload Preview Modal */}
+      <UploadPreviewModal
+        open={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          resetUploadState();
         }}
-        BackdropProps={{
-          sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(4px)'
-          }
-        }}
-      >
-        <Box sx={{ 
-          textAlign: 'center', 
-          p: 4,
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-          minWidth: '400px'
-        }}>
-          {/* Warning Icon */}
-          <Box sx={{ 
-            position: 'relative',
-            display: 'inline-block',
-            mb: 3
-          }}>
-            <Box sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              backgroundColor: 'error.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'pulse 0.6s ease-out',
-              '@keyframes pulse': {
-                '0%': { transform: 'scale(0.3)', opacity: 0 },
-                '50%': { transform: 'scale(1.1)', opacity: 1 },
-                '100%': { transform: 'scale(1)', opacity: 1 }
-              }
-            }}>
-              <DeleteForeverIcon sx={{ fontSize: 40, color: 'white' }} />
-            </Box>
-          </Box>
+        onConfirm={confirmUpload}
+        previewData={previewData}
+        uploadStats={uploadStats}
+        totalExistingData={allData.length}
+        uploading={uploading}
+      />
 
-          {/* Warning Message */}
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'error.main' }}>
-            {deleteType === 'single' ? 'Delete Data?' : `Delete All Filtered Data?`}
-          </Typography>
-          
-          <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
-            {deleteType === 'single' 
-              ? `Are you sure you want to delete "${itemToDelete?.cellDownName}"? This action cannot be undone.`
-              : `Are you sure you want to delete ALL ${filteredData.length} filtered records? This action cannot be undone and will delete all data that matches your current search/filter criteria.`
-            }
-          </Typography>
+      {/* Upload Animation Modal */}
+      <UploadAnimationModal
+        open={showUploadAnimation}
+        uploadProgress={uploadProgress}
+        chunkProgress={chunkProgress}
+        uploadStatus={uploadStatus}
+      />
 
-          {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 3 }}>
-            <Button
-              variant="outlined"
-              onClick={() => setDeleteModal(false)}
-              disabled={deleting}
-              sx={{ minWidth: 100 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={confirmDelete}
-              disabled={deleting}
-              startIcon={deleting ? <CircularProgress size={20} color="inherit" /> : <DeleteForeverIcon />}
-              sx={{ 
-                minWidth: 120,
-                backgroundColor: '#d32f2f',
-                '&:hover': { backgroundColor: '#b71c1c' }
-              }}
-            >
-              {deleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </Box>
-        </Box>
-      </Dialog>
+      {/* Success Modal */}
+      <SuccessModal
+        open={showSuccessMessage}
+        onClose={() => setShowSuccessMessage(false)}
+      />
 
-      {/* Upload Animation Dialog */}
-      <Dialog 
-        open={showUploadAnimation} 
-        onClose={() => {}} 
-        maxWidth="sm" 
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '300px'
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(4px)'
-          }
-        }}
-      >
-        <Box sx={{ 
-          textAlign: 'center', 
-          p: 4,
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-          minWidth: '400px'
-        }}>
-          {/* Animated Upload Icon */}
-          <Box sx={{ 
-            position: 'relative',
-            display: 'inline-block',
-            mb: 3
-          }}>
-            <CloudUploadIcon 
-              sx={{ 
-                fontSize: 80, 
-                color: 'primary.main',
-                animation: 'pulse 2s infinite',
-                '@keyframes pulse': {
-                  '0%': { transform: 'scale(1)', opacity: 1 },
-                  '50%': { transform: 'scale(1.1)', opacity: 0.7 },
-                  '100%': { transform: 'scale(1)', opacity: 1 }
-                }
-              }} 
-            />
-            <CircularProgress
-              size={90}
-              thickness={2}
-              sx={{
-                position: 'absolute',
-                top: -5,
-                left: -5,
-                color: 'primary.main',
-                animation: 'spin 2s linear infinite',
-                '@keyframes spin': {
-                  '0%': { transform: 'rotate(0deg)' },
-                  '100%': { transform: 'rotate(360deg)' }
-                }
-              }}
-            />
-          </Box>
-
-          {/* Upload Status */}
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-            Uploading Data...
-          </Typography>
-          
-          <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
-            {uploadStatus || 'Processing your data...'}
-          </Typography>
-
-          {/* Progress Bar */}
-          <Box sx={{ width: '100%', mb: 2 }}>
-            <LinearProgress 
-              variant="determinate" 
-              value={uploadProgress} 
-              sx={{ 
-                height: 8, 
-                borderRadius: 4,
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 4,
-                  background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)'
-                }
-              }} 
-            />
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-              {Math.round(uploadProgress)}% Complete
-            </Typography>
-          </Box>
-
-          {/* Chunk Progress */}
-          {chunkProgress.total > 0 && (
-            <Typography variant="body2" color="textSecondary">
-              Chunk {chunkProgress.current} of {chunkProgress.total} ({chunkProgress.percentage}%)
-            </Typography>
-          )}
-        </Box>
-      </Dialog>
-
-      {/* Success Message Dialog */}
-      <Dialog 
-        open={showSuccessMessage} 
-        onClose={() => setShowSuccessMessage(false)} 
-        maxWidth="sm" 
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '250px'
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(4px)'
-          }
-        }}
-      >
-        <Box sx={{ 
-          textAlign: 'center', 
-          p: 4,
-          backgroundColor: 'white',
-          borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-          minWidth: '350px',
-          animation: 'slideIn 0.5s ease-out',
-          '@keyframes slideIn': {
-            '0%': { transform: 'translateY(-50px)', opacity: 0 },
-            '100%': { transform: 'translateY(0)', opacity: 1 }
-          }
-        }}>
-          {/* Success Icon with Animation */}
-          <Box sx={{ 
-            position: 'relative',
-            display: 'inline-block',
-            mb: 3
-          }}>
-            <Box sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              backgroundColor: 'success.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'bounce 0.6s ease-out',
-              '@keyframes bounce': {
-                '0%': { transform: 'scale(0.3)', opacity: 0 },
-                '50%': { transform: 'scale(1.1)', opacity: 1 },
-                '100%': { transform: 'scale(1)', opacity: 1 }
-              }
-            }}>
-              <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold' }}>
-                ✓
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Success Message */}
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'success.main' }}>
-            Upload Berhasil!
-          </Typography>
-          
-          <Typography variant="body1" color="textSecondary">
-            Data berhasil diupload ke sistem
-          </Typography>
-        </Box>
-      </Dialog>
     </Box>
   );
 }
