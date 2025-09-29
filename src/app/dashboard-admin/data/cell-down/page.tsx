@@ -405,8 +405,6 @@ export default function CellDownDataPage() {
         const headerValue = cell.value?.toString().toLowerCase().trim();
         
         if (headerValue) {
-          // Debug: Log all headers to help identify TO column
-          console.log(`Column ${colNumber}: "${headerValue}"`);
           // Map various possible header names to our data fields
           if (headerValue.includes('week') || headerValue.includes('minggu')) {
             columnMap['week'] = colNumber;
@@ -471,9 +469,6 @@ export default function CellDownDataPage() {
       
       // Save column mapping to state for preview dialog
       setColumnMap(columnMap);
-      
-      // Debug: Log final column mapping
-      console.log('Final column mapping:', columnMap);
 
       const previewRows: CellDownData[] = [];
       let rowCount = 0;
@@ -591,8 +586,8 @@ export default function CellDownDataPage() {
           needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
           picDept: existingWithSameName?.picDept || existingData.picDept || '',
           progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
-          to: existingWithSameName?.to || existingData.to || '',
-          category: existingWithSameName?.category || existingData.category || '',
+          to: uploadedItem.to || existingWithSameName?.to || existingData.to || '',
+          category: uploadedItem.category || existingWithSameName?.category || existingData.category || '',
           status: 'open'
         };
         
@@ -618,8 +613,8 @@ export default function CellDownDataPage() {
           needSupport: existingWithSameName?.needSupport || '',
           picDept: existingWithSameName?.picDept || '',
           progress: existingWithSameName?.progress || 'OPEN',
-          to: existingWithSameName?.to || '',
-          category: existingWithSameName?.category || '',
+          to: uploadedItem.to || existingWithSameName?.to || '',
+          category: uploadedItem.category || existingWithSameName?.category || '',
           status: 'open'
         };
         
@@ -770,8 +765,8 @@ export default function CellDownDataPage() {
               needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
               picDept: existingWithSameName?.picDept || existingData.picDept || '',
               progress: existingWithSameName?.progress || existingData.progress || 'OPEN',
-              to: existingWithSameName?.to || existingData.to || '',
-              category: existingWithSameName?.category || existingData.category || '',
+              to: item.to || existingWithSameName?.to || existingData.to || '',
+              category: item.category || existingWithSameName?.category || existingData.category || '',
               updatedAt: new Date(),
               status: 'open'
             };
@@ -795,8 +790,8 @@ export default function CellDownDataPage() {
               needSupport: existingWithSameName?.needSupport || '',
               picDept: existingWithSameName?.picDept || '',
               progress: existingWithSameName?.progress || 'OPEN',
-              to: existingWithSameName?.to || '',
-              category: existingWithSameName?.category || '',
+              to: item.to || existingWithSameName?.to || '',
+              category: item.category || existingWithSameName?.category || '',
               status: 'open',
               createdAt: new Date(),
               updatedAt: new Date()
