@@ -236,12 +236,12 @@ export class UploadService {
     // Process uploaded data to identify new/updated records
     for (const uploadedItem of uploadData) {
       const key = `${uploadedItem.week}-${uploadedItem.cellDownName}`;
-      const existingData = existingData.find(existing => 
+      const existingItem = existingData.find(existing => 
         existing.week === uploadedItem.week && 
         existing.cellDownName === uploadedItem.cellDownName
       );
 
-      if (existingData) {
+      if (existingItem) {
         // Existing data - check for previous week data to copy fields
         const currentWeek = uploadedItem.week;
         const previousWeek = currentWeek - 1;
@@ -251,16 +251,16 @@ export class UploadService {
         );
         
         const updatedItem = {
-          ...existingData,
+          ...existingItem,
           ...uploadedItem,
-          rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
-          detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
-          planAction: existingWithSameName?.planAction || existingData.planAction || '',
-          needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
-          picDept: existingWithSameName?.picDept || existingData.picDept || '',
-          progress: existingWithSameName?.progress || existingData.progress || DEFAULT_PROGRESS,
-          to: uploadedItem.to || existingWithSameName?.to || existingData.to || '',
-          category: uploadedItem.category || existingWithSameName?.category || existingData.category || '',
+          rootCause: existingWithSameName?.rootCause || existingItem.rootCause || '',
+          detailProblem: existingWithSameName?.detailProblem || existingItem.detailProblem || '',
+          planAction: existingWithSameName?.planAction || existingItem.planAction || '',
+          needSupport: existingWithSameName?.needSupport || existingItem.needSupport || '',
+          picDept: existingWithSameName?.picDept || existingItem.picDept || '',
+          progress: existingWithSameName?.progress || existingItem.progress || DEFAULT_PROGRESS,
+          to: uploadedItem.to || existingWithSameName?.to || existingItem.to || '',
+          category: uploadedItem.category || existingWithSameName?.category || existingItem.category || '',
           status: DEFAULT_STATUS
         };
         
