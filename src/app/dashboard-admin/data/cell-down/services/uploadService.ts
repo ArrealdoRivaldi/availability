@@ -377,12 +377,12 @@ export class UploadService {
       const batch = uploadData.slice(i, i + UPLOAD_BATCH_SIZE);
       
       for (const item of batch) {
-        const existingData = existingData.find(existing => 
+        const existingItem = existingData.find(existing => 
           existing.week === item.week && 
           existing.cellDownName === item.cellDownName
         );
 
-        if (existingData) {
+        if (existingItem) {
           // Update existing data with copied fields from previous week
           const currentWeek = item.week;
           const previousWeek = currentWeek - 1;
@@ -391,18 +391,18 @@ export class UploadService {
             existing.week === previousWeek
           );
           
-          const docRef = doc(db, this.collectionName, existingData.id!);
+          const docRef = doc(db, this.collectionName, existingItem.id!);
           const updateData = {
             ...item,
-            id: existingData.id,
-            rootCause: existingWithSameName?.rootCause || existingData.rootCause || '',
-            detailProblem: existingWithSameName?.detailProblem || existingData.detailProblem || '',
-            planAction: existingWithSameName?.planAction || existingData.planAction || '',
-            needSupport: existingWithSameName?.needSupport || existingData.needSupport || '',
-            picDept: existingWithSameName?.picDept || existingData.picDept || '',
-            progress: existingWithSameName?.progress || existingData.progress || DEFAULT_PROGRESS,
-            to: item.to || existingWithSameName?.to || existingData.to || '',
-            category: item.category || existingWithSameName?.category || existingData.category || '',
+            id: existingItem.id,
+            rootCause: existingWithSameName?.rootCause || existingItem.rootCause || '',
+            detailProblem: existingWithSameName?.detailProblem || existingItem.detailProblem || '',
+            planAction: existingWithSameName?.planAction || existingItem.planAction || '',
+            needSupport: existingWithSameName?.needSupport || existingItem.needSupport || '',
+            picDept: existingWithSameName?.picDept || existingItem.picDept || '',
+            progress: existingWithSameName?.progress || existingItem.progress || DEFAULT_PROGRESS,
+            to: item.to || existingWithSameName?.to || existingItem.to || '',
+            category: item.category || existingWithSameName?.category || existingItem.category || '',
             updatedAt: new Date(),
             status: DEFAULT_STATUS
           };
