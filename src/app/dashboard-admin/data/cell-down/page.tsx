@@ -785,7 +785,7 @@ export default function CellDownDataPage() {
               <FormControl fullWidth>
                 <InputLabel>Root Cause</InputLabel>
                 <Select value={editData.rootCause} onChange={(e) => setEditData({ ...editData, rootCause: e.target.value })} label="Root Cause">
-                  {rootCauseOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
+                  {ROOT_CAUSE_OPTIONS.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
             </Grid>
@@ -793,7 +793,7 @@ export default function CellDownDataPage() {
               <FormControl fullWidth>
                 <InputLabel>PIC Department</InputLabel>
                 <Select value={editData.picDept} onChange={(e) => setEditData({ ...editData, picDept: e.target.value })} label="PIC Department">
-                  {picDeptOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
+                  {PIC_DEPT_OPTIONS.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
             </Grid>
@@ -801,7 +801,7 @@ export default function CellDownDataPage() {
               <FormControl fullWidth>
                 <InputLabel>Progress</InputLabel>
                 <Select value={editData.progress} onChange={(e) => setEditData({ ...editData, progress: e.target.value })} label="Progress">
-                  {progressOptions.map((option) => (
+                  {PROGRESS_OPTIONS.map((option) => (
                     <MenuItem key={option} value={option}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="h6" color={option === 'Done' ? 'success.main' : 'error.main'}>
@@ -827,7 +827,7 @@ export default function CellDownDataPage() {
               <FormControl fullWidth>
                 <InputLabel>Category</InputLabel>
                 <Select value={editData.category || ''} onChange={(e) => setEditData({ ...editData, category: e.target.value })} label="Category">
-                  {categoryOptions.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
+                  {CATEGORY_OPTIONS.map((option) => (<MenuItem key={option} value={option}>{option}</MenuItem>))}
                 </Select>
               </FormControl>
             </Grid>
