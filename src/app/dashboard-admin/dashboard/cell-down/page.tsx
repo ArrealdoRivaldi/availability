@@ -128,21 +128,16 @@ export default function CellDownDashboardPage() {
 
   // Get unique values for filter options
   const getUniqueWeeks = (): number[] => {
-    console.log('getUniqueWeeks called with cellDownData length:', cellDownData.length);
-    console.log('Sample cellDownData:', cellDownData.slice(0, 3).map(item => ({ week: item.week, weekType: typeof item.week, createdAt: item.createdAt })));
-    
     const weeks = cellDownData
       .map(item => {
         // Handle different week formats - keep as numbers when possible
         if (item.week) {
           if (typeof item.week === 'number') {
-            console.log(`Using existing week number: ${item.week}`);
             return item.week;
           } else if (typeof item.week === 'string' && item.week.trim()) {
             // Convert string like "W36" to number 36
             const weekNum = parseInt(item.week.replace('W', ''));
             if (!isNaN(weekNum)) {
-              console.log(`Converting week string to number: ${item.week} -> ${weekNum}`);
               return weekNum;
             }
           }
@@ -154,7 +149,6 @@ export default function CellDownDashboardPage() {
           if (extractedWeek) {
             const weekNum = parseInt(extractedWeek.replace('W', ''));
             if (!isNaN(weekNum)) {
-              console.log(`Extracted week from createdAt: ${extractedWeek} -> ${weekNum}`);
               return weekNum;
             }
           }
@@ -166,12 +160,9 @@ export default function CellDownDashboardPage() {
       .filter((week, index, arr) => arr.indexOf(week) === index)
       .sort((a, b) => a - b);
     
-    console.log('Final available weeks (numbers):', weeks);
-    
     // If no weeks found, create some default ones for testing
     if (weeks.length === 0) {
       const defaultWeeks = [1, 2, 3, 4, 5];
-      console.log('No weeks found, using default weeks:', defaultWeeks);
       return defaultWeeks;
     }
     
@@ -538,15 +529,11 @@ export default function CellDownDashboardPage() {
                   <MenuItem value="">
                     <em>All Weeks</em>
                   </MenuItem>
-                  {(() => {
-                    const weeks = getUniqueWeeks();
-                    console.log('Rendering weeks in Select:', weeks);
-                    return weeks.map((week) => (
-                      <MenuItem key={week} value={week.toString()}>
-                        Week {week}
-                      </MenuItem>
-                    ));
-                  })()}
+                  {getUniqueWeeks().map((week) => (
+                    <MenuItem key={week} value={week.toString()}>
+                      Week {week}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
