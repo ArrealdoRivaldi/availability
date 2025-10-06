@@ -88,16 +88,21 @@ export const ALLOWED_FILE_EXTENSIONS = /\.(xlsx|xls)$/i;
 export const REQUIRED_COLUMNS = ['week', 'siteId', 'cellDownName', 'nop'];
 
 // ===== COLUMN MAPPING PATTERNS =====
+// Note: Patterns are ordered by specificity (most specific first)
 export const COLUMN_MAPPING_PATTERNS = {
   week: ['week', 'minggu'],
-  siteId: ['site', 'id'],
-  cellDownName: ['cell', 'down', 'name'],
+  // Site ID patterns - must be specific to avoid matching "Site Class"
+  siteId: ['site id', 'siteid', 'site_id'],
+  // Cell Down Name patterns - must be specific to avoid matching "Range Aging Down"
+  cellDownName: ['cell down name', 'celldownname', 'cell_down_name', 'cell down'],
   nop: ['nop'],
   to: ['to', 't.o', 't o'],
-  agingDown: ['aging', 'down'],
-  rangeAgingDown: ['range', 'aging', 'range', 'down'],
-  siteClass: ['site', 'class'],
-  subDomain: ['sub', 'domain'],
+  agingDown: ['aging down', 'agingdown', 'aging_down'],
+  // Range Aging Down patterns - must be specific to avoid matching "Cell Down Name"
+  rangeAgingDown: ['range aging down', 'rangeagingdown', 'range_aging_down', 'range aging'],
+  // Site Class patterns - must be specific to avoid matching "Site ID"
+  siteClass: ['site class', 'siteclass', 'site_class'],
+  subDomain: ['sub domain', 'subdomain', 'sub_domain'],
   category: ['category', 'kategori', 'cat']
 };
 

@@ -89,14 +89,30 @@ export class UploadService {
     const headerRow = worksheet.getRow(1);
     const columnMap: ColumnMap = {};
     
-    // Map column headers to column numbers
+    // Map column headers to column numbers with precise matching
     headerRow.eachCell((cell, colNumber) => {
       const headerValue = cell.value?.toString().toLowerCase().trim();
       
       if (headerValue) {
-        // Map various possible header names to our data fields
+        // Map various possible header names to our data fields with priority-based matching
         Object.entries(COLUMN_MAPPING_PATTERNS).forEach(([field, patterns]) => {
-          if (patterns.some(pattern => headerValue.includes(pattern))) {
+          // Skip if already mapped
+          if (columnMap[field]) return;
+          
+          // Check patterns in order of specificity
+          const isMatch = patterns.some(pattern => {
+            // Check for exact match first
+            if (headerValue === pattern) return true;
+            // Check for close match (replacing spaces, underscores, etc.)
+            const normalizedHeader = headerValue.replace(/[_\s-]/g, '');
+            const normalizedPattern = pattern.replace(/[_\s-]/g, '');
+            if (normalizedHeader === normalizedPattern) return true;
+            // Check if header contains the pattern as a complete word
+            const words = headerValue.split(/[\s_-]+/);
+            return words.some(word => word === pattern);
+          });
+          
+          if (isMatch) {
             columnMap[field] = colNumber;
           }
         });
