@@ -1,7 +1,7 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getDatabase, Database } from "firebase/database";
+import { getAuth, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 // ===== AVAILABILITY PROJECT CONFIG =====
 const availabilityConfig = {
@@ -28,13 +28,13 @@ const cellDownConfig = {
 };
 
 // ===== INITIALIZE APPS =====
-let availabilityApp;
-let cellDownApp;
-let database;
-let auth;
-let db;
-let cellDownDatabase;
-let cellDownAuth;
+let availabilityApp: FirebaseApp | null = null;
+let cellDownApp: FirebaseApp | null = null;
+let database: Database | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let cellDownDatabase: Database | null = null;
+let cellDownAuth: Auth | null = null;
 
 try {
   availabilityApp = !getApps().length ? initializeApp(availabilityConfig) : getApp();
