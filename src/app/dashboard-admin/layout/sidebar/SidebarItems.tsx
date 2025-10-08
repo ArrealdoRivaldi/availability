@@ -26,7 +26,7 @@ const SidebarItems = () => {
   // Hook untuk mengambil jumlah data approval
   React.useEffect(() => {
     if (role === 'super_admin') {
-      const dbRef = ref(database);
+      const dbRef = ref(database, 'availability');
       const unsubscribe = onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {

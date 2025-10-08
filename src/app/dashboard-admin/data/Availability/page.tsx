@@ -192,7 +192,7 @@ const DataPage = () => {
   const statusOptions = ['Open', 'Waiting approval', 'Close', 'Rejected'];
 
   useEffect(() => {
-    const dbRef = ref(database); // Ambil data dari root
+    const dbRef = ref(database, 'availability'); // Ambil data dari availability
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
