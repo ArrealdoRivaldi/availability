@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../../../firebaseConfig';
+import { ref, get } from 'firebase/database';
+import { cellDownDatabase } from '../../../firebaseConfig';
 import { 
   Box, 
   Grid, 
@@ -52,17 +52,26 @@ export default function CellDownDashboardPage() {
 
   const fetchCellDownData = async () => {
     try {
-      console.log('Fetching cell down data...');
-      const q = query(collection(db, 'data_celldown'), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
+      console.log('Fetching cell down data from Realtime Database...');
+      const dataRef = ref(cellDownDatabase, 'data_celldown');
+      const snapshot = await get(dataRef);
+      
+      if (!snapshot.exists()) {
+        console.log('No data found in Realtime Database');
+        setCellDownData([]);
+        return;
+      }
+      
       const data: CellDownData[] = [];
+      const dbData = snapshot.val();
       
-      console.log(`Found ${querySnapshot.size} documents`);
+      console.log(`Found ${Object.keys(dbData).length} records`);
       
-      querySnapshot.forEach((doc) => {
-        const docData = doc.data();
-        console.log('Document data:', docData);
-        const mappedData = mapFirestoreData(docData, doc.id);
+      // Convert object to array with sequential keys
+      Object.keys(dbData).forEach((key) => {
+        const item = dbData[key];
+        console.log('Record data:', item);
+        const mappedData = mapFirestoreData(item, key);
          
         // Extract week from createdAt timestamp if not already present
         if (!mappedData.week && mappedData.createdAt) {
@@ -78,6 +87,13 @@ export default function CellDownDashboardPage() {
         }
         
         data.push(mappedData);
+      });
+      
+      // Sort by createdAt descending (newest first)
+      data.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
       });
       
       console.log('Processed data:', data);
@@ -423,7 +439,7 @@ export default function CellDownDashboardPage() {
   if (!cellDownData.length) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Typography variant="h6" color="text.secondary">No data available. Please check your Firestore collection.</Typography>
+        <Typography variant="h6" color="text.secondary">No data available. Please check your Realtime Database.</Typography>
       </Box>
     );
   }

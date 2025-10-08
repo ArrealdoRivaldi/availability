@@ -1,20 +1,29 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, cert } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+// ===== AVAILABILITY PROJECT CONFIG (SERVICE ACCOUNT) =====
+const availabilityConfig = {
+  credential: cert(JSON.parse(process.env.availability_service_account || '{}')),
+  databaseURL: 'https://availbility-default-rtdb.asia-southeast1.firebasedatabase.app'
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-export const database = getDatabase(app);
-export const auth = getAuth(app);
-export const db = getFirestore(app); 
+// ===== CELL-DOWN PROJECT CONFIG (SERVICE ACCOUNT) =====
+const cellDownConfig = {
+  credential: cert(JSON.parse(process.env.celldown_service_account || '{}')),
+  databaseURL: 'https://celldown-default-rtdb.asia-southeast1.firebasedatabase.app'
+};
+
+// ===== INITIALIZE APPS =====
+const availabilityApp = !getApps().length ? initializeApp(availabilityConfig) : getApp();
+const cellDownApp = initializeApp(cellDownConfig, 'celldown');
+
+// ===== AVAILABILITY PROJECT EXPORTS =====
+export const database = getDatabase(availabilityApp); // Realtime DB for Availability
+export const auth = getAuth(availabilityApp); // Auth for both projects
+export const db = getFirestore(availabilityApp); // Firestore for User Management
+
+// ===== CELL-DOWN PROJECT EXPORTS =====
+export const cellDownDatabase = getDatabase(cellDownApp); // Realtime DB for Cell-Down
+export const cellDownAuth = getAuth(cellDownApp); // Auth for Cell-Down (if needed separately) 

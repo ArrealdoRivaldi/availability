@@ -5,12 +5,12 @@
 
 import * as XLSX from 'exceljs';
 import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc 
-} from 'firebase/firestore';
-import { db } from '@/app/firebaseConfig';
+  ref, 
+  get, 
+  set, 
+  update 
+} from 'firebase/database';
+import { cellDownDatabase } from '@/app/firebaseConfig';
 import { CellDownData, UploadStats, ColumnMap } from '../types';
 import { 
   ALLOWED_FILE_TYPES, 
@@ -365,7 +365,7 @@ export class UploadService {
   }
 
   /**
-   * Upload data to Firestore in batches
+   * Upload data to Realtime Database in batches with sequential keys
    * @param uploadData - Data to upload
    * @param existingData - Current data in database
    * @param onProgress - Progress callback function
@@ -379,6 +379,9 @@ export class UploadService {
     let processed = 0;
     let newDataCount = 0;
     let updatedDataCount = 0;
+
+    // Get next sequential ID for new records
+    const nextSequentialId = await this.getNextSequentialId();
 
     // Process data in batches
     for (let i = 0; i < uploadData.length; i += UPLOAD_BATCH_SIZE) {
@@ -407,7 +410,7 @@ export class UploadService {
             existing.week === previousWeek
           );
           
-          const docRef = doc(db, this.collectionName, existingItem.id!);
+          const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
           const updateData = {
             ...item,
             id: existingItem.id,
@@ -419,14 +422,14 @@ export class UploadService {
             progress: existingWithSameName?.progress || existingItem.progress || DEFAULT_PROGRESS,
             to: item.to || existingWithSameName?.to || existingItem.to || '',
             category: item.category || existingWithSameName?.category || existingItem.category || '',
-            updatedAt: new Date(),
+            updatedAt: new Date().toISOString(),
             status: DEFAULT_STATUS
           };
           
-          await updateDoc(docRef, updateData);
+          await update(dataRef, updateData);
           updatedDataCount++;
         } else {
-          // Add new data with copied fields from previous week
+          // Add new data with sequential key and copied fields from previous week
           const currentWeek = item.week;
           const previousWeek = currentWeek - 1;
           const existingWithSameName = existingData.find(existing => 
@@ -445,11 +448,12 @@ export class UploadService {
             to: item.to || existingWithSameName?.to || '',
             category: item.category || existingWithSameName?.category || '',
             status: DEFAULT_STATUS,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
           
-          await addDoc(collection(db, this.collectionName), newItem);
+          const dataRef = ref(cellDownDatabase, `${this.collectionName}/${nextSequentialId + newDataCount}`);
+          await set(dataRef, newItem);
           newDataCount++;
         }
         
@@ -464,6 +468,33 @@ export class UploadService {
     await this.updateExistingDataStatus(uploadData, existingData);
 
     return { newDataCount, updatedDataCount };
+  }
+
+  /**
+   * Get the next sequential ID for new records
+   * @returns Promise<number> - Next sequential ID
+   */
+  private async getNextSequentialId(): Promise<number> {
+    try {
+      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const snapshot = await get(dataRef);
+      
+      if (!snapshot.exists()) {
+        return 0;
+      }
+      
+      const data = snapshot.val();
+      const keys = Object.keys(data);
+      const numericKeys = keys
+        .map(key => parseInt(key))
+        .filter(key => !isNaN(key))
+        .sort((a, b) => a - b);
+      
+      return numericKeys.length > 0 ? Math.max(...numericKeys) + 1 : 0;
+    } catch (error) {
+      console.error('Error getting next sequential ID:', error);
+      return 0;
+    }
   }
 
   /**
@@ -485,10 +516,10 @@ export class UploadService {
       }
       
       if (newStatus !== existingItem.status) {
-        const docRef = doc(db, this.collectionName, existingItem.id!);
-        await updateDoc(docRef, {
+        const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
+        await update(dataRef, {
           status: newStatus,
-          updatedAt: new Date()
+          updatedAt: new Date().toISOString()
         });
       }
     }

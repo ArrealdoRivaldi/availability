@@ -1,20 +1,24 @@
 /**
  * Data Service for Cell Down Management
  * Handles all CRUD operations and data manipulation for Cell Down data
+ * Now uses Realtime Database instead of Firestore
  */
 
 import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  updateDoc, 
-  doc, 
-  query, 
-  orderBy, 
-  deleteDoc, 
-  writeBatch 
-} from 'firebase/firestore';
-import { db } from '@/app/firebaseConfig';
+  ref, 
+  get, 
+  set, 
+  remove, 
+  push, 
+  update,
+  query,
+  orderByChild,
+  orderByKey,
+  limitToLast,
+  startAfter,
+  endBefore
+} from 'firebase/database';
+import { cellDownDatabase } from '@/app/firebaseConfig';
 import { CellDownData, FilterData } from '../types';
 
 /**
@@ -25,20 +29,38 @@ export class DataService {
   private readonly collectionName = 'data_celldown';
 
   /**
-   * Load all Cell Down data from Firestore
+   * Load all Cell Down data from Realtime Database
    * @returns Promise<CellDownData[]> - Array of all Cell Down records
    */
   async loadData(): Promise<CellDownData[]> {
     try {
-      const q = query(collection(db, this.collectionName), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      const allData: CellDownData[] = [];
+      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const snapshot = await get(dataRef);
       
-      querySnapshot.forEach((doc) => {
-        allData.push({ id: doc.id, ...doc.data() } as CellDownData);
+      if (!snapshot.exists()) {
+        return [];
+      }
+      
+      const allData: CellDownData[] = [];
+      const data = snapshot.val();
+      
+      // Convert object to array with sequential keys
+      Object.keys(data).forEach((key) => {
+        const item = data[key];
+        allData.push({ 
+          id: key, 
+          ...item,
+          // Ensure createdAt is properly formatted
+          createdAt: item.createdAt ? new Date(item.createdAt) : new Date()
+        } as CellDownData);
       });
       
-      return allData;
+      // Sort by createdAt descending (newest first)
+      return allData.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
     } catch (error) {
       console.error('Error loading data:', error);
       throw new Error('Failed to load data from database');
@@ -100,13 +122,13 @@ export class DataService {
    */
   async updateRecord(id: string, updateData: Partial<CellDownData>): Promise<void> {
     try {
-      const docRef = doc(db, this.collectionName, id);
+      const dataRef = ref(cellDownDatabase, `${this.collectionName}/${id}`);
       const dataWithTimestamp = {
         ...updateData,
-        updatedAt: new Date()
+        updatedAt: new Date().toISOString()
       };
       
-      await updateDoc(docRef, dataWithTimestamp);
+      await update(dataRef, dataWithTimestamp);
     } catch (error) {
       console.error('Error updating data:', error);
       throw new Error('Failed to update record');
@@ -120,7 +142,8 @@ export class DataService {
    */
   async deleteRecord(id: string): Promise<void> {
     try {
-      await deleteDoc(doc(db, this.collectionName, id));
+      const dataRef = ref(cellDownDatabase, `${this.collectionName}/${id}`);
+      await remove(dataRef);
     } catch (error) {
       console.error('Error deleting data:', error);
       throw new Error('Failed to delete record');
@@ -134,14 +157,14 @@ export class DataService {
    */
   async deleteRecordsBatch(ids: string[]): Promise<void> {
     try {
-      const batch = writeBatch(db);
+      const updates: { [key: string]: null } = {};
       
       ids.forEach(itemId => {
-        const docRef = doc(db, this.collectionName, itemId);
-        batch.delete(docRef);
+        updates[`${this.collectionName}/${itemId}`] = null;
       });
       
-      await batch.commit();
+      const dataRef = ref(cellDownDatabase);
+      await update(dataRef, updates);
     } catch (error) {
       console.error('Error deleting data:', error);
       throw new Error('Failed to delete records');
@@ -149,22 +172,77 @@ export class DataService {
   }
 
   /**
-   * Add a new Cell Down record
+   * Add a new Cell Down record with sequential key
    * @param data - Cell Down data to add
    * @returns Promise<string> - Document ID of the new record
    */
   async addRecord(data: Omit<CellDownData, 'id'>): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, this.collectionName), {
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const newRecordRef = push(dataRef);
       
-      return docRef.id;
+      const recordData = {
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(newRecordRef, recordData);
+      return newRecordRef.key!;
     } catch (error) {
       console.error('Error adding data:', error);
       throw new Error('Failed to add record');
+    }
+  }
+
+  /**
+   * Get the next sequential ID for manual insertion
+   * @returns Promise<number> - Next sequential ID
+   */
+  async getNextSequentialId(): Promise<number> {
+    try {
+      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const snapshot = await get(dataRef);
+      
+      if (!snapshot.exists()) {
+        return 0;
+      }
+      
+      const data = snapshot.val();
+      const keys = Object.keys(data);
+      const numericKeys = keys
+        .map(key => parseInt(key))
+        .filter(key => !isNaN(key))
+        .sort((a, b) => a - b);
+      
+      return numericKeys.length > 0 ? Math.max(...numericKeys) + 1 : 0;
+    } catch (error) {
+      console.error('Error getting next sequential ID:', error);
+      throw new Error('Failed to get next sequential ID');
+    }
+  }
+
+  /**
+   * Add a new Cell Down record with specific sequential key
+   * @param data - Cell Down data to add
+   * @param sequentialId - Specific sequential ID to use
+   * @returns Promise<string> - Document ID of the new record
+   */
+  async addRecordWithSequentialId(data: Omit<CellDownData, 'id'>, sequentialId: number): Promise<string> {
+    try {
+      const dataRef = ref(cellDownDatabase, `${this.collectionName}/${sequentialId}`);
+      
+      const recordData = {
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await set(dataRef, recordData);
+      return sequentialId.toString();
+    } catch (error) {
+      console.error('Error adding data with sequential ID:', error);
+      throw new Error('Failed to add record with sequential ID');
     }
   }
 
