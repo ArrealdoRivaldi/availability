@@ -5,37 +5,59 @@ import { getFirestore } from "firebase/firestore";
 
 // ===== AVAILABILITY PROJECT CONFIG =====
 const availabilityConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "dummy-api-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "dummy.firebaseapp.com",
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || "https://dummy-default-rtdb.firebaseio.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "dummy-project",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "dummy.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:dummy",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-DUMMY"
 };
 
 // ===== CELL-DOWN PROJECT CONFIG =====
 const cellDownConfig = {
-  apiKey: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_DATABASE_URL,
-  projectId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_MEASUREMENT_ID
+  apiKey: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_API_KEY || "dummy-api-key",
+  authDomain: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_AUTH_DOMAIN || "celldown.firebaseapp.com",
+  databaseURL: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_DATABASE_URL || "https://celldown-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_PROJECT_ID || "celldown",
+  storageBucket: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_STORAGE_BUCKET || "celldown.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_APP_ID || "1:123456789:web:dummy",
+  measurementId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_MEASUREMENT_ID || "G-DUMMY"
 };
 
 // ===== INITIALIZE APPS =====
-const availabilityApp = !getApps().length ? initializeApp(availabilityConfig) : getApp();
-const cellDownApp = initializeApp(cellDownConfig, 'celldown');
+let availabilityApp;
+let cellDownApp;
+let database;
+let auth;
+let db;
+let cellDownDatabase;
+let cellDownAuth;
 
-// ===== AVAILABILITY PROJECT EXPORTS =====
-export const database = getDatabase(availabilityApp); // Realtime DB for Availability
-export const auth = getAuth(availabilityApp); // Auth for both projects
-export const db = getFirestore(availabilityApp); // Firestore for User Management
+try {
+  availabilityApp = !getApps().length ? initializeApp(availabilityConfig) : getApp();
+  cellDownApp = initializeApp(cellDownConfig, 'celldown');
+  
+  // ===== AVAILABILITY PROJECT EXPORTS =====
+  database = getDatabase(availabilityApp); // Realtime DB for Availability
+  auth = getAuth(availabilityApp); // Auth for both projects
+  db = getFirestore(availabilityApp); // Firestore for User Management
+  
+  // ===== CELL-DOWN PROJECT EXPORTS =====
+  cellDownDatabase = getDatabase(cellDownApp); // Realtime DB for Cell-Down
+  cellDownAuth = getAuth(cellDownApp); // Auth for Cell-Down (if needed separately)
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  // Fallback for build time
+  availabilityApp = null;
+  cellDownApp = null;
+  database = null;
+  auth = null;
+  db = null;
+  cellDownDatabase = null;
+  cellDownAuth = null;
+}
 
-// ===== CELL-DOWN PROJECT EXPORTS =====
-export const cellDownDatabase = getDatabase(cellDownApp); // Realtime DB for Cell-Down
-export const cellDownAuth = getAuth(cellDownApp); // Auth for Cell-Down (if needed separately) 
+export { database, auth, db, cellDownDatabase, cellDownAuth }; 
