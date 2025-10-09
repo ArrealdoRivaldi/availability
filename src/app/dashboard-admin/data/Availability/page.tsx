@@ -299,6 +299,10 @@ const DataPage = () => {
       'Status': isDone ? 'Waiting approval' : '',
       'Remark': '',
     };
+    if (!database) {
+      setEditError('Database not initialized');
+      return;
+    }
     await update(ref(database, editRow.id), updates);
     // Logging ke Firestore data_logs
     try {
