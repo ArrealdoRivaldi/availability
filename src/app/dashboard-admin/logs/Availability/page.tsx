@@ -45,6 +45,11 @@ export default function LogsPage() {
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, id: string|null}>({open: false, id: null});
 
   useEffect(() => {
+    if (!db) {
+      setLoadingUsers(false);
+      setLoadingLogs(false);
+      return;
+    }
     // Ambil user aktif
     setLoadingUsers(true);
     getDocs(collection(db, 'active_users')).then(snap => {
@@ -61,7 +66,7 @@ export default function LogsPage() {
 
   // Delete log
   const handleDeleteLog = async (id: string|null) => {
-    if (!id) return;
+    if (!id || !db) return;
     await deleteDoc(doc(db, 'data_logs', id));
     setLogs(logs => logs.filter(l => l.id !== id));
     setDeleteDialog({open: false, id: null});
