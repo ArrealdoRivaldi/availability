@@ -192,11 +192,6 @@ const DataPage = () => {
   const statusOptions = ['Open', 'Waiting approval', 'Close', 'Rejected'];
 
   useEffect(() => {
-    if (!database) {
-      setLoading(false);
-      return;
-    }
-    
     const dbRef = ref(database, 'availability'); // Ambil data dari availability
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
@@ -299,10 +294,6 @@ const DataPage = () => {
       'Status': isDone ? 'Waiting approval' : '',
       'Remark': '',
     };
-    if (!database) {
-      setEditError('Database not initialized');
-      return;
-    }
     await update(ref(database, editRow.id), updates);
     // Logging ke Firestore data_logs
     try {
