@@ -51,7 +51,7 @@ function IdleLogout() {
         modalTimeoutRef.current = setTimeout(async () => {
           setShowModal(false);
           // Hapus user dari active_users jika login
-          const user = auth.currentUser;
+          const user = auth && auth.currentUser;
           if (user) {
             try {
               await deleteDoc(doc(db, 'active_users', user.uid));
