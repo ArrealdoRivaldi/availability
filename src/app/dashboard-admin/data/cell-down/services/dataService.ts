@@ -34,6 +34,10 @@ export class DataService {
    */
   async loadData(): Promise<CellDownData[]> {
     try {
+      if (!cellDownDatabase) {
+        console.error('Cell down database not initialized');
+        return [];
+      }
       const dataRef = ref(cellDownDatabase, this.collectionName);
       const snapshot = await get(dataRef);
       
@@ -122,6 +126,9 @@ export class DataService {
    */
   async updateRecord(id: string, updateData: Partial<CellDownData>): Promise<void> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const dataRef = ref(cellDownDatabase, `${this.collectionName}/${id}`);
       const dataWithTimestamp = {
         ...updateData,
@@ -142,6 +149,9 @@ export class DataService {
    */
   async deleteRecord(id: string): Promise<void> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const dataRef = ref(cellDownDatabase, `${this.collectionName}/${id}`);
       await remove(dataRef);
     } catch (error) {
@@ -157,6 +167,9 @@ export class DataService {
    */
   async deleteRecordsBatch(ids: string[]): Promise<void> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const updates: { [key: string]: null } = {};
       
       ids.forEach(itemId => {
@@ -178,6 +191,9 @@ export class DataService {
    */
   async addRecord(data: Omit<CellDownData, 'id'>): Promise<string> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const dataRef = ref(cellDownDatabase, this.collectionName);
       const newRecordRef = push(dataRef);
       
@@ -201,6 +217,9 @@ export class DataService {
    */
   async getNextSequentialId(): Promise<number> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const dataRef = ref(cellDownDatabase, this.collectionName);
       const snapshot = await get(dataRef);
       
@@ -230,6 +249,9 @@ export class DataService {
    */
   async addRecordWithSequentialId(data: Omit<CellDownData, 'id'>, sequentialId: number): Promise<string> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const dataRef = ref(cellDownDatabase, `${this.collectionName}/${sequentialId}`);
       
       const recordData = {

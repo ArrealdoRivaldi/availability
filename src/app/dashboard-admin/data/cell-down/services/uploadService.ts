@@ -410,6 +410,9 @@ export class UploadService {
             existing.week === previousWeek
           );
           
+          if (!cellDownDatabase) {
+            throw new Error('Cell down database not initialized');
+          }
           const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
           const updateData = {
             ...item,
@@ -452,6 +455,9 @@ export class UploadService {
             updatedAt: new Date().toISOString()
           };
           
+          if (!cellDownDatabase) {
+            throw new Error('Cell down database not initialized');
+          }
           const dataRef = ref(cellDownDatabase, `${this.collectionName}/${nextSequentialId + newDataCount}`);
           await set(dataRef, newItem);
           newDataCount++;
@@ -476,6 +482,9 @@ export class UploadService {
    */
   private async getNextSequentialId(): Promise<number> {
     try {
+      if (!cellDownDatabase) {
+        throw new Error('Cell down database not initialized');
+      }
       const dataRef = ref(cellDownDatabase, this.collectionName);
       const snapshot = await get(dataRef);
       
@@ -515,13 +524,16 @@ export class UploadService {
         newStatus = cellDownNameInUpload ? 'open' : 'close';
       }
       
-      if (newStatus !== existingItem.status) {
-        const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
-        await update(dataRef, {
-          status: newStatus,
-          updatedAt: new Date().toISOString()
-        });
-      }
+        if (newStatus !== existingItem.status) {
+          if (!cellDownDatabase) {
+            throw new Error('Cell down database not initialized');
+          }
+          const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
+          await update(dataRef, {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+          });
+        }
     }
   }
 }

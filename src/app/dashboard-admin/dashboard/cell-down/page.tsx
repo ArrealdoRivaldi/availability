@@ -52,6 +52,11 @@ export default function CellDownDashboardPage() {
 
   const fetchCellDownData = async () => {
     try {
+      if (!cellDownDatabase) {
+        console.error('Cell down database not initialized');
+        setLoading(false);
+        return;
+      }
       console.log('Fetching cell down data from Realtime Database...');
       const dataRef = ref(cellDownDatabase, 'data_celldown');
       const snapshot = await get(dataRef);
