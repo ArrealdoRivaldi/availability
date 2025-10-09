@@ -17,6 +17,15 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
+      if (!auth) {
+        setError('Authentication not initialized');
+        return;
+      }
+      if (!db) {
+        setError('Database not initialized');
+        return;
+      }
+
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
