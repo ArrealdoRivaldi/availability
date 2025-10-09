@@ -35,6 +35,11 @@ export const useAuth = () => {
     }
 
     // If no role in localStorage, check Firebase auth
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
@@ -65,7 +70,7 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       // Only signOut from Firebase if user is not guest
-      if (user && userRole.role !== 'guest') {
+      if (user && userRole.role !== 'guest' && auth) {
         await auth.signOut();
       }
       
