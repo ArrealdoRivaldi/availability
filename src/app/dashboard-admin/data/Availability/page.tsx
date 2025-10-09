@@ -197,7 +197,7 @@ const DataPage = () => {
       return;
     }
     
-    const dbRef = ref(database, 'availability');
+    const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -465,7 +465,10 @@ const DataPage = () => {
       match(row['Site Class'], filter.siteClass) &&
       match(row['NOP'], filter.nop) &&
       match(row['Source Power'], filter.sourcePower) &&
-      (!filter.status || (row['Status'] || '').toLowerCase() === filter.status.toLowerCase()) &&
+      (!filter.status || (() => {
+        const rowStatus = row['Status'] || '';
+        return rowStatus.toLowerCase() === filter.status.toLowerCase() || (filter.status.toLowerCase() === 'open' && rowStatus === '');
+      })()) &&
       matchDate(row['Date Close']) &&
       (!filter.picDept || (row['PIC Dept'] || '').toLowerCase() === filter.picDept.toLowerCase()) &&
       (!filter.progress || (row['Progress'] || '').toLowerCase() === filter.progress.toLowerCase()) &&
@@ -479,14 +482,20 @@ const DataPage = () => {
       const groupRows = rows.filter(r => r['PIC Dept'] === g);
       return {
         label: g,
-        open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+        open: groupRows.filter(r => {
+          const status = r['Status'] || '';
+          return status === 'Open' || status === '';
+        }).length,
         waiting: groupRows.filter(r => r['Status'] === 'Waiting approval').length,
         rejected: groupRows.filter(r => r['Status'] === 'Rejected').length,
         close: groupRows.filter(r => r['Status'] === 'Close').length,
       };
     }).concat({
       label: 'Grand Total',
-      open: rows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+      open: rows.filter(r => {
+        const status = r['Status'] || '';
+        return status === 'Open' || status === '';
+      }).length,
       waiting: rows.filter(r => r['Status'] === 'Waiting approval').length,
       rejected: rows.filter(r => r['Status'] === 'Rejected').length,
       close: rows.filter(r => r['Status'] === 'Close').length,
