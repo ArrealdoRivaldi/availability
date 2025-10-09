@@ -54,7 +54,7 @@ const AvailabilityDashboard = () => {
       return;
     }
     
-    const dbRef = ref(database, 'availability');
+    const dbRef = ref(database);
     console.log('Database reference:', dbRef.toString());
     
     const unsubscribe = onValue(dbRef, (snapshot) => {
@@ -65,6 +65,7 @@ const AvailabilityDashboard = () => {
       console.log('Data keys:', data ? Object.keys(data) : 'No keys');
       
       if (data) {
+        // Data is directly at root level, convert to array format
         const arr = Object.entries(data).map(([id, value]: any) => ({ id, ...value }));
         console.log('Processed data array:', arr);
         console.log('Number of records:', arr.length);
@@ -144,7 +145,10 @@ const AvailabilityDashboard = () => {
   // Pie chart data (status)
   const statusList = ['Open', 'Close', 'Waiting approval', 'Rejected'];
   const statusCounts: Record<string, number> = statusList.reduce((acc: Record<string, number>, status) => {
-    acc[status] = filteredRows.filter(row => (row['Status'] || 'Open') === status).length;
+    acc[status] = filteredRows.filter(row => {
+      const rowStatus = row['Status'] || '';
+      return rowStatus === status || (status === 'Open' && (rowStatus === '' || rowStatus === null));
+    }).length;
     return acc;
   }, {});
   const pieChartData = [
@@ -185,7 +189,10 @@ const AvailabilityDashboard = () => {
       return [
         progress,
         ...statusListForStackedBar.map(status =>
-          rowsForProgress.filter(r => (r['Status'] || 'Open') === status).length
+          rowsForProgress.filter(r => {
+            const rowStatus = r['Status'] || '';
+            return rowStatus === status || (status === 'Open' && (rowStatus === '' || rowStatus === null));
+          }).length
         ),
       ];
     }),
@@ -224,7 +231,10 @@ const AvailabilityDashboard = () => {
       return {
         label: g,
         worst: groupRows.length,
-        open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+        open: groupRows.filter(r => {
+          const status = r['Status'] || '';
+          return status === 'Open' || status === '';
+        }).length,
         waiting: groupRows.filter(r => r['Status'] === 'Waiting approval').length,
         close: groupRows.filter(r => r['Status'] === 'Close').length,
         ach: groupRows.length ? Math.round((groupRows.filter(r => r['Status'] === 'Close').length / groupRows.length) * 100) : 0,
@@ -265,7 +275,10 @@ const AvailabilityDashboard = () => {
       const groupRows = rows.filter(r => (r['PIC Dept'] || '').toUpperCase() === g);
       const data = {
         label: g,
-        open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+        open: groupRows.filter(r => {
+          const status = r['Status'] || '';
+          return status === 'Open' || status === '';
+        }).length,
         waiting: groupRows.filter(r => r['Status'] === 'Waiting approval').length,
         rejected: groupRows.filter(r => r['Status'] === 'Rejected').length,
         close: groupRows.filter(r => r['Status'] === 'Close').length,
@@ -276,7 +289,10 @@ const AvailabilityDashboard = () => {
       return data;
     }).concat({
       label: 'Grand Total',
-      open: rows.filter(r => (r['Status'] || 'Open') === 'Open').length,
+      open: rows.filter(r => {
+        const status = r['Status'] || '';
+        return status === 'Open' || status === '';
+      }).length,
       waiting: rows.filter(r => r['Status'] === 'Waiting approval').length,
       rejected: rows.filter(r => r['Status'] === 'Rejected').length,
       close: rows.filter(r => r['Status'] === 'Close').length,
