@@ -171,12 +171,14 @@ export default function LoginPage() {
               }
               
               // Logging guest user aktif ke Firestore
-              await setDocFS(doc(db, "active_users", `guest_${Date.now()}`), {
-                email: 'guest@example.com',
-                displayName: 'Guest User',
-                lastLogin: new Date().toISOString(),
-                role: 'guest',
-              });
+              if (db) {
+                await setDocFS(doc(db, "active_users", `guest_${Date.now()}`), {
+                  email: 'guest@example.com',
+                  displayName: 'Guest User',
+                  lastLogin: new Date().toISOString(),
+                  role: 'guest',
+                });
+              }
               
               router.push('/dashboard-admin');
             } catch (error) {
