@@ -83,31 +83,39 @@ export default function CellDownDashboardPage() {
             console.log('Record data:', item);
             const mappedData = mapFirestoreData(item, key);
          
-        // Extract week from createdAt timestamp if not already present
-        if (!mappedData.week && mappedData.createdAt) {
-          mappedData.week = extractWeekFromTimestamp(mappedData.createdAt);
+            // Extract week from createdAt timestamp if not already present
+            if (!mappedData.week && mappedData.createdAt) {
+              mappedData.week = extractWeekFromTimestamp(mappedData.createdAt);
+            }
+            
+            // Fallback: if still no week, create a default one
+            if (!mappedData.week) {
+              const now = new Date();
+              const year = now.getFullYear();
+              const weekNumber = Math.ceil((now.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+              mappedData.week = `Week ${weekNumber}, ${year}`;
+            }
+            
+            data.push(mappedData);
+          });
+          
+          // Sort by createdAt descending (newest first)
+          data.sort((a, b) => {
+            const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+            const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+            return dateB.getTime() - dateA.getTime();
+          });
+          
+          console.log('Processed data:', data);
+          setCellDownData(data);
+          setLoading(false);
+          return; // Exit the function if data is found
         }
-        
-        // Fallback: if still no week, create a default one
-        if (!mappedData.week) {
-          const now = new Date();
-          const year = now.getFullYear();
-          const weekNumber = Math.ceil((now.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
-          mappedData.week = `Week ${weekNumber}, ${year}`;
-        }
-        
-        data.push(mappedData);
-      });
+      }
       
-      // Sort by createdAt descending (newest first)
-      data.sort((a, b) => {
-        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
-        return dateB.getTime() - dateA.getTime();
-      });
-      
-      console.log('Processed data:', data);
-      setCellDownData(data);
+      // If no data found in any path
+      console.log('No cell down data found in any of the expected paths:', possiblePaths);
+      setCellDownData([]);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
