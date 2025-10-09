@@ -810,7 +810,7 @@ const DataPage = () => {
                           <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>{formattedTime}</Typography>
                         </Box>
                         <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>{c.text}</Typography>
-                        {auth.currentUser && c.authorId === auth.currentUser.uid && (
+                        {auth && auth.currentUser && c.authorId === auth.currentUser.uid && (
                           <Box display="flex" gap={1} justifyContent="flex-end" mt={1}>
                             <Button size="small" startIcon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 18, height: 18 }}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4 12.362-12.303z" /></svg>} onClick={() => handleEditComment(c.id, c.text)}>Edit</Button>
                             <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={() => handleDeleteComment(c.id)}>Hapus</Button>
