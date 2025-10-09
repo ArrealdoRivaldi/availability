@@ -212,6 +212,13 @@ const DataPage = () => {
         return;
       }
       
+      if (!database) {
+        console.error('Database not initialized');
+        setRows([]);
+        setLoading(false);
+        return;
+      }
+      
       const currentPath = possiblePaths[pathIndex];
       console.log(`Trying path: ${currentPath}`);
       
