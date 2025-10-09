@@ -169,6 +169,10 @@ const AvailabilityApprovalPage = () => {
     const newStatus = statusEdit[row.id];
     const newRemark = remarkEdit[row.id] || '';
     if (!newStatus) return;
+    if (!database) {
+      console.error('Database not initialized');
+      return;
+    }
     setSaving(row.id);
     const updates: any = {
       Status: newStatus,
