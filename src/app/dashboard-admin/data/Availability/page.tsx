@@ -305,20 +305,22 @@ const DataPage = () => {
     await update(ref(database, editRow.id), updates);
     // Logging ke Firestore data_logs
     try {
-      const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
-      let email = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : '';
-      if (!email && typeof window !== 'undefined' && auth && auth.currentUser) {
-        email = auth.currentUser.email || '';
+      if (db) {
+        const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
+        let email = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : '';
+        if (!email && typeof window !== 'undefined' && auth && auth.currentUser) {
+          email = auth.currentUser.email || '';
+        }
+        await addDoc(collection(db, 'data_logs'), {
+          action: 'update',
+          email: email || '-',
+          role: userRole || '-',
+          time: new Date().toISOString(),
+          dataBefore: editRow,
+          dataAfter: updates,
+          rowId: editRow.id,
+        });
       }
-      await addDoc(collection(db, 'data_logs'), {
-        action: 'update',
-        email: email || '-',
-        role: userRole || '-',
-        time: new Date().toISOString(),
-        dataBefore: editRow,
-        dataAfter: updates,
-        rowId: editRow.id,
-      });
     } catch (e) {
       // Optional: bisa tambahkan error handling/logging
     }
