@@ -57,7 +57,7 @@ export default function CellDownDashboardPage() {
         return;
       }
       
-      const dataRef = ref(cellDownDatabase, 'data_celldown');
+      const dataRef = ref(cellDownDatabase);
       const snapshot = await get(dataRef);
       
       if (!snapshot.exists()) {

@@ -26,7 +26,7 @@ import { CellDownData, FilterData } from '../types';
  * Contains all methods for managing Cell Down data
  */
 export class DataService {
-  private readonly collectionName = 'data_celldown';
+  private readonly collectionName = '';
 
   /**
    * Load all Cell Down data from Realtime Database
@@ -39,7 +39,7 @@ export class DataService {
         throw new Error('Cell down database not initialized');
       }
       
-      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const dataRef = ref(cellDownDatabase);
       const snapshot = await get(dataRef);
       
       if (!snapshot.exists()) {
@@ -132,7 +132,7 @@ export class DataService {
       if (!cellDownDatabase) {
         throw new Error('Cell down database not initialized');
       }
-      const dataRef = ref(cellDownDatabase, `${this.collectionName}/${id}`);
+      const dataRef = ref(cellDownDatabase, id);
       const dataWithTimestamp = {
         ...updateData,
         updatedAt: new Date().toISOString()
@@ -155,7 +155,7 @@ export class DataService {
       if (!cellDownDatabase) {
         throw new Error('Cell down database not initialized');
       }
-      const dataRef = ref(cellDownDatabase, `${this.collectionName}/${id}`);
+      const dataRef = ref(cellDownDatabase, id);
       await remove(dataRef);
     } catch (error) {
       console.error('Error deleting data:', error);
@@ -176,7 +176,7 @@ export class DataService {
       const updates: { [key: string]: null } = {};
       
       ids.forEach(itemId => {
-        updates[`${this.collectionName}/${itemId}`] = null;
+        updates[itemId] = null;
       });
       
       const dataRef = ref(cellDownDatabase);
@@ -197,7 +197,7 @@ export class DataService {
       if (!cellDownDatabase) {
         throw new Error('Cell down database not initialized');
       }
-      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const dataRef = ref(cellDownDatabase);
       const newRecordRef = push(dataRef);
       
       const recordData = {
@@ -223,7 +223,7 @@ export class DataService {
       if (!cellDownDatabase) {
         throw new Error('Cell down database not initialized');
       }
-      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const dataRef = ref(cellDownDatabase);
       const snapshot = await get(dataRef);
       
       if (!snapshot.exists()) {
@@ -255,7 +255,7 @@ export class DataService {
       if (!cellDownDatabase) {
         throw new Error('Cell down database not initialized');
       }
-      const dataRef = ref(cellDownDatabase, `${this.collectionName}/${sequentialId}`);
+      const dataRef = ref(cellDownDatabase, sequentialId.toString());
       
       const recordData = {
         ...data,

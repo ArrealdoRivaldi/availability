@@ -28,7 +28,7 @@ import {
  * Contains all methods for handling file uploads and data processing
  */
 export class UploadService {
-  private readonly collectionName = 'data_celldown';
+  private readonly collectionName = '';
 
   /**
    * Validate uploaded file
@@ -413,7 +413,7 @@ export class UploadService {
           if (!cellDownDatabase) {
             throw new Error('Cell down database not initialized');
           }
-          const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
+          const dataRef = ref(cellDownDatabase, existingItem.id);
           const updateData = {
             ...item,
             id: existingItem.id,
@@ -458,7 +458,7 @@ export class UploadService {
           if (!cellDownDatabase) {
             throw new Error('Cell down database not initialized');
           }
-          const dataRef = ref(cellDownDatabase, `${this.collectionName}/${nextSequentialId + newDataCount}`);
+          const dataRef = ref(cellDownDatabase, (nextSequentialId + newDataCount).toString());
           await set(dataRef, newItem);
           newDataCount++;
         }
@@ -485,7 +485,7 @@ export class UploadService {
       if (!cellDownDatabase) {
         throw new Error('Cell down database not initialized');
       }
-      const dataRef = ref(cellDownDatabase, this.collectionName);
+      const dataRef = ref(cellDownDatabase);
       const snapshot = await get(dataRef);
       
       if (!snapshot.exists()) {
@@ -528,7 +528,7 @@ export class UploadService {
           if (!cellDownDatabase) {
             throw new Error('Cell down database not initialized');
           }
-          const dataRef = ref(cellDownDatabase, `${this.collectionName}/${existingItem.id}`);
+          const dataRef = ref(cellDownDatabase, existingItem.id);
           await update(dataRef, {
             status: newStatus,
             updatedAt: new Date().toISOString()
