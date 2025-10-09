@@ -200,6 +200,10 @@ const CrudPage = () => {
         return;
       }
     }
+    if (!database) {
+      setSnackbar({open:true, message:'Database not initialized', color:'error'});
+      return;
+    }
     setLoading(true);
     if (formMode === 'add') {
       await push(ref(database), formData);
@@ -214,6 +218,10 @@ const CrudPage = () => {
     setEditId(null);
   };
   const handleDelete = async (id: string) => {
+    if (!database) {
+      setSnackbar({open:true, message:'Database not initialized', color:'error'});
+      return;
+    }
     setLoading(true);
     await remove(ref(database, id));
     setSnackbar({open:true, message:'Data berhasil dihapus!', color:'success'});
@@ -277,6 +285,10 @@ const CrudPage = () => {
     }
   };
   const handleUploadImport = async () => {
+    if (!database) {
+      setSnackbar({open:true, message:'Database not initialized', color:'error'});
+      return;
+    }
     setUploadLoading(true);
     setUploadProgress(0);
     setUploadSuccess(false);
