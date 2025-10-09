@@ -307,7 +307,7 @@ const DataPage = () => {
     try {
       const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
       let email = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : '';
-      if (!email && typeof window !== 'undefined' && auth.currentUser) {
+      if (!email && typeof window !== 'undefined' && auth && auth.currentUser) {
         email = auth.currentUser.email || '';
       }
       await addDoc(collection(db, 'data_logs'), {
@@ -361,7 +361,7 @@ const DataPage = () => {
     setEditCommentValue('');
   };
   const handleAddComment = async () => {
-    if (!discussRow || !discussInput.trim() || !auth.currentUser) return;
+    if (!discussRow || !discussInput.trim() || !auth || !auth.currentUser) return;
     const newComment = {
       text: discussInput,
       time: new Date().toISOString(),
@@ -371,6 +371,10 @@ const DataPage = () => {
       authorPhotoURL: auth.currentUser.photoURL || '',
       id: Math.random().toString(36).slice(2),
     };
+    if (!database) {
+      console.error('Database not initialized');
+      return;
+    }
     const oldDiscuss = Array.isArray(discussRow.Discuss) ? discussRow.Discuss : [];
     const updates = { Discuss: [...oldDiscuss, newComment] };
     await update(ref(database, discussRow.id), updates);
@@ -383,7 +387,7 @@ const DataPage = () => {
     }, { onlyOnce: true });
   };
   const handleDeleteComment = async (commentId: string) => {
-    if (!discussRow) return;
+    if (!discussRow || !database) return;
     const oldDiscuss = Array.isArray(discussRow.Discuss) ? discussRow.Discuss : [];
     const newDiscuss = oldDiscuss.filter((c: any) => c.id !== commentId);
     await update(ref(database, discussRow.id), { Discuss: newDiscuss });
@@ -398,7 +402,7 @@ const DataPage = () => {
     setEditCommentValue(value);
   };
   const handleSaveEditComment = async () => {
-    if (!discussRow || !editCommentId) return;
+    if (!discussRow || !editCommentId || !database) return;
     const oldDiscuss = Array.isArray(discussRow.Discuss) ? discussRow.Discuss : [];
     const newDiscuss = oldDiscuss.map((c: any) => c.id === editCommentId ? { ...c, text: editCommentValue } : c);
     await update(ref(database, discussRow.id), { Discuss: newDiscuss });
