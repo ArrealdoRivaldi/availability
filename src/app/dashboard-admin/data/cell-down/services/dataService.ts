@@ -39,19 +39,15 @@ export class DataService {
         throw new Error('Cell down database not initialized');
       }
       
-      console.log('Loading cell down data from Realtime Database...');
       const dataRef = ref(cellDownDatabase, this.collectionName);
       const snapshot = await get(dataRef);
       
       if (!snapshot.exists()) {
-        console.log('No cell down data found in Realtime Database');
         return [];
       }
       
       const allData: CellDownData[] = [];
       const data = snapshot.val();
-      
-      console.log(`Found ${Object.keys(data).length} cell down records`);
       
       // Convert object to array with sequential keys
       Object.keys(data).forEach((key) => {
@@ -71,7 +67,6 @@ export class DataService {
         return dateB.getTime() - dateA.getTime();
       });
       
-      console.log('Cell down data loaded successfully');
       return sortedData;
     } catch (error) {
       console.error('Error loading cell down data:', error);

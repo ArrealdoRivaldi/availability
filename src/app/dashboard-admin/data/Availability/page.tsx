@@ -193,62 +193,29 @@ const DataPage = () => {
 
   useEffect(() => {
     if (!database) {
-      console.error('Database not initialized');
       setLoading(false);
       return;
     }
     
-    console.log('Loading availability data from Realtime Database...');
-    console.log('Database URL:', database.app.options.databaseURL);
-    
-    // Coba beberapa path yang mungkin
-    const possiblePaths = ['availability', 'data_availability', 'data', 'availability_data'];
-    
-    const tryLoadData = async (pathIndex = 0) => {
-      if (pathIndex >= possiblePaths.length) {
-        console.log('No data found in any of the expected paths:', possiblePaths);
+    const dbRef = ref(database, 'availability');
+    const unsubscribe = onValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const arr = Object.entries(data).map(([id, value]: any) => ({
+          id,
+          ...value,
+        }));
+        setRows(arr);
+      } else {
         setRows([]);
-        setLoading(false);
-        return;
       }
-      
-      if (!database) {
-        console.error('Database not initialized');
-        setRows([]);
-        setLoading(false);
-        return;
-      }
-      
-      const currentPath = possiblePaths[pathIndex];
-      console.log(`Trying path: ${currentPath}`);
-      
-      const dbRef = ref(database, currentPath);
-      const unsubscribe = onValue(dbRef, (snapshot) => {
-        const data = snapshot.val();
-        console.log(`Data at path '${currentPath}':`, data);
-        
-        if (data) {
-          // Ubah objek menjadi array
-          const arr = Object.entries(data).map(([id, value]: any) => ({
-            id,
-            ...value,
-          }));
-          setRows(arr);
-          console.log(`Availability data loaded successfully from '${currentPath}':`, arr.length, 'records');
-          setLoading(false);
-        } else {
-          console.log(`No data found at path '${currentPath}', trying next path...`);
-          unsubscribe(); // Stop listening to this path
-          tryLoadData(pathIndex + 1); // Try next path
-        }
-      }, (error) => {
-        console.error(`Error loading data from path '${currentPath}':`, error);
-        unsubscribe(); // Stop listening to this path
-        tryLoadData(pathIndex + 1); // Try next path
-      });
-    };
-    
-    tryLoadData();
+      setLoading(false);
+    }, (error) => {
+      console.error('Error loading availability data:', error);
+      setRows([]);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleEditOpen = useCallback((row: any) => {

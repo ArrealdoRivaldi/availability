@@ -53,69 +53,47 @@ export default function CellDownDashboardPage() {
   const fetchCellDownData = async () => {
     try {
       if (!cellDownDatabase) {
-        console.error('Cell down database not initialized');
         setLoading(false);
         return;
       }
       
-      console.log('Fetching cell down data from Realtime Database...');
-      console.log('Cell Down Database URL:', cellDownDatabase.app.options.databaseURL);
+      const dataRef = ref(cellDownDatabase, 'data_celldown');
+      const snapshot = await get(dataRef);
       
-      // Coba beberapa path yang mungkin
-      const possiblePaths = ['data_celldown', 'celldown', 'data', 'cell_down', 'celldown_data'];
-      
-      for (const path of possiblePaths) {
-        console.log(`Trying cell down path: ${path}`);
-        const dataRef = ref(cellDownDatabase, path);
-        const snapshot = await get(dataRef);
-        
-        console.log(`Data at path '${path}':`, snapshot.val());
-        
-        if (snapshot.exists()) {
-          const data: CellDownData[] = [];
-          const dbData = snapshot.val();
-          
-          console.log(`Found ${Object.keys(dbData).length} records at path '${path}'`);
-          
-          // Convert object to array with sequential keys
-          Object.keys(dbData).forEach((key) => {
-            const item = dbData[key];
-            console.log('Record data:', item);
-            const mappedData = mapFirestoreData(item, key);
-         
-            // Extract week from createdAt timestamp if not already present
-            if (!mappedData.week && mappedData.createdAt) {
-              mappedData.week = extractWeekFromTimestamp(mappedData.createdAt);
-            }
-            
-            // Fallback: if still no week, create a default one
-            if (!mappedData.week) {
-              const now = new Date();
-              const year = now.getFullYear();
-              const weekNumber = Math.ceil((now.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
-              mappedData.week = `Week ${weekNumber}, ${year}`;
-            }
-            
-            data.push(mappedData);
-          });
-          
-          // Sort by createdAt descending (newest first)
-          data.sort((a, b) => {
-            const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-            const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
-            return dateB.getTime() - dateA.getTime();
-          });
-          
-          console.log('Processed data:', data);
-          setCellDownData(data);
-          setLoading(false);
-          return; // Exit the function if data is found
-        }
+      if (!snapshot.exists()) {
+        setCellDownData([]);
+        setLoading(false);
+        return;
       }
       
-      // If no data found in any path
-      console.log('No cell down data found in any of the expected paths:', possiblePaths);
-      setCellDownData([]);
+      const data: CellDownData[] = [];
+      const dbData = snapshot.val();
+      
+      Object.keys(dbData).forEach((key) => {
+        const item = dbData[key];
+        const mappedData = mapFirestoreData(item, key);
+        
+        if (!mappedData.week && mappedData.createdAt) {
+          mappedData.week = extractWeekFromTimestamp(mappedData.createdAt);
+        }
+        
+        if (!mappedData.week) {
+          const now = new Date();
+          const year = now.getFullYear();
+          const weekNumber = Math.ceil((now.getTime() - new Date(year, 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+          mappedData.week = `Week ${weekNumber}, ${year}`;
+        }
+        
+        data.push(mappedData);
+      });
+      
+      data.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      setCellDownData(data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
