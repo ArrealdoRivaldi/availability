@@ -45,22 +45,37 @@ const AvailabilityDashboard = () => {
   });
 
   useEffect(() => {
+    console.log('Database object:', database);
+    console.log('Database URL:', database?.app?.options?.databaseURL);
+    
     if (!database) {
+      console.error('Database not initialized');
       setLoading(false);
       return;
     }
     
     const dbRef = ref(database, 'availability');
+    console.log('Database reference:', dbRef.toString());
+    
     const unsubscribe = onValue(dbRef, (snapshot) => {
+      console.log('Snapshot received:', snapshot);
       const data = snapshot.val();
+      console.log('Raw data from database:', data);
+      
       if (data) {
         const arr = Object.entries(data).map(([id, value]: any) => ({ id, ...value }));
+        console.log('Processed data array:', arr);
         setRows(arr);
       } else {
+        console.log('No data found in database');
         setRows([]);
       }
       setLoading(false);
+    }, (error) => {
+      console.error('Database error:', error);
+      setLoading(false);
     });
+    
     return () => unsubscribe();
   }, []);
 

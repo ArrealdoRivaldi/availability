@@ -5,26 +5,26 @@ import { getFirestore, Firestore } from "firebase/firestore";
 
 // ===== AVAILABILITY PROJECT CONFIG =====
 const availabilityConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "dummy-api-key",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "dummy.firebaseapp.com",
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || "https://dummy-default-rtdb.firebaseio.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "dummy-project",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "dummy.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:dummy",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-DUMMY"
+  apiKey: "AIzaSyAqd0ge5gkzFS6gDKpagOIIqRsbepb3Udc",
+  authDomain: "availbility.firebaseapp.com",
+  databaseURL: "https://availbility-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "availbility",
+  storageBucket: "availbility.firebasestorage.app",
+  messagingSenderId: "26545685543",
+  appId: "1:26545685543:web:15159979ddb975c0023a02",
+  measurementId: "G-W479ZEQMD2"
 };
 
 // ===== CELL-DOWN PROJECT CONFIG =====
 const cellDownConfig = {
-  apiKey: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_API_KEY || "dummy-api-key",
-  authDomain: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_AUTH_DOMAIN || "celldown.firebaseapp.com",
-  databaseURL: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_DATABASE_URL || "https://celldown-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_PROJECT_ID || "celldown",
-  storageBucket: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_STORAGE_BUCKET || "celldown.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_APP_ID || "1:123456789:web:dummy",
-  measurementId: process.env.NEXT_PUBLIC_CELLDOWN_FIREBASE_MEASUREMENT_ID || "G-DUMMY"
+  apiKey: "AIzaSyDmfoXUPeOUkz8Irsc4hnha2GPsRwEwrZM",
+  authDomain: "celldown.firebaseapp.com",
+  databaseURL: "https://celldown-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "celldown",
+  storageBucket: "celldown.firebasestorage.app",
+  messagingSenderId: "554158819494",
+  appId: "1:554158819494:web:d678599585c8e09d4e0c67",
+  measurementId: "G-BP1LWVESWY"
 };
 
 // ===== INITIALIZE APPS =====
