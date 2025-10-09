@@ -25,7 +25,7 @@ const SidebarItems = () => {
 
   // Hook untuk mengambil jumlah data approval
   React.useEffect(() => {
-    if (role === 'super_admin') {
+    if (role === 'super_admin' && database) {
       const dbRef = ref(database, 'availability');
       const unsubscribe = onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
@@ -40,7 +40,7 @@ const SidebarItems = () => {
       });
       return () => unsubscribe();
     }
-  }, [role]);
+  }, [role, database]);
 
   const menuItems = getMenuItemsByRole(role);
 

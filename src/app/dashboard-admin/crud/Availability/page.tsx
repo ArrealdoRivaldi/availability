@@ -156,6 +156,11 @@ const CrudPage = () => {
 
 
   useEffect(() => {
+    if (!database) {
+      setLoading(false);
+      return;
+    }
+    
     const dbRef = ref(database, 'availability');
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
