@@ -141,7 +141,10 @@ const CrudPage = () => {
   // Filtered rows
   const filteredRows = rows.filter(row => {
     const match = (val: string, filterVal: string) => !filterVal || (val || '').toLowerCase().includes(filterVal.toLowerCase());
-    const matchStatus = !filter.status || (row['Status'] || '').toLowerCase() === filter.status.toLowerCase();
+    const matchStatus = !filter.status || (() => {
+      const rowStatus = row['Status'] || '';
+      return rowStatus.toLowerCase() === filter.status.toLowerCase() || (filter.status.toLowerCase() === 'open' && rowStatus === '');
+    })();
     const matchSearch = !filter.search || DATA_COLUMNS.some(col => (row[col.id] || '').toString().toLowerCase().includes(filter.search.toLowerCase()));
     return (
       match(row['Category'], filter.category) &&
@@ -161,7 +164,7 @@ const CrudPage = () => {
       return;
     }
     
-    const dbRef = ref(database, 'availability');
+    const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {

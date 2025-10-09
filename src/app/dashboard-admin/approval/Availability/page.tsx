@@ -123,7 +123,7 @@ const AvailabilityApprovalPage = () => {
       return;
     }
     
-    const dbRef = ref(database, 'availability');
+    const dbRef = ref(database);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
