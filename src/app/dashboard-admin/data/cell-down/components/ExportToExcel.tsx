@@ -13,6 +13,8 @@ interface CellDownData {
   rangeAgingDown: string;
   siteClass: string;
   subDomain: string;
+  to: string;
+  category: string;
   rootCause: string;
   detailProblem: string;
   planAction: string;
