@@ -195,14 +195,6 @@ export default function CellDownDataPage() {
     applyFilters();
   }, [allData, filters, searchTerm, searchField]);
 
-  // Set filter to latest week when data is loaded
-  useEffect(() => {
-    if (uniqueWeeks.length > 0 && !filters.week) {
-      const latestWeek = Math.max(...uniqueWeeks);
-      setFilters(prev => ({ ...prev, week: latestWeek.toString() }));
-    }
-  }, [uniqueWeeks]);
-
   useEffect(() => {
     const startIndex = page * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
@@ -219,11 +211,22 @@ export default function CellDownDataPage() {
     setLoading(true);
     try {
       const allData = await dataService.loadData();
-      setAllData(allData);
-      setFilteredData(allData);
+      
+      // Sort by week descending (highest to lowest) by default
+      const sortedData = [...allData].sort((a, b) => {
+        // First sort by week (descending)
+        if (b.week !== a.week) {
+          return b.week - a.week;
+        }
+        // If weeks are equal, maintain the original order (by createdAt)
+        return 0;
+      });
+      
+      setAllData(sortedData);
+      setFilteredData(sortedData);
       
       // Extract unique values for filter dropdowns
-      const { nops, weeks, rangeAgingDown, tos } = dataService.extractUniqueValues(allData);
+      const { nops, weeks, rangeAgingDown, tos } = dataService.extractUniqueValues(sortedData);
       
       setUniqueNOPs(nops);
       setUniqueWeeks(weeks);
@@ -242,7 +245,16 @@ export default function CellDownDataPage() {
    */
   const applyFilters = () => {
     const filtered = dataService.applyFilters(allData, filters, searchTerm, searchField);
-    setFilteredData(filtered);
+    
+    // Sort filtered data by week descending (highest to lowest)
+    const sortedFiltered = [...filtered].sort((a, b) => {
+      if (b.week !== a.week) {
+        return b.week - a.week;
+      }
+      return 0;
+    });
+    
+    setFilteredData(sortedFiltered);
     setPage(0);
   };
 
@@ -412,7 +424,7 @@ export default function CellDownDataPage() {
       }, SUCCESS_MESSAGE_DURATION);
       
       resetUploadState();
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Error uploading data:', error);
       setShowUploadAnimation(false);

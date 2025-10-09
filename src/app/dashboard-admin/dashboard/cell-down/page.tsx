@@ -50,28 +50,6 @@ export default function CellDownDashboardPage() {
     applyFilters();
   }, [cellDownData, weekFilter, nopFilter]);
 
-  // Set filter to latest week when data is loaded
-  useEffect(() => {
-    if (cellDownData.length > 0 && !weekFilter) {
-      // Extract all unique weeks
-      const weeks = cellDownData
-        .map(item => {
-          if (typeof item.week === 'number') return item.week;
-          if (typeof item.week === 'string') {
-            const weekNum = parseInt(item.week.replace('W', '').replace(/Week\s+/i, '').split(',')[0]);
-            return !isNaN(weekNum) ? weekNum : null;
-          }
-          return null;
-        })
-        .filter((w): w is number => w !== null);
-      
-      if (weeks.length > 0) {
-        const latestWeek = Math.max(...weeks);
-        setWeekFilter(latestWeek.toString());
-      }
-    }
-  }, [cellDownData]);
-
   const fetchCellDownData = async () => {
     try {
       if (!cellDownDatabase) {
