@@ -195,6 +195,14 @@ export default function CellDownDataPage() {
     applyFilters();
   }, [allData, filters, searchTerm, searchField]);
 
+  // Set filter to latest week when data is loaded
+  useEffect(() => {
+    if (uniqueWeeks.length > 0 && !filters.week) {
+      const latestWeek = Math.max(...uniqueWeeks);
+      setFilters(prev => ({ ...prev, week: latestWeek.toString() }));
+    }
+  }, [uniqueWeeks]);
+
   useEffect(() => {
     const startIndex = page * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
