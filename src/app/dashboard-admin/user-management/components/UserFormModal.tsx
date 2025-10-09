@@ -113,6 +113,11 @@ export default function UserFormModal({ open, onClose, user, mode }: UserFormMod
     setSubmitError('');
 
     try {
+      if (!db) {
+        setSubmitError('Database not initialized');
+        return;
+      }
+
       if (mode === 'add') {
         // Add new user
         const userData = {

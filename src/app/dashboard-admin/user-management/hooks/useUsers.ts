@@ -19,6 +19,12 @@ export function useUsers() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!db) {
+      setLoading(false);
+      setError('Database not initialized');
+      return;
+    }
+
     const usersRef = collection(db, 'users');
     const basicQuery = query(usersRef);
     
@@ -64,6 +70,10 @@ export function useUsers() {
 
   const deleteUser = async (userId: string): Promise<boolean> => {
     try {
+      if (!db) {
+        setError('Database not initialized');
+        return false;
+      }
       setLoading(true);
       await deleteDoc(doc(db, 'users', userId));
       return true;
@@ -78,6 +88,10 @@ export function useUsers() {
 
   const refreshUsers = async () => {
     try {
+      if (!db) {
+        setError('Database not initialized');
+        return;
+      }
       setLoading(true);
       setError(null);
       
