@@ -57,27 +57,31 @@ export default function CellDownDashboardPage() {
         setLoading(false);
         return;
       }
+      
       console.log('Fetching cell down data from Realtime Database...');
-      const dataRef = ref(cellDownDatabase, 'data_celldown');
-      const snapshot = await get(dataRef);
+      console.log('Cell Down Database URL:', cellDownDatabase.app.options.databaseURL);
       
-      if (!snapshot.exists()) {
-        console.log('No data found in Realtime Database');
-        setCellDownData([]);
-        setLoading(false);
-        return;
-      }
+      // Coba beberapa path yang mungkin
+      const possiblePaths = ['data_celldown', 'celldown', 'data', 'cell_down', 'celldown_data'];
       
-      const data: CellDownData[] = [];
-      const dbData = snapshot.val();
-      
-      console.log(`Found ${Object.keys(dbData).length} records`);
-      
-      // Convert object to array with sequential keys
-      Object.keys(dbData).forEach((key) => {
-        const item = dbData[key];
-        console.log('Record data:', item);
-        const mappedData = mapFirestoreData(item, key);
+      for (const path of possiblePaths) {
+        console.log(`Trying cell down path: ${path}`);
+        const dataRef = ref(cellDownDatabase, path);
+        const snapshot = await get(dataRef);
+        
+        console.log(`Data at path '${path}':`, snapshot.val());
+        
+        if (snapshot.exists()) {
+          const data: CellDownData[] = [];
+          const dbData = snapshot.val();
+          
+          console.log(`Found ${Object.keys(dbData).length} records at path '${path}'`);
+          
+          // Convert object to array with sequential keys
+          Object.keys(dbData).forEach((key) => {
+            const item = dbData[key];
+            console.log('Record data:', item);
+            const mappedData = mapFirestoreData(item, key);
          
         // Extract week from createdAt timestamp if not already present
         if (!mappedData.week && mappedData.createdAt) {

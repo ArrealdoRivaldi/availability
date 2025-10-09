@@ -9,6 +9,8 @@ import { doc, deleteDoc } from "firebase/firestore";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/utils/useAuth";
 import { AuthDebugger } from "@/components/AuthDebugger";
+import { DatabaseExplorer } from "@/components/DatabaseExplorer";
+import { SampleDataCreator } from "@/components/SampleDataCreator";
 
 
 const MainWrapper = styled("div")(() => ({
@@ -135,6 +137,8 @@ export default function RootLayout({
             {/* Debug Info (Temporary) */}
             {/* ------------------------------------------- */}
             <AuthDebugger show={true} />
+            <DatabaseExplorer show={true} />
+            <SampleDataCreator show={true} />
             {/* ------------------------------------------- */}
             {/* Page Route */}
             {/* ------------------------------------------- */}
