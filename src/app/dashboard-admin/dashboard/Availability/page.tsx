@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, MenuItem, Select, FormControl, InputLabel, Paper, Grid, Button, CircularProgress } from '@mui/material';
 import { Chart } from 'react-google-charts';
-import { database } from '../../../firebaseConfig';
+import { database } from '../../firebaseConfig';
 import { ref, onValue } from 'firebase/database';
 import { Stepper, Step, StepLabel, StepIconProps } from '@mui/material';
 
@@ -61,10 +61,17 @@ const AvailabilityDashboard = () => {
       console.log('Snapshot received:', snapshot);
       const data = snapshot.val();
       console.log('Raw data from database:', data);
+      console.log('Data type:', typeof data);
+      console.log('Data keys:', data ? Object.keys(data) : 'No keys');
       
       if (data) {
         const arr = Object.entries(data).map(([id, value]: any) => ({ id, ...value }));
         console.log('Processed data array:', arr);
+        console.log('Number of records:', arr.length);
+        if (arr.length > 0) {
+          console.log('First record structure:', arr[0]);
+          console.log('First record keys:', Object.keys(arr[0]));
+        }
         setRows(arr);
       } else {
         console.log('No data found in database');
@@ -73,6 +80,7 @@ const AvailabilityDashboard = () => {
       setLoading(false);
     }, (error) => {
       console.error('Database error:', error);
+      console.error('Error details:', error.message);
       setLoading(false);
     });
     
@@ -106,6 +114,15 @@ const AvailabilityDashboard = () => {
     return acc;
   }, {});
   const totalStepCount = Object.values(stepCounts).reduce((sum, val) => sum + val, 0);
+  
+  console.log('Stepper debugging:');
+  console.log('Total filtered rows:', filteredRows.length);
+  console.log('Step counts:', stepCounts);
+  console.log('Total step count:', totalStepCount);
+  if (filteredRows.length > 0) {
+    console.log('Sample Progress values:', filteredRows.slice(0, 5).map(r => r['Progress']));
+    console.log('Sample Status values:', filteredRows.slice(0, 5).map(r => r['Status']));
+  }
   function CustomStepIcon({ status }: { status: string }) {
     return <span style={{ fontSize: 22, color: statusColors[status] }}>{statusColors[status]}</span>;
   }
@@ -237,15 +254,26 @@ const AvailabilityDashboard = () => {
     'ENGINEERING',
   ];
   const getDeptPicTableData = () => {
-    return PIC_DEPT_OPTIONS.map(g => {
+    console.log('getDeptPicTableData - Total rows:', rows.length);
+    if (rows.length > 0) {
+      console.log('Sample row fields:', Object.keys(rows[0]));
+      console.log('Sample PIC Dept values:', rows.slice(0, 3).map(r => r['PIC Dept']));
+      console.log('Sample Status values:', rows.slice(0, 3).map(r => r['Status']));
+    }
+    
+    const result = PIC_DEPT_OPTIONS.map(g => {
       const groupRows = rows.filter(r => (r['PIC Dept'] || '').toUpperCase() === g);
-      return {
+      const data = {
         label: g,
         open: groupRows.filter(r => (r['Status'] || 'Open') === 'Open').length,
         waiting: groupRows.filter(r => r['Status'] === 'Waiting approval').length,
         rejected: groupRows.filter(r => r['Status'] === 'Rejected').length,
         close: groupRows.filter(r => r['Status'] === 'Close').length,
       };
+      if (groupRows.length > 0) {
+        console.log(`Dept ${g}: ${groupRows.length} rows, data:`, data);
+      }
+      return data;
     }).concat({
       label: 'Grand Total',
       open: rows.filter(r => (r['Status'] || 'Open') === 'Open').length,
@@ -253,6 +281,9 @@ const AvailabilityDashboard = () => {
       rejected: rows.filter(r => r['Status'] === 'Rejected').length,
       close: rows.filter(r => r['Status'] === 'Close').length,
     });
+    
+    console.log('Dept PIC table data result:', result);
+    return result;
   };
 
   // Calculate total data and total data with progress
