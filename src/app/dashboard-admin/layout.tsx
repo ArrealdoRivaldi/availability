@@ -52,7 +52,7 @@ function IdleLogout() {
           setShowModal(false);
           // Hapus user dari active_users jika login
           const user = auth && auth.currentUser;
-          if (user) {
+          if (user && db) {
             try {
               await deleteDoc(doc(db, 'active_users', user.uid));
             } catch {}
