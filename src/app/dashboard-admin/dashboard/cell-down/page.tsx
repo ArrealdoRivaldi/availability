@@ -64,6 +64,7 @@ export default function CellDownDashboardPage() {
       if (!snapshot.exists()) {
         console.log('No data found in Realtime Database');
         setCellDownData([]);
+        setLoading(false);
         return;
       }
       

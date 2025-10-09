@@ -8,6 +8,7 @@ import { auth, db } from "@/app/firebaseConfig";
 import { doc, deleteDoc } from "firebase/firestore";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/utils/useAuth";
+import { AuthDebugger } from "@/components/AuthDebugger";
 
 
 const MainWrapper = styled("div")(() => ({
@@ -130,6 +131,10 @@ export default function RootLayout({
               maxWidth: "1200px",
             }}
           >
+            {/* ------------------------------------------- */}
+            {/* Debug Info (Temporary) */}
+            {/* ------------------------------------------- */}
+            <AuthDebugger show={true} />
             {/* ------------------------------------------- */}
             {/* Page Route */}
             {/* ------------------------------------------- */}

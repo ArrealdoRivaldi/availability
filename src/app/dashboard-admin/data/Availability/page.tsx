@@ -193,9 +193,12 @@ const DataPage = () => {
 
   useEffect(() => {
     if (!database) {
+      console.error('Database not initialized');
       setLoading(false);
       return;
     }
+    
+    console.log('Loading availability data from Realtime Database...');
     const dbRef = ref(database, 'availability'); // Ambil data dari availability
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
@@ -206,9 +209,15 @@ const DataPage = () => {
           ...value,
         }));
         setRows(arr);
+        console.log('Availability data loaded successfully:', arr.length, 'records');
       } else {
         setRows([]);
+        console.log('No availability data found');
       }
+      setLoading(false);
+    }, (error) => {
+      console.error('Error loading availability data:', error);
+      setRows([]);
       setLoading(false);
     });
     return () => unsubscribe();
