@@ -22,13 +22,17 @@ const Profile = () => {
   const { logout } = useAuth();
 
   useEffect(() => {
+    if (!auth) {
+      setLoadingUser(false);
+      return;
+    }
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         // Refresh data user Google Auth agar photoURL selalu update
         await firebaseUser.reload();
       }
       setUser(firebaseUser);
-      if (firebaseUser) {
+      if (firebaseUser && db) {
         const userRef = doc(db, "users", firebaseUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
