@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, MenuItem, Select, FormControl, InputLabel, Paper, Grid, Button, CircularProgress } from '@mui/material';
 import { Chart } from 'react-google-charts';
-import { database } from '../../firebaseConfig';
+import { database } from '../../../firebaseConfig';
 import { ref, onValue } from 'firebase/database';
 import { Stepper, Step, StepLabel, StepIconProps } from '@mui/material';
 
